@@ -1,0 +1,43 @@
+name: Delete .env Files
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  delete-env-files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete .env files
+        run: |
+          found_files=$(find . -type f -name ".env*" ! -path "./.git/*")
+          if [ -n "$found_files" ]; then
+            echo "Deleting the following .env files:"
+            echo "$found_files"
+            echo "$found_files" | xargs rm -f
+          else
+            echo "No .env files found."
+          fi
+
+      - name: Commit and push if changes exist
+        run: |
+          if [[ `git status --porcelain` ]]; then
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add -u
+            git commit -m "Remove .env files automatically via GitHub Actions"
+            git push
+          else
+            echo "No changes to commit."
+          fi
