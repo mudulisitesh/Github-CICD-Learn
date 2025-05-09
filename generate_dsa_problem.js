@@ -2,7 +2,7 @@ const axios = require('axios');
 const fs = require('fs');
 
 const geminiApiKey = process.env.GEMINI_API_KEY;  // Using the secret
-const endpoint = 'https://gemini.llm.api/ask';   // Replace with the correct Gemini endpoint
+const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=GEMINI_API_KEY';   // Replace with the correct Gemini endpoint
 
 const generateDSAProblem = async () => {
   try {
