@@ -1,0 +1,19 @@
+name: Greet User on Push to Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Say Hello to the User
+        run: |
+          echo "Hello, ${{ github.actor }}! 👋"
+          echo "Thanks for pushing to the main branch 🚀"
