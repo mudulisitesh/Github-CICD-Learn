@@ -1,0 +1,11 @@
+name: Manual CI Trigger
+
+on:
+  workflow_dispatch:
+
+jobs:
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Greet
+        run: echo "Hello! This workflow was manually triggered."
