@@ -1,0 +1,26 @@
+name: Block .env Files on Push to Main
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-env-file:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for .env files
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '\.env$'; then
+            echo "❌ Error: .env file detected in the commit. Remove it before merging."
+            exit 1
+          else
+            echo "✅ No .env file detected. You're good to go."
+          fi
