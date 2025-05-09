@@ -1,40 +1,38 @@
-name: Generate Random DSA Problem
+name: Generate DSA Problem (Python)
 
 on:
   schedule:
-    # Runs at midnight UTC every day
-    - cron: '0 0 * * *'
-  workflow_dispatch:  # Allows you to manually trigger the workflow
+    - cron: '0 0 * * *'  # Daily at midnight UTC
+  workflow_dispatch:
 
 permissions:
-  contents: write  # Allows the workflow to commit changes
+  contents: write
 
 jobs:
   generate-dsa:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js (or your desired runtime)
-        uses: actions/setup-node@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: '16'  # Set the appropriate Node.js version
+          python-version: '3.11'  # Use your preferred version
 
-      - name: Generate DSA problem and solution
-        run: |
-          node generate_dsa_problem.js  # Call your program (e.g., Node.js script)
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run DSA Generator Script
+        run: python generate_dsa_problem.py
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}  # Use the secret for the API key
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      - name: Commit generated DSA problem solution
+      - name: Commit the DSA solution
         run: |
-          # Assuming the output is saved in a file like 'dsa_solution.txt'
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add dsa_solution.txt
-          git commit -m "Add generated DSA problem and solution"
+          git add dsa_solution.py
+          git commit -m "Daily Gemini-generated DSA problem"
           git push
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}  # Ensure the secret is available
