@@ -22,9 +22,6 @@ jobs:
         with:
           node-version: '16'  # Set the appropriate Node.js version
 
-      - name: Install dependencies
-        run: npm install  # Assuming your program has dependencies
-
       - name: Generate DSA problem and solution
         run: |
           node generate_dsa_problem.js  # Call your program (e.g., Node.js script)
@@ -41,4 +38,3 @@ jobs:
           git push
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}  # Ensure the secret is available
-
