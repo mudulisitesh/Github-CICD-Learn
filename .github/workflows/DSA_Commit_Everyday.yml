@@ -1,0 +1,44 @@
+name: Generate Random DSA Problem
+
+on:
+  schedule:
+    # Runs at midnight UTC every day
+    - cron: '0 0 * * *'
+  workflow_dispatch:  # Allows you to manually trigger the workflow
+
+permissions:
+  contents: write  # Allows the workflow to commit changes
+
+jobs:
+  generate-dsa:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js (or your desired runtime)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Set the appropriate Node.js version
+
+      - name: Install dependencies
+        run: npm install  # Assuming your program has dependencies
+
+      - name: Generate DSA problem and solution
+        run: |
+          node generate_dsa_problem.js  # Call your program (e.g., Node.js script)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}  # Use the secret for the API key
+
+      - name: Commit generated DSA problem solution
+        run: |
+          # Assuming the output is saved in a file like 'dsa_solution.txt'
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add dsa_solution.txt
+          git commit -m "Add generated DSA problem and solution"
+          git push
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}  # Ensure the secret is available
+
