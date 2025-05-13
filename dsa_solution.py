@@ -1,104 +1,110 @@
-Okay, here's a random DSA problem and a Python solution:
+Okay, here's a DSA problem and its Python solution:
 
 **Problem:**
 
-**Valid Parentheses with Wildcards**
+**Largest Range**
 
-Given a string `s` containing only three characters: `(`, `)`, and `*`, determine if the string is valid.
+Given an array of integers `nums`, write a function `largest_range(nums)` that finds the largest range of consecutive integers in the array.  A range is defined as a set of consecutive integers. The function should return a list of two integers representing the start and end of the largest range.
 
-A string is valid if:
+**Examples:**
 
-1.  Every left parenthesis `(` must have a corresponding right parenthesis `)`.
-2.  Every right parenthesis `)` must have a corresponding left parenthesis `(`.
-3.  Left parenthesis `(` must go before the corresponding right parenthesis `)`.
-4.  `*` could be treated as a single right parenthesis `)`, a single left parenthesis `(`, or an empty string.
-5.  An empty string is also valid.
+```
+largest_range([1, 11, 3, 0, 15, 5, 2, 4, 10, 7, 12, 6]) == [0, 7]
+largest_range([1, 2, 3, 4, 5, 6, 7]) == [1, 7]
+largest_range([9, 10, 11, 12, -1, 0, 1]) == [-1, 12]
+```
 
-**Example:**
-
-*   Input: `s = "(*)"`
-*   Output: `True`
-
-*   Input: `s = "(*))"`
-*   Output: `True`
-
-*   Input: `s = "((*)"`
-*   Output: `True`
-
-*   Input: `s = "(()((((*)"`
-*   Output: `False`
-
-**Python Solution:**
+**Solution:**
 
 ```python
-def check_valid_string(s: str) -> bool:
+def largest_range(nums):
     """
-    Checks if a string containing '(', ')', and '*' is a valid parentheses string.
+    Finds the largest range of consecutive integers in an array.
 
     Args:
-        s: The input string.
+        nums: A list of integers.
 
     Returns:
-        True if the string is valid, False otherwise.
+        A list of two integers representing the start and end of the largest range.
     """
 
-    low = 0  # Minimum number of open parentheses needed
-    high = 0 # Maximum number of open parentheses possible
+    nums_set = set(nums)
+    best_range = []
+    longest_length = 0
 
-    for char in s:
-        if char == '(':
-            low += 1
-            high += 1
-        elif char == ')':
-            low -= 1
-            high -= 1
-        else:  # char == '*'
-            low -= 1  # Treat as ')'
-            high += 1  # Treat as '('
+    for num in nums:
+        if num not in nums_set:
+            continue
 
-        low = max(low, 0)  # Ensure low doesn't go negative
-        if high < 0:       # Early exit if high goes negative
-            return False
+        nums_set.remove(num)  # Mark as visited
+        current_length = 1
+        left = num - 1
+        right = num + 1
 
-    return low == 0 #String is valid if we can get to low == 0
+        while left in nums_set:
+            nums_set.remove(left)
+            current_length += 1
+            left -= 1
 
-# Example usage
-print(check_valid_string("(*)"))    # True
-print(check_valid_string("(*))"))   # True
-print(check_valid_string("((*)"))   # True
-print(check_valid_string("(()((((*)")) # False
-print(check_valid_string("()"))     #True
-print(check_valid_string(")"))      #False
-print(check_valid_string("("))      #False
-print(check_valid_string("*"))      #True
-print(check_valid_string("(*("))    #False
-print(check_valid_string("(((((((((((((((((((((((((((((((((((((((((((((((((()")) #False
+        while right in nums_set:
+            nums_set.remove(right)
+            current_length += 1
+            right += 1
 
+        if current_length > longest_length:
+            longest_length = current_length
+            best_range = [left + 1, right - 1]  # left and right moved one step too far in the loops
+
+    return best_range
+
+# Example Usage
+nums1 = [1, 11, 3, 0, 15, 5, 2, 4, 10, 7, 12, 6]
+print(f"Largest range for {nums1}: {largest_range(nums1)}")  # Output: [0, 7]
+
+nums2 = [1, 2, 3, 4, 5, 6, 7]
+print(f"Largest range for {nums2}: {largest_range(nums2)}")  # Output: [1, 7]
+
+nums3 = [9, 10, 11, 12, -1, 0, 1]
+print(f"Largest range for {nums3}: {largest_range(nums3)}")  # Output: [-1, 12]
 ```
 
 **Explanation:**
 
-1.  **`low` and `high` Variables:**
-    *   `low`:  Represents the minimum possible number of unmatched open parentheses if we interpret '*' optimally to minimize open parentheses.  We decrement it if we encounter a `)` or a `*` (treating `*` as `)`). It represents the worst-case scenario for having too few opening parentheses.
-    *   `high`: Represents the maximum possible number of unmatched open parentheses if we interpret '*' optimally to maximize open parentheses. We increment it if we encounter a `(` or a `*` (treating `*` as `(`). It represents the worst-case scenario for having too many opening parentheses.
+1. **`largest_range(nums)` function:**
 
-2.  **Iteration:**
-    *   We iterate through the string `s` character by character.
-    *   For each character:
-        *   `(`: Both `low` and `high` are incremented because we definitely have one more unmatched open parenthesis.
-        *   `)`: Both `low` and `high` are decremented because we definitely have one less unmatched open parenthesis.
-        *   `*`: `low` is decremented (treating `*` as a closing parenthesis), and `high` is incremented (treating `*` as an opening parenthesis). This explores both possibilities.
+   - Takes an array `nums` as input.
+   - Initializes `nums_set` to a set containing all elements of `nums`.  Using a set allows for fast O(1) lookups to check if a number exists.
+   - `best_range` stores the start and end of the longest range found so far.
+   - `longest_length` stores the length of the longest range found so far.
 
-3.  **`low = max(low, 0)`:**
-    *   `low` cannot be negative.  If it becomes negative, it means we have more closing parentheses than opening parentheses, even when we treat all `*` as opening parentheses up to that point.  So, we set `low` to 0, essentially ignoring any surplus closing parentheses we encountered.
+2. **Iterating through the array:**
 
-4.  **`if high < 0: return False`:**
-    *   If `high` ever becomes negative, it means we have more closing parentheses than opening parentheses, even when we treat all `*` as opening parentheses.  This is an immediate indication that the string is invalid, so we return `False`.
+   - The code iterates through each `num` in the input `nums` array.
 
-5.  **`return low == 0`:**
-    *   After processing the entire string, the string is valid if and only if `low` is 0. `low` represents the minimum number of unmatched open parentheses we could have, and if that's 0, it means there's a way to match all the parentheses using the flexibility of the `*`.  If `low` is greater than 0, it means no matter how we interpret the `*`, we'll still have unmatched open parentheses.
+3. **Skipping Visited Numbers:**
 
-**Time and Space Complexity**
+   - `if num not in nums_set: continue`  This is a crucial optimization. If a number has already been processed as part of a previous range, it's skipped. This prevents redundant calculations.
 
-*   **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string once.
-*   **Space Complexity:** O(1).  We use only a constant amount of extra space to store the `low` and `high` variables.
+4. **Marking as Visited:**
+
+   - `nums_set.remove(num)`: The current `num` is removed from the `nums_set`.  This is how we "mark" the number as visited, meaning we don't want to process it again as a starting point for a range.
+
+5. **Expanding the Range:**
+
+   - `left = num - 1` and `right = num + 1`:  These variables represent the potential boundaries of the consecutive range extending to the left and right of the current `num`.
+
+   - `while left in nums_set:` and `while right in nums_set:`:  These loops expand the range as far as possible.
+     - Inside the loops, the neighboring number is removed from `nums_set` (to avoid revisiting it), and the `current_length` is incremented.  `left` and `right` are updated to check for further consecutive numbers.
+
+6. **Updating the Best Range:**
+
+   - `if current_length > longest_length:`:  If the newly found `current_length` is greater than the `longest_length` found so far, update `longest_length` and `best_range`. The start and end points of the `best_range` are `left + 1` and `right - 1` because `left` and `right` are decremented/incremented one step too far in the loops.
+
+7. **Returning the Result:**
+
+   - Finally, the function returns the `best_range` found.
+
+**Time and Space Complexity:**
+
+- **Time Complexity:** O(N), where N is the number of elements in the input array. Although there are nested `while` loops, each number is visited and removed from the `nums_set` at most once.
+- **Space Complexity:** O(N), because the `nums_set` can store up to N elements in the worst case.
