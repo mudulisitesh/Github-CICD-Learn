@@ -1,136 +1,113 @@
 Okay, here's a random DSA problem and a Python solution:
 
-**Problem:**
+**Problem:  First Missing Positive Integer**
 
-**Minimum Window Substring**
-
-Given two strings `s` and `t`, find the minimum window substring of `s` such that every character in `t` (including duplicates) is included in the window. If there is no such substring, return the empty string `""`.
+Given an unsorted integer array `nums`, find the smallest missing positive integer.  The algorithm should run in O(n) time and use constant extra space.
 
 **Example:**
 
-*   `s = "ADOBECODEBANC"`
-*   `t = "ABC"`
+```
+Input: nums = [1,2,0]
+Output: 3
 
-*   **Output:** `"BANC"`
+Input: nums = [3,4,-1,1]
+Output: 2
 
-**Explanation:**
-
-The minimum window substring `"BANC"` contains all the characters from `t` which are 'A', 'B', and 'C'.
+Input: nums = [7,8,9,11,12]
+Output: 1
+```
 
 **Python Solution:**
 
 ```python
-from collections import defaultdict
-
-def min_window_substring(s, t):
+def firstMissingPositive(nums):
     """
-    Finds the minimum window substring of s that contains all characters of t.
+    Finds the smallest missing positive integer in an array.
 
     Args:
-        s: The string to search in.
-        t: The string containing the characters to find.
+        nums: A list of integers.
 
     Returns:
-        The minimum window substring, or "" if no such substring exists.
+        The smallest missing positive integer.
     """
 
-    if not s or not t:
-        return ""
+    n = len(nums)
 
-    # Create a dictionary to store the frequency of characters in t
-    t_freq = defaultdict(int)
-    for char in t:
-        t_freq[char] += 1
+    # 1. Basic checks and pre-processing:
+    #  - If 1 is not present, 1 is the answer.
+    if 1 not in nums:
+        return 1
 
-    # Initialize window variables
-    window_freq = defaultdict(int)
-    required = len(t_freq)  # Number of unique characters in t
-    formed = 0  # Number of unique characters in t that are satisfied in the window
-    left = 0
-    right = 0
-    min_len = float('inf')
-    start = 0
-    end = -1
+    #  - Replace negative numbers, zeros,
+    #    and numbers larger than n by 1.
+    #    After this conversion, nums will contain
+    #    only positive numbers.  This is important for the index trick below.
+    for i in range(n):
+        if nums[i] <= 0 or nums[i] > n:
+            nums[i] = 1
 
-    # Iterate through the string s
-    while right < len(s):
-        char = s[right]
-        window_freq[char] += 1
+    # 2. Index as a hash key trick:
+    #  - Iterate over the array.
+    #  - Change the sign of the a-th element if you meet number a.
+    #    Be careful with duplicates: do it only once.
+    #  - Use index 0 to save information about the presence of number n
+    #    since index n is not available.
+    for i in range(n):
+        a = abs(nums[i])
+        if a == n:  # Special case to mark the presence of n
+            nums[0] = - abs(nums[0])
+        else:
+            nums[a] = - abs(nums[a])  # Mark the presence of a.
 
-        # If the current character is in t and its frequency in the window
-        # is equal to its frequency in t, increment 'formed'
-        if char in t_freq and window_freq[char] == t_freq[char]:
-            formed += 1
+    # 3. Find the index
+    # - Now the index of the first positive number
+    #   is equal to first missing positive.
+    for i in range(1, n):
+        if nums[i] > 0:
+            return i
 
-        # Contract the window as much as possible while still containing all characters of t
-        while left <= right and formed == required:
-            char = s[left]
+    if nums[0] > 0:
+        return n
 
-            # Update the minimum window if necessary
-            if right - left + 1 < min_len:
-                min_len = right - left + 1
-                start = left
-                end = right
+    return n + 1 # All 1...n are present, then return n+1
 
-            # Shrink the window from the left
-            window_freq[char] -= 1
-
-            # If shrinking the window caused the frequency of a character in t
-            # to become less than its frequency in t, decrement 'formed'
-            if char in t_freq and window_freq[char] < t_freq[char]:
-                formed -= 1
-
-            left += 1
-
-        right += 1
-
-    # Return the minimum window substring
-    if min_len == float('inf'):
-        return ""
-    else:
-        return s[start : end + 1]
-
-
-# Example Usage
-s = "ADOBECODEBANC"
-t = "ABC"
-result = min_window_substring(s, t)
-print(result)  # Output: BANC
-
-s = "a"
-t = "aa"
-result = min_window_substring(s, t)
-print(result) # Output: ""
-
-s = "ab"
-t = "a"
-result = min_window_substring(s, t)
-print(result) # Output: "a"
+# Example usage:
+print(firstMissingPositive([1,2,0]))    # Output: 3
+print(firstMissingPositive([3,4,-1,1]))   # Output: 2
+print(firstMissingPositive([7,8,9,11,12]))  # Output: 1
+print(firstMissingPositive([1,2,3]))      # Output: 4
+print(firstMissingPositive([1]))        # Output: 2
+print(firstMissingPositive([2]))        # Output: 1
+print(firstMissingPositive([2, 1]))    # Output: 3
+print(firstMissingPositive([1,1]))     # Output: 2
+print(firstMissingPositive([1, 2, 2, 3, 3, 3]))  #Output: 4
 ```
 
 **Explanation:**
 
-1.  **`min_window_substring(s, t)`:** This function takes two strings `s` and `t` as input.
+1. **Handle Edge Cases and Preprocessing:**
 
-2.  **Frequency Dictionaries:**  We use `defaultdict(int)` to store the frequencies of characters in both `t` (`t_freq`) and the current window (`window_freq`).
+   - First, we check if `1` is present in the array. If not, the smallest missing positive integer is `1`.
+   - Then, we iterate through the array and replace any negative numbers, zeros, or numbers greater than `n` (the length of the array) with `1`. This ensures that we're dealing with positive integers in the range `[1, n]` for the next step.  This replacement is crucial for making the index-as-hash-key trick work.
 
-3.  **Sliding Window:**
-    *   `left` and `right` pointers define the boundaries of the sliding window.
-    *   The `right` pointer expands the window.  As we encounter characters in `s`, we update `window_freq`.
-    *   `formed` keeps track of how many *unique* characters from `t` have their required frequency met within the current window. `required` is the number of unique characters in `t`.
-    *   Once `formed == required`, it means the current window contains all the characters of `t`.  Now, we try to contract the window from the left (`left` pointer) to find the minimum possible length.
+2. **Index as Hash Key Trick:**
 
-4.  **Contracting the Window:**
-    *   We move the `left` pointer to the right, shrinking the window.
-    *   For each character we remove from the left, we update `window_freq`.
-    *   If removing a character causes its frequency in the window to fall below the required frequency in `t`, we decrement `formed`.
+   - The core idea is to use the array indices as a hash table.  If we encounter a number `a` in the array (where `1 <= a <= n`), we change the sign of the element at index `a`.
+   - We iterate through the array:
+     - If the number is `n`, we negate `nums[0]` to indicate the presence of `n`. We use index `0` because index `n` is outside the bounds of the array.
+     - Otherwise, we negate `nums[abs(nums[i])]`. `abs(nums[i])` is used in case we have already negated this index.
 
-5.  **Minimum Length Tracking:**
-    *   `min_len`, `start`, and `end` keep track of the minimum window substring found so far.
+3. **Find the First Positive Index:**
 
-6.  **Return Value:**
-    *   If `min_len` remains `float('inf')`, it means no valid window was found, so we return `""`.
-    *   Otherwise, we return the substring `s[start : end + 1]`.
+   - After the above step, we iterate through the array again (starting from index `1`).
+   - The first index `i` where `nums[i]` is positive indicates that the number `i` is missing.
+   - If we reach the end of the loop without finding a positive number, it means all numbers from `1` to `n-1` are present.  We check if `nums[0]` is positive, if it is, `n` is missing.  If nums[0] is negative, n is present and the answer is `n+1`.
 
-**Time Complexity:** O(N + M) where N is the length of the string `s` and M is the length of the string `t`.  We iterate through `s` at most twice (once with `right`, and potentially once with `left`). Building `t_freq` takes O(M) time.
-**Space Complexity:** O(M), mainly for storing the character frequencies in `t_freq`.  In the worst case, `window_freq` could contain all characters of `s`, but it's still bounded by the size of the alphabet.
+**Time and Space Complexity:**
+
+- **Time Complexity:** O(n), where n is the length of the input array.  We iterate through the array at most three times.
+- **Space Complexity:** O(1), constant extra space. We modify the array in-place.
+
+**Why this solution is clever:**
+
+The ingenuity lies in using the array itself as a hash table to track the presence or absence of numbers in the range `[1, n]`.  By changing the sign of elements, we can mark the presence of a number without using any extra space.
