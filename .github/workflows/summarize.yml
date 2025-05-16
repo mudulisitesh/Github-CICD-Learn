@@ -13,12 +13,14 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v3
 
-    - name: Extract YouTube link from issue body
+    - name: Extract YouTube link and video ID
       id: extract
       run: |
         echo "${{ github.event.issue.body }}" > body.txt
         URL=$(grep -Eo 'https://www\.youtube\.com/watch\?v=[^ ]+' body.txt | head -n1)
         echo "youtube_url=$URL" >> $GITHUB_OUTPUT
+        VIDEO_ID=$(echo $URL | grep -oP '(?<=v=)[^&]+')
+        echo "video_id=$VIDEO_ID" >> $GITHUB_OUTPUT
 
     - name: Run summarizer script
       env:
@@ -26,15 +28,16 @@ jobs:
       run: |
         sudo apt update && sudo apt install -y python3 python3-pip
         pip install requests
-        python3 scripts/summarize.py "${{ steps.extract.outputs.youtube_url }}"
+        mkdir -p summaries
+        python3 scripts/summarize.py "${{ steps.extract.outputs.youtube_url }}" "summaries/${{ steps.extract.outputs.video_id }}.txt"
 
-    - name: Commit and push updated README using GH_TOKEN
+    - name: Commit and push summary file using GH_TOKEN
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
         git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
-        git add README.md
+        git add summaries/
         git commit -m "📝 Add summary for ${{ steps.extract.outputs.youtube_url }}" || echo "No changes to commit"
         git push origin HEAD:main
