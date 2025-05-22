@@ -1,121 +1,97 @@
-Okay, here's a randomly generated DSA problem along with a Python solution:
+Okay, here's a problem and a Python solution:
 
 **Problem:**
 
-**Task Scheduling with Dependencies**
+**Merge Overlapping Intervals**
 
-You are given a list of tasks that need to be completed.  Each task is represented by a number from `0` to `n-1`. You are also given a list of dependencies, where each dependency is a pair `[task_a, task_b]`, indicating that `task_a` must be completed *before* `task_b` can start.
-
-Determine if it is possible to complete all the tasks in a valid order that respects the dependencies. If it is possible, return a valid order of task completion.  If it's not possible (due to a circular dependency), return an empty list.
+Given a list of intervals, where each interval is represented as a pair `[start, end]`, merge all overlapping intervals and return a list of non-overlapping intervals that cover the same range.
 
 **Example:**
 
 ```
-num_tasks = 4
-dependencies = [[1, 0], [2, 0], [3, 1], [3, 2]]
-
-# A valid order would be: [3, 1, 2, 0] or [3, 2, 1, 0]
+Input: intervals = [[1,3],[2,6],[8,10],[15,18]]
+Output: [[1,6],[8,10],[15,18]]
+Explanation: Since intervals [1,3] and [2,6] overlap, merge them into [1,6].
 ```
 
-**Explanation of the Example:**
-
-* Task 1 depends on Task 0 (1 -> 0)
-* Task 2 depends on Task 0 (2 -> 0)
-* Task 3 depends on Task 1 (3 -> 1)
-* Task 3 depends on Task 2 (3 -> 2)
-
-So Task 3 must come first, then either Task 1 or Task 2, then the remaining one of Task 1 or Task 2, and finally Task 0.
-
-**Python Code Solution:**
+**Code (Python):**
 
 ```python
-from collections import defaultdict, deque
+def merge_intervals(intervals):
+  """
+  Merges overlapping intervals in a list.
 
-def find_task_order(num_tasks, dependencies):
-    """
-    Determines if it is possible to complete tasks given dependencies, and returns a valid order if possible.
+  Args:
+    intervals: A list of intervals, where each interval is a list [start, end].
 
-    Args:
-        num_tasks: The total number of tasks (0 to n-1).
-        dependencies: A list of dependencies, where each dependency is a pair [task_a, task_b] 
-                      (task_a must be done before task_b).
+  Returns:
+    A list of non-overlapping intervals.
+  """
 
-    Returns:
-        A list representing a valid order of task completion, or an empty list if it's impossible
-        (due to circular dependencies).
-    """
+  # If the input is empty or contains only one interval, return the input itself
+  if not intervals or len(intervals) <= 1:
+    return intervals
 
-    # 1. Build the graph (adjacency list) and in-degree count
-    graph = defaultdict(list)
-    in_degree = [0] * num_tasks
+  # Sort the intervals based on the start time.  Crucial for the algorithm to work.
+  intervals.sort(key=lambda x: x[0])
 
-    for task_a, task_b in dependencies:
-        graph[task_a].append(task_b)  # task_a -> task_b (task_a must come before task_b)
-        in_degree[task_b] += 1
+  merged = []
+  current_interval = intervals[0]
 
-    # 2. Find initial nodes with in-degree of 0 (tasks that can be started immediately)
-    queue = deque([i for i in range(num_tasks) if in_degree[i] == 0])
+  for i in range(1, len(intervals)):
+    next_interval = intervals[i]
 
-    # 3. Perform topological sort using Kahn's Algorithm
-    result = []
-    while queue:
-        task = queue.popleft()
-        result.append(task)
+    # Check for overlap
+    if current_interval[1] >= next_interval[0]:
+      # Merge the intervals
+      current_interval[1] = max(current_interval[1], next_interval[1]) # Extend the end
+    else:
+      # No overlap, add the current interval to the result and move to the next
+      merged.append(current_interval)
+      current_interval = next_interval
 
-        for dependent_task in graph[task]:
-            in_degree[dependent_task] -= 1
-            if in_degree[dependent_task] == 0:
-                queue.append(dependent_task)
+  # Add the last interval to the result
+  merged.append(current_interval)
 
-    # 4. Check for cycles (if not all tasks were visited, there's a cycle)
-    if len(result) != num_tasks:
-        return []  # Circular dependency detected
+  return merged
 
-    return result
+# Example usage
+intervals = [[1,3],[2,6],[8,10],[15,18]]
+result = merge_intervals(intervals)
+print(result)  # Output: [[1, 6], [8, 10], [15, 18]]
 
+intervals2 = [[1,4],[4,5]]
+result2 = merge_intervals(intervals2)
+print(result2) # Output: [[1, 5]]
 
-# Example Usage:
-num_tasks = 4
-dependencies = [[1, 0], [2, 0], [3, 1], [3, 2]]
-task_order = find_task_order(num_tasks, dependencies)
+intervals3 = [[1,4],[0,4]]
+result3 = merge_intervals(intervals3)
+print(result3) # Output: [[0, 4]]
 
-if task_order:
-    print("Valid Task Order:", task_order)  # Output: Valid Task Order: [3, 1, 2, 0] (or a similar valid order)
-else:
-    print("Impossible to complete tasks due to circular dependencies.")
-
-
-num_tasks_2 = 2
-dependencies_2 = [[0, 1], [1, 0]]
-task_order_2 = find_task_order(num_tasks_2, dependencies_2)
-
-if task_order_2:
-    print("Valid Task Order:", task_order_2)
-else:
-    print("Impossible to complete tasks due to circular dependencies.") #Output: Impossible to complete tasks due to circular dependencies.
-
+intervals4 = [[1,4],[0,0]]
+result4 = merge_intervals(intervals4)
+print(result4) # Output: [[0, 0], [1, 4]]
 ```
 
-**Explanation of the Code:**
+**Explanation:**
 
-1. **Building the Graph and In-Degree:**
-   - `graph = defaultdict(list)`:  We represent the dependencies as an adjacency list (a dictionary where the key is a task, and the value is a list of tasks that depend on it).
-   - `in_degree = [0] * num_tasks`: `in_degree[i]` stores the number of tasks that must be completed *before* task `i` can be started. This is crucial for topological sorting.
+1. **Sorting:**  The most important step is sorting the intervals based on their start times. This ensures that we can iterate through the intervals and determine overlap in a consistent manner.  `intervals.sort(key=lambda x: x[0])` does this efficiently. The `lambda` function provides the sorting key (the start time of each interval).
 
-2. **Finding Initial Nodes:**
-   - `queue = deque([i for i in range(num_tasks) if in_degree[i] == 0])`: We create a queue containing all tasks that have an in-degree of 0.  These are the tasks we can start with because they don't depend on any other tasks. We use a `deque` for efficient `popleft()` operations.
+2. **Initialization:**  We initialize an empty list `merged` to store the merged intervals.  We also initialize `current_interval` with the first interval in the sorted list.
 
-3. **Topological Sort (Kahn's Algorithm):**
-   - The `while queue:` loop performs the topological sort:
-     - We take a task from the front of the queue (`task = queue.popleft()`).
-     - We add this task to the `result` (the order of task completion).
-     - We iterate through all the tasks that depend on the current `task` (using the `graph`). For each such dependent task, we decrement its in-degree (`in_degree[dependent_task] -= 1`).
-     - If, after decrementing, a dependent task's in-degree becomes 0, it means all its dependencies are now satisfied, so we add it to the queue.
+3. **Iteration:** We iterate through the rest of the sorted intervals.  For each `next_interval`:
 
-4. **Cycle Detection:**
-   - `if len(result) != num_tasks:`: After the topological sort, we check if we were able to add all the tasks to the `result`. If not, it means there was a cycle in the dependency graph, making it impossible to complete all tasks.
+   - **Overlap Check:**  We check if `current_interval` and `next_interval` overlap.  They overlap if the end of `current_interval` is greater than or equal to the start of `next_interval`. `current_interval[1] >= next_interval[0]`
+
+   - **Merge (if Overlap):** If they overlap, we update the `current_interval` to merge them.  Crucially, we take the *maximum* of the end times:  `current_interval[1] = max(current_interval[1], next_interval[1])`.  This ensures that the merged interval encompasses the entire range of both overlapping intervals.
+
+   - **No Overlap:** If they *don't* overlap, it means we've finished processing the `current_interval`.  We append it to the `merged` list and then set the `current_interval` to `next_interval` to start a new merged interval.
+
+4. **Final Append:**  After the loop finishes, we need to add the last `current_interval` to the `merged` list, as it might not have been added inside the loop.
+
+5. **Return:** Finally, we return the `merged` list of non-overlapping intervals.
 
 **Time and Space Complexity:**
 
-* **Time Complexity:** O(V + E), where V is the number of tasks (vertices) and E is the number of dependencies (edges).  This is because we iterate through all vertices and edges once.
-* **Space Complexity:** O(V + E).  O(V) for the `in_degree` array and `result` list, and O(E) in the worst case for the `graph` (adjacency list).
+* **Time Complexity:** O(n log n) due to the sorting step.  The rest of the algorithm is O(n), but sorting dominates.
+* **Space Complexity:** O(n) in the worst case, where there are no overlapping intervals, and we store all the intervals in the `merged` list.  It could be O(1) if you modify the original `intervals` list in place (but that changes the function's behavior, and I prefer to return a new list).
