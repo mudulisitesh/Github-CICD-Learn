@@ -2,132 +2,125 @@ Okay, here's a DSA problem and a Python solution:
 
 **Problem:**
 
-**Minimum Window Substring with Required Characters**
+**Merge K Sorted Linked Lists**
 
-Given a string `s` and a string `t`, find the minimum window in `s` which will contain all the characters in `t`.  If there is no such window in `s` that covers all characters in `t`, return the empty string "".
+You are given an array of `k` linked-lists, each sorted in ascending order.
 
-The characters of `t` can appear multiple times in the window.
+Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-s = "ADOBECODEBANC"
-t = "ABC"
-
-Output: "BANC"
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
-
-**Explanation:**
-
-The minimum window substring "BANC" contains all the characters 'A', 'B', and 'C' from the string `t`.
 
 **Constraints:**
 
-*   `1 <= s.length <= 10^5`
-*   `1 <= t.length <= 10^5`
-*   `s` and `t` consist of uppercase and lowercase English letters.
+*   `k == len(lists)`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
 
 **Python Code Solution:**
 
 ```python
-from collections import defaultdict
+import heapq
 
-def min_window(s: str, t: str) -> str:
+# Definition for singly-linked list.
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+    def __lt__(self, other):  # For heap comparison
+        return self.val < other.val
+
+
+def mergeKLists(lists):
     """
-    Finds the minimum window substring in 's' that contains all characters in 't'.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-        s: The input string.
-        t: The string containing required characters.
+        lists: A list of k sorted linked lists.
 
     Returns:
-        The minimum window substring in 's' that contains all characters in 't',
-        or an empty string if no such window exists.
+        The head of the merged sorted linked list.
     """
 
-    if not s or not t:
-        return ""
+    heap = []
 
-    need = defaultdict(int)  # Characters in t and their counts
-    for char in t:
-        need[char] += 1
+    # Push the head nodes of all non-empty lists into the heap.
+    for head in lists:
+        if head:
+            heapq.heappush(heap, head)
 
-    window = defaultdict(int) # Characters in current window and their counts
-    have = 0 # How many characters from t are present in window with correct frequency
-    required = len(need) # total number of unique characters we need
+    # Create a dummy head for the merged list.
+    dummy = ListNode()
+    tail = dummy
 
-    left = 0
-    min_len = float('inf')
-    start = 0  # Start index of the minimum window
+    # While the heap is not empty:
+    while heap:
+        # Pop the smallest node from the heap.
+        node = heapq.heappop(heap)
 
-    for right in range(len(s)):
-        char = s[right]
-        window[char] += 1
+        # Append the node to the merged list.
+        tail.next = node
+        tail = tail.next
 
-        if char in need and window[char] == need[char]:
-            have += 1
+        # If the popped node has a next node, push it onto the heap.
+        if node.next:
+            heapq.heappush(heap, node.next)
 
-        while have == required:
-            if (right - left + 1) < min_len:
-                min_len = (right - left + 1)
-                start = left
+    # Return the head of the merged list (excluding the dummy node).
+    return dummy.next
 
-            char_left = s[left]
-            window[char_left] -= 1
+# Example Usage:
+# Create linked lists from the given example
+list1 = ListNode(1, ListNode(4, ListNode(5)))
+list2 = ListNode(1, ListNode(3, ListNode(4)))
+list3 = ListNode(2, ListNode(6))
 
-            if char_left in need and window[char_left] < need[char_left]:
-                have -= 1
+lists = [list1, list2, list3]
 
-            left += 1
+merged_list = mergeKLists(lists)
 
-    if min_len == float('inf'):
-        return ""
+# Print the merged list (for verification)
+def print_linked_list(head):
+    result = []
+    current = head
+    while current:
+        result.append(current.val)
+        current = current.next
+    print(result)
 
-    return s[start : start + min_len]
-
-
-# Example Usage
-s = "ADOBECODEBANC"
-t = "ABC"
-result = min_window(s, t)
-print(result)  # Output: BANC
-
-s = "a"
-t = "aa"
-result = min_window(s, t)
-print(result) # Output: ""
-
-s = "abc"
-t = "cba"
-result = min_window(s, t)
-print(result) # Output: abc
-
-s = "bbaac"
-t = "aba"
-result = min_window(s, t)
-print(result) # Output: baac
+print_linked_list(merged_list)  # Output: [1, 1, 2, 3, 4, 4, 5, 6]
 ```
 
 **Explanation:**
 
-1.  **`need` Dictionary:** Stores the frequency of each character in the string `t`.  This tells us what characters and how many of each we need to find in the window.
+1.  **ListNode Class:** Defines the structure of a node in a linked list. It also includes the `__lt__` method which is required to make the ListNode objects comparable in the heap.  This is crucial for using `heapq` correctly when dealing with custom objects.
+2.  **Initialization:**
+    *   A min-heap `heap` is used to store the head nodes of the input lists.  The min-heap ensures that the node with the smallest value is always at the top.
+    *   A dummy node `dummy` is created to simplify the construction of the merged linked list. `tail` points to the last node of the merged list.
+3.  **Heap Initialization:** The code iterates through the input `lists`. If a list is not empty (its head is not `None`), the head node is pushed onto the min-heap.
+4.  **Merging Process:**
+    *   The `while heap:` loop continues as long as there are nodes in the heap.
+    *   `heapq.heappop(heap)` retrieves and removes the node with the smallest value from the heap.
+    *   The smallest node is appended to the `tail.next` of the merged list. The `tail` is then moved to the newly appended node.
+    *   If the popped node has a `next` node, that `next` node is pushed onto the heap to maintain the sorted order.
+5.  **Return Value:** After the loop finishes, `dummy.next` points to the head of the merged sorted linked list.
 
-2.  **`window` Dictionary:** Stores the frequency of each character in the current window of `s`.
+**Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists, and k is the number of linked lists.  The heap operations (push and pop) take O(log k) time, and we perform these operations N times.
 
-3.  **`have` Variable:** Keeps track of how many characters in the `window` have the required frequencies as defined in the `need` dictionary.  It increases only when a character's count in the window reaches the required count in `need`.
-
-4.  **`required` Variable:** The number of unique characters we need to find, based on the length of the `need` dictionary.
-
-5.  **Sliding Window:**
-    *   The `right` pointer expands the window.  For each character encountered, the `window` count is updated. If the character is in `need` and its count in `window` has reached its required count from `need`, then `have` is incremented.
-    *   The `while` loop shrinks the window from the `left` as long as `have == required`. Inside the while loop:
-        *   We check if the current window size is smaller than the current `min_len`. If it is, we update `min_len` and `start` to keep track of the smallest window found so far.
-        *   We decrement the count of the leftmost character in the `window`.
-        *   If the leftmost character is in `need` and its count in `window` falls below its required count, we decrement `have`.
-        *   Finally, we move the `left` pointer to the right.
-
-6.  **Return Value:**  After the loop finishes, if `min_len` is still `float('inf')`, it means no valid window was found, so we return "". Otherwise, we return the substring of `s` starting at `start` with length `min_len`.
-
-**Time Complexity:** O(n + m), where n is the length of string `s` and m is the length of string `t`. In the worst case, the `right` pointer iterates through `s` once, and the `left` pointer might also iterate through `s` once, so the time complexity is proportional to the length of `s`. The creation of `need` dictionary is proportional to the length of `t`.
-
-**Space Complexity:** O(k), where k is the number of unique characters in `t`.  In the worst case, `k` could be equal to the size of the alphabet.  The space used by `need` and `window` dictionaries depends on the number of unique characters present in `t` and in the current window of `s`.
+**Space Complexity:** O(k), where k is the number of linked lists. This is the space used by the min-heap. In the worst case, the heap will contain one node from each of the k lists.  The space used by the output linked list is not considered, as it is part of the problem's output requirement.
