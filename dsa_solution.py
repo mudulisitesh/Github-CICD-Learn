@@ -1,130 +1,98 @@
-Okay, let's create a problem related to tree traversal.
+Okay, here's a DSA problem and a Python solution:
 
 **Problem:**
 
-**Level Order Traversal with Level-Specific Separators**
+**Merge Intervals**
 
-Given a binary tree, perform a level order traversal (breadth-first traversal). However, instead of simply printing the nodes, print each level on a separate line, separated by a delimiter.  The delimiter should be:
-
-*   `"/"` for even levels (starting from level 0)
-*   `"\\"` for odd levels.
+Given a collection of intervals, merge all overlapping intervals.
 
 **Example:**
 
-```
-      1
-     / \
-    2   3
-   / \   \
-  4   5   6
+Input: `[[1,3],[2,6],[8,10],[15,18]]`
+Output: `[[1,6],[8,10],[15,18]]`
+Explanation: Intervals `[1,3]` and `[2,6]` overlap, merge them into `[1,6]`.
 
-Output:
-1
-2/3
-4\5\6
-```
-
-**Explanation:**
-
-*   Level 0: 1 (delimiter not applicable as it's the only element)
-*   Level 1: 2 3 (even level, delimiter "/")
-*   Level 2: 4 5 6 (odd level, delimiter "\\")
+Input: `[[1,4],[4,5]]`
+Output: `[[1,5]]`
+Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
 
 **Python Solution:**
 
 ```python
-from collections import deque
-
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-def level_order_with_separators(root):
+def merge_intervals(intervals):
     """
-    Performs a level order traversal of a binary tree, printing each level on a separate line
-    with level-specific separators.
+    Merges overlapping intervals in a list of intervals.
 
     Args:
-        root: The root of the binary tree.
+        intervals: A list of intervals, where each interval is a list of two integers [start, end].
+
+    Returns:
+        A list of merged intervals.
     """
-    if not root:
-        return
 
-    queue = deque([root])
-    level = 0
+    if not intervals:
+        return []
 
-    while queue:
-        level_size = len(queue)
-        level_nodes = []
+    # Sort the intervals by their start times.
+    intervals.sort(key=lambda x: x[0])
 
-        for _ in range(level_size):
-            node = queue.popleft()
-            level_nodes.append(str(node.val))
+    merged = []
+    current_interval = intervals[0]
 
-            if node.left:
-                queue.append(node.left)
-            if node.right:
-                queue.append(node.right)
-
-        if level % 2 == 0:
-            delimiter = "/"
+    for interval in intervals[1:]:
+        # Check for overlap
+        if interval[0] <= current_interval[1]:
+            # Merge the intervals by updating the end time of the current interval.
+            current_interval[1] = max(current_interval[1], interval[1])
         else:
-            delimiter = "\\"
+            # No overlap, add the current interval to the merged list and start a new current interval.
+            merged.append(current_interval)
+            current_interval = interval
 
-        if len(level_nodes) == 1:  #Special case for root and other single node levels
-            print(level_nodes[0])
-        else:
-            print(delimiter.join(level_nodes))
+    # Add the last current interval to the merged list.
+    merged.append(current_interval)
 
-        level += 1
+    return merged
 
+# Example Usage
+intervals1 = [[1,3],[2,6],[8,10],[15,18]]
+print(f"Input: {intervals1}, Merged: {merge_intervals(intervals1)}")  # Output: [[1, 6], [8, 10], [15, 18]]
 
+intervals2 = [[1,4],[4,5]]
+print(f"Input: {intervals2}, Merged: {merge_intervals(intervals2)}")  # Output: [[1, 5]]
 
-# Example usage:
-# Construct the tree from the problem description
-root = TreeNode(1)
-root.left = TreeNode(2)
-root.right = TreeNode(3)
-root.left.left = TreeNode(4)
-root.left.right = TreeNode(5)
-root.right.right = TreeNode(6)
+intervals3 = [[1, 3], [5, 8], [2, 4], [6, 10], [20, 25]]
+print(f"Input: {intervals3}, Merged: {merge_intervals(intervals3)}") # Output: [[1, 4], [5, 10], [20, 25]]
 
-level_order_with_separators(root)
+intervals4 = [[1,4],[0,4]]
+print(f"Input: {intervals4}, Merged: {merge_intervals(intervals4)}") # Output: [[0, 4]]
+
+intervals5 = [[1,4],[0,0]]
+print(f"Input: {intervals5}, Merged: {merge_intervals(intervals5)}") # Output: [[0, 0], [1, 4]]
 ```
 
-**Explanation of the Code:**
+**Explanation:**
 
-1.  **TreeNode Class:**  Defines a simple binary tree node with `val`, `left`, and `right` attributes.
+1. **Sort Intervals:**
+   - The algorithm first sorts the intervals based on their starting times. This is crucial because it allows us to process intervals in a sequential order and easily check for overlaps.
+   - `intervals.sort(key=lambda x: x[0])` sorts the intervals in place using a lambda function to specify the sorting key (the first element of each interval).
 
-2.  **`level_order_with_separators(root)` function:**
-    *   **Initialization:**
-        *   Handles the case where the `root` is `None` (empty tree).
-        *   Creates a `deque` (double-ended queue) called `queue` to hold the nodes for level order traversal.  We use a deque because it provides efficient `append` and `popleft` operations, which are crucial for breadth-first search.
-        *   Initializes `level` to 0 to keep track of the current level.
-    *   **Main Loop:**
-        *   `while queue:`: Continues as long as there are nodes in the queue.
-        *   `level_size = len(queue)`:  Gets the number of nodes in the current level. This is important so we can process only the nodes at the current level before moving to the next.
-        *   `level_nodes = []`: A list to store the values of the nodes at the current level as strings.
-        *   `for _ in range(level_size):`:  Iterates through the nodes at the current level.
-            *   `node = queue.popleft()`: Removes the first node from the queue (FIFO - First-In, First-Out).
-            *   `level_nodes.append(str(node.val))`:  Adds the node's value (converted to a string) to the `level_nodes` list.
-            *   `if node.left: queue.append(node.left)`:  If the node has a left child, add it to the queue.
-            *   `if node.right: queue.append(node.right)`: If the node has a right child, add it to the queue.
-        *   **Delimiter Logic:**
-            *   `if level % 2 == 0: delimiter = "/"`: If the level is even, set the delimiter to "/".
-            *   `else: delimiter = "\\"`: Otherwise (level is odd), set the delimiter to "\\".
+2. **Iterate and Merge:**
+   - `merged`: This list will store the final merged intervals.
+   - `current_interval`: This variable holds the interval we are currently building/merging.  It's initialized with the first interval in the sorted list.
+   - The code then iterates through the remaining intervals, starting from the second one.
+   - **Overlap Check:** For each `interval` in the sorted list, it checks if `interval[0]` (the start time of the current interval being considered) is less than or equal to `current_interval[1]` (the end time of the interval we're building). If this condition is true, it means the current interval overlaps with the `current_interval`.
+   - **Merge:** If there's an overlap, the `current_interval`'s end time is updated to the maximum of its current end time and the end time of the overlapping interval (`interval[1]`). This effectively merges the two intervals into a single interval that covers both.
+   - **No Overlap:** If there's no overlap, it means the current `interval` is completely separate from the `current_interval`.  In this case:
+     - The `current_interval` (which is now a complete merged interval) is added to the `merged` list.
+     - The `current_interval` is updated to the `interval` we just processed, starting a new interval for merging.
 
-        *   **Print the Level:**
-            *   `if len(level_nodes) == 1`: Handles the case where there's only one node on a level.  We don't want to use the delimiter.
-            *   `else: print(delimiter.join(level_nodes))`:  Uses the `join()` method to concatenate the strings in the `level_nodes` list, using the calculated `delimiter` as the separator.  This creates the string to be printed.
-        *   `level += 1`:  Increments the level counter.
+3. **Add the Last Interval:**
+   - After the loop finishes, there's one `current_interval` left that hasn't been added to the `merged` list.  This is because the loop only adds `current_interval` when it encounters an interval that *doesn't* overlap.  So, we need to explicitly add it at the end.
 
-**How it works (Level Order Traversal):**
+4. **Return:** The function returns the `merged` list, which contains the merged intervals.
 
-The algorithm uses a queue to systematically explore the tree level by level. It starts by adding the root node to the queue.  Then, while the queue is not empty, it processes the nodes at the front of the queue.  For each node, it adds the node's value to the `level_nodes` list and adds its children (if any) to the back of the queue.  This ensures that all nodes at a given level are processed before moving to the next level.
+**Time and Space Complexity:**
 
-The `level_size` variable is crucial for ensuring that we only process the nodes that are currently at the front of the queue for each level. Without it, we would continue adding children and would not be able to properly delineate levels.
-
-This approach guarantees that we visit nodes in the order they appear in a level-by-level traversal, which is the definition of level order traversal. The separators are then added based on the level parity.
+*   **Time Complexity:** O(n log n) due to the sorting of the intervals. The rest of the algorithm takes O(n) time.
+*   **Space Complexity:** O(n) in the worst case, where there are no overlapping intervals, and we need to store all the intervals in the `merged` list.  The sorting might take O(log n) space depending on the sorting algorithm used by the implementation.  In place sorting could reduce the space complexity.
