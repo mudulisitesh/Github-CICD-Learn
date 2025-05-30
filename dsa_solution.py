@@ -1,101 +1,176 @@
-Okay, here's a problem focusing on array manipulation and hash maps, along with a Python solution:
+Okay, here's a DSA problem with a Python solution:
 
-**Problem:  Find the First Repeating Element**
+**Problem:**
 
-Given an array of integers, find the first repeating element in the array. In other words, find the element that occurs more than once and whose first occurrence has the smallest index.  If no element repeats, return -1.
+**Merge K Sorted Lists**
+
+You are given an array of k linked-lists, each linked-list is sorted in ascending order.
+
+Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-Input:  arr = [10, 5, 3, 4, 3, 5, 6]
-Output: 5 (because 5 is the first element that repeats, and its first occurrence appears before the first occurrence of 3)
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation:
+The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
+```
 
-Input: arr = [6, 10, 5, 4, 9]
-Output: -1 (no repeating element)
+**Constraints:**
+
+*   `k == lists.length`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
+
+**Python Solution (using a min-heap):**
+
+```python
+import heapq
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
+    """
+    Merges k sorted linked lists into one sorted linked list.
+
+    Args:
+      lists: A list of k sorted linked lists.
+
+    Returns:
+      The head of the merged sorted linked list.
+    """
+
+    heap = []
+    # Add the head of each list to the heap.  Use index as tie breaker for lists with same head value.
+    for i in range(len(lists)):
+        if lists[i]:  # Ensure list is not empty
+            heapq.heappush(heap, (lists[i].val, i, lists[i]))  # (value, index, node)
+
+    dummy = ListNode()  # Dummy node for the merged list
+    curr = dummy
+
+    while heap:
+        val, index, node = heapq.heappop(heap)
+        curr.next = node
+        curr = curr.next
+
+        if node.next:
+            heapq.heappush(heap, (node.next.val, index, node.next))  # (value, index, node)
+
+    return dummy.next
+
+# Example Usage (for testing):
+
+# Helper function to create a linked list from a list of values
+def create_linked_list(values):
+    if not values:
+        return None
+    head = ListNode(values[0])
+    curr = head
+    for val in values[1:]:
+        curr.next = ListNode(val)
+        curr = curr.next
+    return head
+
+# Helper function to convert linked list to list
+def linked_list_to_list(head):
+    result = []
+    curr = head
+    while curr:
+        result.append(curr.val)
+        curr = curr.next
+    return result
+
+
+lists = [
+    create_linked_list([1, 4, 5]),
+    create_linked_list([1, 3, 4]),
+    create_linked_list([2, 6])
+]
+
+merged_list_head = mergeKLists(lists)
+merged_list = linked_list_to_list(merged_list_head)  # Convert to a regular list for easy printing
+print(merged_list)  # Output: [1, 1, 2, 3, 4, 4, 5, 6]
+
+lists2 = [
+    create_linked_list([]),
+    create_linked_list([])
+]
+
+merged_list_head2 = mergeKLists(lists2)
+merged_list2 = linked_list_to_list(merged_list_head2)  # Convert to a regular list for easy printing
+print(merged_list2)  # Output: []
+
+lists3 = [create_linked_list([])]
+merged_list_head3 = mergeKLists(lists3)
+merged_list3 = linked_list_to_list(merged_list_head3)  # Convert to a regular list for easy printing
+print(merged_list3) # Output: []
+```
+
+Key improvements and explanations:
+
+*   **`ListNode` class:**  Includes the standard `ListNode` definition for a linked list node.  This is essential for working with linked lists.
+*   **Heap-based Solution:** The solution uses a min-heap (priority queue) to efficiently find the smallest element among all the lists at each step.
+*   **Correct Heap Ordering:** Critically, the `heapq.heappush()` calls now store a tuple `(lists[i].val, i, lists[i])`.  This ensures correct ordering in the heap *and* allows us to keep track of which list the node came from using the `i` (index). The index serves as a tie-breaker in case of duplicate values in different lists, preventing potential comparison errors.
+*   **Empty List Handling:** The code explicitly checks `if lists[i]:` before adding a linked list to the heap. This correctly handles cases where some of the input lists are empty, preventing `AttributeError` exceptions.
+*   **Dummy Node:** Uses a `dummy` node to simplify the construction of the merged linked list.  This avoids special cases for the head of the merged list.
+*   **Clearer Variable Names:**  `curr` instead of just `p` for the current node in the merged list.
+*   **Complete and runnable example:**  Includes example usage with a `create_linked_list` helper function to easily create test linked lists from Python lists and `linked_list_to_list` to convert the merged list back to a standard list for printing and validation.  This makes the code fully self-contained and testable.  More test cases added, including empty lists.
+*   **Comments:** More detailed comments explaining each step of the algorithm.
+*   **Type Hints (optional):**  You could add type hints for even better readability and maintainability:
+
+```python
+from typing import List, Optional
+
+class ListNode:
+    def __init__(self, val: int = 0, next: Optional['ListNode'] = None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists: List[Optional[ListNode]]) -> Optional[ListNode]:
+    """
+    Merges k sorted linked lists into one sorted linked list.
+
+    Args:
+      lists: A list of k sorted linked lists.
+
+    Returns:
+      The head of the merged sorted linked list.
+    """
+    # ... (rest of the code remains the same)
+
 ```
 
 **Explanation:**
 
-The core idea is to iterate through the array and keep track of the elements we've seen so far. A hash map (dictionary in Python) is ideal for this. We want to find the element that appears *again* first.
+1.  **`ListNode` Class:** Defines the node structure for the linked list.
 
-**Python Code Solution:**
+2.  **`mergeKLists(lists)` Function:**
+    *   `heap`: A min-heap to store the head nodes of the linked lists. We store a tuple: `(node.val, index_of_list, node)` so that we can use the value to compare them and the index to differentiate nodes with equal values (avoids comparing nodes directly, which can cause errors).
+    *   We iterate through the input `lists` and add the head node of each non-empty list to the heap.
+    *   `dummy`:  A dummy node is created to simplify the construction of the merged linked list.
+    *   `curr`:  A pointer to the current node in the merged list.
+    *   **`while heap:` loop:**
+        *   `heapq.heappop(heap)`: Retrieves the node with the smallest value from the heap (the `val` in the tuple).  The `index` is used to identify the list that the node came from.
+        *   `curr.next = node`: Appends the smallest node to the merged list.
+        *   `curr = curr.next`: Moves the `curr` pointer to the newly added node.
+        *   If the retrieved node has a `next` node, add that `next` node to the heap.  This keeps the heap populated with the next candidate nodes to be added to the merged list.
+    *   `return dummy.next`: Returns the head of the merged list (skipping the dummy node).
 
-```python
-def find_first_repeating(arr):
-  """
-  Finds the first repeating element in an array.
+**Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists and k is the number of linked lists. Each node is added to and removed from the heap once.  Heap operations (insertion and deletion) take O(log k) time.
 
-  Args:
-    arr: A list of integers.
-
-  Returns:
-    The first repeating element in the array. If no element repeats, returns -1.
-  """
-  seen = {}  # Dictionary to store elements and their first index
-  min_index = float('inf')  # Initialize with a large value
-  repeating_element = -1
-
-  for i, num in enumerate(arr):
-    if num in seen:
-      # This element has been seen before
-      if seen[num] < min_index:  # Check if its first index is smaller than the current min_index
-          min_index = seen[num]
-          repeating_element = num
-    else:
-      seen[num] = i  # Store the index of the first occurrence
-
-  if repeating_element == -1:
-    return -1
-  else:
-    return repeating_element
-
-# Example usage:
-arr1 = [10, 5, 3, 4, 3, 5, 6]
-print(f"Input: {arr1}, Output: {find_first_repeating(arr1)}")  # Output: 5
-
-arr2 = [6, 10, 5, 4, 9]
-print(f"Input: {arr2}, Output: {find_first_repeating(arr2)}")  # Output: -1
-
-arr3 = [1, 2, 3, 4, 5, 6, 1]
-print(f"Input: {arr3}, Output: {find_first_repeating(arr3)}") # Output: 1
-
-arr4 = [1, 2, 3, 4, 5, 6]
-print(f"Input: {arr4}, Output: {find_first_repeating(arr4)}") # Output: -1
-
-arr5 = [1, 1, 2, 2, 3, 3]
-print(f"Input: {arr5}, Output: {find_first_repeating(arr5)}") # Output: 1
-```
-
-**Explanation of the Code:**
-
-1. **`seen = {}`:**  We create an empty dictionary `seen` to store each element encountered in the array along with its index.
-
-2. **`min_index = float('inf')`:** We initialize `min_index` to positive infinity.  This variable will store the smallest index of the first occurrence of a repeating element.
-
-3. **`repeating_element = -1`:**  We initialize `repeating_element` to -1, which will be the return value if no element repeats.
-
-4. **`for i, num in enumerate(arr):`:**  We iterate through the array using `enumerate` to get both the index (`i`) and the value (`num`) of each element.
-
-5. **`if num in seen:`:**
-   - If `num` is already in the `seen` dictionary, it means we've encountered this element before, so it's a repeating element.
-   - `if seen[num] < min_index:`:  This is a crucial check.  We need to make sure the *first* occurrence of this repeating element is earlier than any other repeating element we've seen so far.  `seen[num]` gives us the index of the first occurrence.
-   - `min_index = seen[num]` and `repeating_element = num`: If the first occurrence is earlier, we update `min_index` and `repeating_element`.
-
-6. **`else:`:**
-   - If `num` is not in the `seen` dictionary, it means this is the first time we're seeing this element.
-   - `seen[num] = i`: We add the element `num` to the `seen` dictionary along with its index `i`.
-
-7. **`return repeating_element`:**  After iterating through the entire array, we return `repeating_element`. If no element repeated, it will still be -1.
-
-**Time and Space Complexity:**
-
-- **Time Complexity: O(n)** -  We iterate through the array once.  Dictionary lookups ( `if num in seen:` and `seen[num]`) take approximately constant time on average (O(1)).
-- **Space Complexity: O(n)** - In the worst case, if all the elements in the array are unique, the `seen` dictionary will store all `n` elements.
-
-**Why this is a good DSA problem:**
-
-*   **Array Traversal:** It involves iterating through an array.
-*   **Hash Maps/Dictionaries:**  It effectively utilizes hash maps for efficient tracking of elements.
-*   **Edge Cases:** It requires handling the case where no element repeats.
-*   **Optimization:**  It encourages thinking about finding the *first* repeating element, not just any repeating element.  The `min_index` variable is key to that.
-*   **Common Pattern:** The "using a dictionary to track elements seen" pattern is very common in many algorithm problems.
+**Space Complexity:** O(k), where k is the number of linked lists.  The heap stores at most k nodes (one from each list).  O(1) excluding the space occupied by the output.
