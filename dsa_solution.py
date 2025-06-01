@@ -1,89 +1,86 @@
-Okay, here's a problem related to **Binary Trees** and a Python solution:
+Okay, here's a DSA problem along with a Python solution.
 
 **Problem:**
 
-Given a binary tree where each node contains an integer value, find the maximum sum of any path from root to a leaf node.
+**Minimum Platforms Required for a Railway Station**
+
+Given arrival and departure times of all trains that reach a railway station, the task is to find the minimum number of platforms required for the railway station so that no train waits.
+
+You are given two arrays, `arrivals` and `departures`, representing the arrival and departure times of trains.  Assume that all times are given in the 24-hour format (e.g., 9:00 is 9, 18:30 is 18.5).
 
 **Example:**
 
 ```
-     4
-    / \
-   2   7
-  / \   \
- 1   3   9
+arrivals = [9.00, 9.40, 9.50, 11.00, 15.00, 18.00]
+departures = [9.10, 12.00, 11.20, 11.30, 19.00, 20.00]
 
-```
-
-In the above tree, the maximum root-to-leaf path sum is 4 + 7 + 9 = 20.
-
-**Python Code Solution:**
-
-```python
-class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
-        self.val = val
-        self.left = left
-        self.right = right
-
-def max_root_to_leaf_sum(root):
-    """
-    Finds the maximum sum of a path from root to a leaf node in a binary tree.
-
-    Args:
-        root: The root node of the binary tree.
-
-    Returns:
-        The maximum root-to-leaf path sum.
-    """
-
-    if not root:
-        return 0
-
-    if not root.left and not root.right:  # It's a leaf node
-        return root.val
-
-    left_sum = max_root_to_leaf_sum(root.left) if root.left else float('-inf')
-    right_sum = max_root_to_leaf_sum(root.right) if root.right else float('-inf')
-
-    return root.val + max(left_sum, right_sum)
-
-# Example usage (creating the tree from the problem description)
-root = TreeNode(4)
-root.left = TreeNode(2)
-root.right = TreeNode(7)
-root.left.left = TreeNode(1)
-root.left.right = TreeNode(3)
-root.right.right = TreeNode(9)
-
-max_sum = max_root_to_leaf_sum(root)
-print(f"Maximum root-to-leaf path sum: {max_sum}")  # Output: 20
+Output: 3
 ```
 
 **Explanation:**
 
-1. **`TreeNode` Class:** Defines the structure of a node in a binary tree.  Each node has a value (`val`), a left child (`left`), and a right child (`right`).
+At time 9:40, we have 2 trains on the platform (9.00 and 9.40 arrivals).
+At time 9:50, we have 3 trains on the platform (9.00, 9.40, and 9.50 arrivals).
+Then 9.00 leaves at 9:10, but the 9:40 and 9:50 are still there.
+...and so on.  We need 3 platforms to handle the maximum overlap.
 
-2. **`max_root_to_leaf_sum(root)` Function:**
-   - **Base Cases:**
-     - `if not root: return 0`:  If the tree is empty (no root), the sum is 0.
-     - `if not root.left and not root.right: return root.val`: If it's a leaf node (no left or right child), the maximum sum is just the node's value.
+**Python Solution:**
 
-   - **Recursive Step:**
-     - `left_sum = max_root_to_leaf_sum(root.left) if root.left else float('-inf')`:  Recursively calculates the maximum path sum from the *left* subtree.  If there is no left subtree it will be negative infinity.
-     - `right_sum = max_root_to_leaf_sum(root.right) if root.right else float('-inf')`: Recursively calculates the maximum path sum from the *right* subtree. If there is no right subtree it will be negative infinity.
-     - `return root.val + max(left_sum, right_sum)`:  Adds the current node's value to the maximum of the left and right subtree sums, and returns the result. This represents the maximum path sum from the current node to a leaf node. We take the max of left_sum and right_sum because we want the *longest* path.  We need to find the max from one side otherwise the path won't be from root to leaf.
+```python
+def min_platforms(arrivals, departures):
+    """
+    Calculates the minimum number of platforms required at a railway station.
 
-3. **Example Usage:**
-   - Creates the example binary tree as described in the problem statement.
-   - Calls `max_root_to_leaf_sum(root)` to get the maximum path sum.
-   - Prints the result.
+    Args:
+        arrivals: A list of arrival times.
+        departures: A list of departure times.
 
-**How it works:**
+    Returns:
+        The minimum number of platforms required.
+    """
 
-The code uses a recursive approach.  It traverses the tree in a depth-first manner.  For each node, it recursively calculates the maximum path sum from its left and right subtrees. Then, it adds the node's value to the larger of the two subtree sums to get the maximum path sum from that node. The base cases handle the conditions when the tree is empty or when a leaf node is reached.
-The negative infinity check prevents null paths from being favored over other possible paths.
+    arrivals.sort()
+    departures.sort()
+
+    platforms_needed = 0
+    max_platforms = 0
+    i = 0  # Index for arrivals
+    j = 0  # Index for departures
+
+    while i < len(arrivals) and j < len(departures):
+        if arrivals[i] <= departures[j]:
+            platforms_needed += 1
+            max_platforms = max(max_platforms, platforms_needed)
+            i += 1
+        else:
+            platforms_needed -= 1
+            j += 1
+
+    return max_platforms
+
+# Example usage:
+arrivals = [9.00, 9.40, 9.50, 11.00, 15.00, 18.00]
+departures = [9.10, 12.00, 11.20, 11.30, 19.00, 20.00]
+
+result = min_platforms(arrivals, departures)
+print(f"Minimum platforms required: {result}")  # Output: 3
+```
+
+**Explanation of the Code:**
+
+1. **Sorting:** The `arrivals` and `departures` lists are sorted in ascending order. This is crucial for the algorithm to work correctly because it allows us to process events chronologically.
+
+2. **Two Pointers:**  We use two pointers, `i` (for arrivals) and `j` (for departures).  We iterate through the sorted lists using these pointers.
+
+3. **Comparison:**
+   - If `arrivals[i] <= departures[j]`, it means a train has arrived before another train has departed. Therefore, we need an additional platform.  We increment `platforms_needed` and update `max_platforms` if necessary.  We then increment `i` to consider the next arrival.
+   - If `arrivals[i] > departures[j]`, it means a train has departed, so we can free up a platform. We decrement `platforms_needed` and increment `j` to consider the next departure.
+
+4. **`max_platforms`:**  We keep track of the maximum number of platforms needed at any point in time using the `max_platforms` variable.
+
+5. **Return Value:**  The function returns `max_platforms`, which represents the minimum number of platforms required to avoid any waiting.
+
 **Time and Space Complexity:**
 
-- **Time Complexity:** O(N), where N is the number of nodes in the binary tree.  The function visits each node once.
-- **Space Complexity:** O(H), where H is the height of the binary tree. This is due to the call stack during recursion. In the worst case (a skewed tree), H can be equal to N, leading to O(N) space complexity. In the best case (a balanced tree), H would be log(N), resulting in O(log N) space complexity.
+*   **Time Complexity:** O(n log n), where n is the number of trains, due to the sorting operations.
+*   **Space Complexity:** O(1) (constant) -  We are using a constant amount of extra space for variables. Note: the sorting algorithm itself might use some extra space depending on the implementation (e.g., mergesort uses O(n), but heapsort can be done in-place in O(1)).  In practice, Python's `sort()` uses Timsort, which has a worst-case space complexity of O(n), but in many practical cases, it's closer to O(1).
