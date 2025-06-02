@@ -1,86 +1,107 @@
-Okay, here's a DSA problem along with a Python solution.
+Okay, here's a problem and a Python solution.
 
-**Problem:**
+**Problem: Find the Missing Number in a Range**
 
-**Minimum Platforms Required for a Railway Station**
-
-Given arrival and departure times of all trains that reach a railway station, the task is to find the minimum number of platforms required for the railway station so that no train waits.
-
-You are given two arrays, `arrivals` and `departures`, representing the arrival and departure times of trains.  Assume that all times are given in the 24-hour format (e.g., 9:00 is 9, 18:30 is 18.5).
+You are given an array `nums` containing distinct numbers taken from the range `[0, n]`.  That is, the array should contain all the numbers between 0 and *n*, inclusive, except for one missing number.  Find the missing number.
 
 **Example:**
 
 ```
-arrivals = [9.00, 9.40, 9.50, 11.00, 15.00, 18.00]
-departures = [9.10, 12.00, 11.20, 11.30, 19.00, 20.00]
+Input: nums = [3, 0, 1]
+Output: 2
 
-Output: 3
+Input: nums = [0, 1]
+Output: 2
+
+Input: nums = [9,6,4,2,3,5,7,0,1]
+Output: 8
 ```
 
-**Explanation:**
+**Constraints:**
 
-At time 9:40, we have 2 trains on the platform (9.00 and 9.40 arrivals).
-At time 9:50, we have 3 trains on the platform (9.00, 9.40, and 9.50 arrivals).
-Then 9.00 leaves at 9:10, but the 9:40 and 9:50 are still there.
-...and so on.  We need 3 platforms to handle the maximum overlap.
+*   `n == nums.length`
+*   `1 <= n <= 104`
+*   `0 <= nums[i] <= n`
+*   All the numbers of `nums` are unique.
 
 **Python Solution:**
 
 ```python
-def min_platforms(arrivals, departures):
-    """
-    Calculates the minimum number of platforms required at a railway station.
+def find_missing_number(nums):
+  """
+  Finds the missing number in the range [0, n].
 
-    Args:
-        arrivals: A list of arrival times.
-        departures: A list of departure times.
+  Args:
+    nums: A list of distinct numbers taken from the range [0, n].
 
-    Returns:
-        The minimum number of platforms required.
-    """
+  Returns:
+    The missing number.
+  """
 
-    arrivals.sort()
-    departures.sort()
+  n = len(nums)
+  expected_sum = n * (n + 1) // 2  # Sum of numbers from 0 to n
+  actual_sum = sum(nums)
 
-    platforms_needed = 0
-    max_platforms = 0
-    i = 0  # Index for arrivals
-    j = 0  # Index for departures
+  return expected_sum - actual_sum
 
-    while i < len(arrivals) and j < len(departures):
-        if arrivals[i] <= departures[j]:
-            platforms_needed += 1
-            max_platforms = max(max_platforms, platforms_needed)
-            i += 1
-        else:
-            platforms_needed -= 1
-            j += 1
 
-    return max_platforms
+# Example Usage:
+nums1 = [3, 0, 1]
+print(f"Missing number in {nums1}: {find_missing_number(nums1)}")  # Output: 2
 
-# Example usage:
-arrivals = [9.00, 9.40, 9.50, 11.00, 15.00, 18.00]
-departures = [9.10, 12.00, 11.20, 11.30, 19.00, 20.00]
+nums2 = [0, 1]
+print(f"Missing number in {nums2}: {find_missing_number(nums2)}")  # Output: 2
 
-result = min_platforms(arrivals, departures)
-print(f"Minimum platforms required: {result}")  # Output: 3
+nums3 = [9, 6, 4, 2, 3, 5, 7, 0, 1]
+print(f"Missing number in {nums3}: {find_missing_number(nums3)}")  # Output: 8
 ```
 
-**Explanation of the Code:**
+**Explanation:**
 
-1. **Sorting:** The `arrivals` and `departures` lists are sorted in ascending order. This is crucial for the algorithm to work correctly because it allows us to process events chronologically.
+1.  **Sum of the Range:** The core idea is to calculate the sum of all numbers that *should* be present in the range `[0, n]`. We can use the formula for the sum of an arithmetic series: `n * (n + 1) / 2`.  In Python, we use `//` for integer division to avoid potential float values.
 
-2. **Two Pointers:**  We use two pointers, `i` (for arrivals) and `j` (for departures).  We iterate through the sorted lists using these pointers.
+2.  **Sum of the Array:** We calculate the sum of the numbers that are actually present in the `nums` array.
 
-3. **Comparison:**
-   - If `arrivals[i] <= departures[j]`, it means a train has arrived before another train has departed. Therefore, we need an additional platform.  We increment `platforms_needed` and update `max_platforms` if necessary.  We then increment `i` to consider the next arrival.
-   - If `arrivals[i] > departures[j]`, it means a train has departed, so we can free up a platform. We decrement `platforms_needed` and increment `j` to consider the next departure.
-
-4. **`max_platforms`:**  We keep track of the maximum number of platforms needed at any point in time using the `max_platforms` variable.
-
-5. **Return Value:**  The function returns `max_platforms`, which represents the minimum number of platforms required to avoid any waiting.
+3.  **Difference:** The missing number is simply the difference between the `expected_sum` and the `actual_sum`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n log n), where n is the number of trains, due to the sorting operations.
-*   **Space Complexity:** O(1) (constant) -  We are using a constant amount of extra space for variables. Note: the sorting algorithm itself might use some extra space depending on the implementation (e.g., mergesort uses O(n), but heapsort can be done in-place in O(1)).  In practice, Python's `sort()` uses Timsort, which has a worst-case space complexity of O(n), but in many practical cases, it's closer to O(1).
+*   **Time Complexity:** O(n), due to the `sum(nums)` operation.
+*   **Space Complexity:** O(1), as we only use a few constant extra variables.
+
+**Alternative Solution (Bit Manipulation - XOR):**
+
+```python
+def find_missing_number_xor(nums):
+  """
+  Finds the missing number using XOR operation.
+
+  Args:
+    nums: A list of distinct numbers taken from the range [0, n].
+
+  Returns:
+    The missing number.
+  """
+
+  n = len(nums)
+  missing = n
+
+  for i, num in enumerate(nums):
+    missing ^= i ^ num
+
+  return missing
+```
+
+**Explanation of XOR Solution:**
+
+1.  **XOR Property:**  XOR (exclusive OR) has the following property: `a ^ a = 0` and `a ^ 0 = a`.
+2.  **XORing the Range and Array:** We initialize `missing` with `n`.  Then, we iterate through the `nums` array, XORing each index `i` with the corresponding number `num` and XORing the result with `missing`.
+3.  **Cancellation:** In effect, we are XORing all the numbers from `0` to `n` with all the numbers in the array. Since all numbers except the missing number are present twice (once as an index and once as a value), they cancel each other out due to `a ^ a = 0`.
+4.  **The Missing Number Remains:** The missing number, being present only once (as either an index or a value), remains in the `missing` variable.
+
+**Time and Space Complexity of XOR Solution:**
+
+*   **Time Complexity:** O(n)
+*   **Space Complexity:** O(1)
+
+The XOR solution is often preferred because it can be slightly faster in practice and avoids potential integer overflow issues that might arise with very large values of `n` in the sum-based solution. Both solutions, however, are valid and efficient.
