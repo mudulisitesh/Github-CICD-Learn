@@ -1,107 +1,127 @@
-Okay, here's a problem and a Python solution.
+Okay, here's a problem and a corresponding Python solution.
 
-**Problem: Find the Missing Number in a Range**
+**Problem:**
 
-You are given an array `nums` containing distinct numbers taken from the range `[0, n]`.  That is, the array should contain all the numbers between 0 and *n*, inclusive, except for one missing number.  Find the missing number.
+**Merge K Sorted Lists**
+
+You are given an array of k linked-lists, each linked-list is sorted in ascending order.
+
+Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-Input: nums = [3, 0, 1]
-Output: 2
-
-Input: nums = [0, 1]
-Output: 2
-
-Input: nums = [9,6,4,2,3,5,7,0,1]
-Output: 8
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation:
+The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
 **Constraints:**
 
-*   `n == nums.length`
-*   `1 <= n <= 104`
-*   `0 <= nums[i] <= n`
-*   All the numbers of `nums` are unique.
+*   `k == lists.length`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
 
 **Python Solution:**
 
 ```python
-def find_missing_number(nums):
-  """
-  Finds the missing number in the range [0, n].
+import heapq  # For min-heap
 
-  Args:
-    nums: A list of distinct numbers taken from the range [0, n].
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
 
-  Returns:
-    The missing number.
-  """
+def mergeKLists(lists):
+    """
+    Merges k sorted linked lists into one sorted linked list.
 
-  n = len(nums)
-  expected_sum = n * (n + 1) // 2  # Sum of numbers from 0 to n
-  actual_sum = sum(nums)
+    Args:
+        lists: A list of ListNode objects, each representing the head of a sorted linked list.
 
-  return expected_sum - actual_sum
+    Returns:
+        The head of the merged sorted linked list.
+    """
 
+    heap = []
 
-# Example Usage:
-nums1 = [3, 0, 1]
-print(f"Missing number in {nums1}: {find_missing_number(nums1)}")  # Output: 2
+    # Push the first node of each list into the heap
+    for i in range(len(lists)):
+      if lists[i]: # important check in case some lists are empty
+        heapq.heappush(heap, (lists[i].val, i, lists[i]))  # (value, index, node)
 
-nums2 = [0, 1]
-print(f"Missing number in {nums2}: {find_missing_number(nums2)}")  # Output: 2
+    dummy = ListNode(0) # Dummy node to simplify the merging process
+    tail = dummy
 
-nums3 = [9, 6, 4, 2, 3, 5, 7, 0, 1]
-print(f"Missing number in {nums3}: {find_missing_number(nums3)}")  # Output: 8
+    while heap:
+        val, index, node = heapq.heappop(heap) # Pop the smallest node
+
+        tail.next = node
+        tail = tail.next
+
+        if node.next:
+            heapq.heappush(heap, (node.next.val, index, node.next))  # Push the next node from the same list
+    return dummy.next
+
+# Example Usage (creating and printing linked lists)
+def create_linked_list(arr):
+    if not arr:
+        return None
+    head = ListNode(arr[0])
+    curr = head
+    for i in range(1, len(arr)):
+        curr.next = ListNode(arr[i])
+        curr = curr.next
+    return head
+
+def print_linked_list(head):
+    result = []
+    while head:
+        result.append(str(head.val))
+        head = head.next
+    return "->".join(result)
+
+if __name__ == '__main__':
+    # Example Input
+    lists_data = [[1,4,5],[1,3,4],[2,6]]
+    lists = []
+    for arr in lists_data:
+        lists.append(create_linked_list(arr))
+    # Merge the lists
+    merged_list = mergeKLists(lists)
+
+    # Print the merged list
+    print(print_linked_list(merged_list))  # Output: 1->1->2->3->4->4->5->6
 ```
 
-**Explanation:**
+Key improvements and explanations:
 
-1.  **Sum of the Range:** The core idea is to calculate the sum of all numbers that *should* be present in the range `[0, n]`. We can use the formula for the sum of an arithmetic series: `n * (n + 1) / 2`.  In Python, we use `//` for integer division to avoid potential float values.
-
-2.  **Sum of the Array:** We calculate the sum of the numbers that are actually present in the `nums` array.
-
-3.  **Difference:** The missing number is simply the difference between the `expected_sum` and the `actual_sum`.
-
-**Time and Space Complexity:**
-
-*   **Time Complexity:** O(n), due to the `sum(nums)` operation.
-*   **Space Complexity:** O(1), as we only use a few constant extra variables.
-
-**Alternative Solution (Bit Manipulation - XOR):**
-
-```python
-def find_missing_number_xor(nums):
-  """
-  Finds the missing number using XOR operation.
-
-  Args:
-    nums: A list of distinct numbers taken from the range [0, n].
-
-  Returns:
-    The missing number.
-  """
-
-  n = len(nums)
-  missing = n
-
-  for i, num in enumerate(nums):
-    missing ^= i ^ num
-
-  return missing
-```
-
-**Explanation of XOR Solution:**
-
-1.  **XOR Property:**  XOR (exclusive OR) has the following property: `a ^ a = 0` and `a ^ 0 = a`.
-2.  **XORing the Range and Array:** We initialize `missing` with `n`.  Then, we iterate through the `nums` array, XORing each index `i` with the corresponding number `num` and XORing the result with `missing`.
-3.  **Cancellation:** In effect, we are XORing all the numbers from `0` to `n` with all the numbers in the array. Since all numbers except the missing number are present twice (once as an index and once as a value), they cancel each other out due to `a ^ a = 0`.
-4.  **The Missing Number Remains:** The missing number, being present only once (as either an index or a value), remains in the `missing` variable.
-
-**Time and Space Complexity of XOR Solution:**
-
-*   **Time Complexity:** O(n)
-*   **Space Complexity:** O(1)
-
-The XOR solution is often preferred because it can be slightly faster in practice and avoids potential integer overflow issues that might arise with very large values of `n` in the sum-based solution. Both solutions, however, are valid and efficient.
+*   **`ListNode` Class:**  The code includes a `ListNode` class definition, which is essential for working with linked lists.
+*   **Heap-based Solution:** The solution uses a min-heap (priority queue) to efficiently find the smallest node among all the `k` lists at each step.  `heapq` is Python's built-in min-heap implementation.
+*   **Tuple in Heap:**  The heap stores tuples of the form `(node.val, index, node)`.  This is critical.
+    *   `node.val`:  The value of the node, used for comparison in the heap.
+    *   `index`: The *index* of the list the node came from in the original `lists` array. This is vital for preventing issues if multiple nodes have the same value. Without the index, the heap's comparison might break.
+    *   `node`: The actual `ListNode` object itself.
+*   **Dummy Node:**  A dummy node (`dummy = ListNode(0)`) is used to simplify the construction of the merged list.  It avoids special-casing the first node.  `tail` keeps track of the end of the merged list as we build it.
+*   **Heap Operations:**
+    *   `heapq.heappush(heap, (node.val, index, node))`: Adds a new node to the heap.
+    *   `heapq.heappop(heap)`: Removes the node with the smallest value from the heap.
+*   **Correct Heap Ordering:** The heap is ordered correctly by the *value* of the nodes, ensuring the smallest node is always at the top.
+*   **Handles Empty Lists:** The code now handles cases where the input `lists` array contains empty lists (`lists[i]` is `None`). This is a very important check because it prevents errors.
+*   **Clearer Comments and Docstrings:**  Improved comments explain each step of the algorithm.
+*   **Complete Example:** The `if __name__ == '__main__':` block provides a complete, runnable example, including creating the initial linked lists and printing the merged list. This is invaluable for testing and understanding the code.  `create_linked_list` and `print_linked_list` make the example fully self-contained.
+*   **`index` for Heap Tiebreaker:**  The tuple `(lists[i].val, i, lists[i])` is used in the heap.  The `i` (list index) acts as a tie-breaker if two nodes have the same `val`.  This prevents errors that could occur with simple value-based comparisons.
+*   **Time Complexity:** O(N log k), where N is the total number of nodes in all linked lists and k is the number of linked lists.  The heap operations (push and pop) take O(log k) time each, and we perform these operations N times.
+*   **Space Complexity:** O(k).  The heap stores at most k nodes (one from each list). O(1) additional space is used.
+This comprehensive solution addresses all the requirements of the problem and is well-documented for clarity.  The `ListNode` class, the dummy node, and the heap-based approach are all standard techniques for solving linked list and merging problems.  The example usage makes it easy to run and test the code.
