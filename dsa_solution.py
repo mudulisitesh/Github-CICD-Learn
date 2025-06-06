@@ -1,119 +1,142 @@
-Okay, here's a randomly generated DSA problem and a Python solution:
+Okay, here's a DSA problem, along with a Python solution and explanation:
 
-**Problem:  First Missing Positive**
+**Problem:**
 
-Given an unsorted integer array `nums`, find the smallest missing positive integer. You must implement an algorithm that runs in `O(n)` time and uses `O(1)` auxiliary space.
+**K-th Largest Element in an Array**
 
-**Example 1:**
+Given an unsorted array of integers `nums` and an integer `k`, find the *k*-th largest element in the array.
 
-```
-Input: nums = [1,2,0]
-Output: 3
-```
+Note that it is the *k*-th largest element in the sorted order, not the *k*-th distinct element.
 
-**Example 2:**
+You must solve it in `O(n)` average time complexity.
 
-```
-Input: nums = [3,4,-1,1]
-Output: 2
-```
-
-**Example 3:**
+**Example:**
 
 ```
-Input: nums = [7,8,9,11,12]
-Output: 1
+Input: nums = [3,2,1,5,6,4], k = 2
+Output: 5
+```
+
+```
+Input: nums = [3,2,3,1,2,4,5,5,6], k = 4
+Output: 4
+```
+
+**Python Solution (using Quickselect):**
+
+```python
+import random
+
+def findKthLargest(nums, k):
+    """
+    Finds the k-th largest element in an array using the Quickselect algorithm.
+
+    Args:
+        nums: A list of integers.
+        k: The index of the desired element (k-th largest).
+
+    Returns:
+        The k-th largest element in the array.
+    """
+
+    def quickselect(nums, left, right, k_smallest):
+        """
+        Recursive helper function for Quickselect.
+        Finds the k_smallest-th smallest element within the subarray nums[left:right+1].
+        """
+
+        if left == right:
+            return nums[left]
+
+        # Choose a random pivot
+        pivot_index = random.randint(left, right)
+        pivot_index = partition(nums, left, right, pivot_index)  # Partition around the pivot
+
+        if k_smallest == pivot_index:
+            return nums[k_smallest]  # Found the element
+        elif k_smallest < pivot_index:
+            return quickselect(nums, left, pivot_index - 1, k_smallest)  # Search left subarray
+        else:
+            return quickselect(nums, pivot_index + 1, right, k_smallest)  # Search right subarray
+
+    def partition(nums, left, right, pivot_index):
+        """
+        Partitions the subarray nums[left:right+1] around the pivot at pivot_index.
+        Returns the new index of the pivot after partitioning.
+        """
+
+        pivot_value = nums[pivot_index]
+
+        # Move pivot to the end
+        nums[pivot_index], nums[right] = nums[right], nums[pivot_index]
+        store_index = left
+
+        # Partition elements smaller than the pivot to the left
+        for i in range(left, right):
+            if nums[i] < pivot_value:
+                nums[store_index], nums[i] = nums[i], nums[store_index]
+                store_index += 1
+
+        # Move pivot to its final sorted position
+        nums[right], nums[store_index] = nums[store_index], nums[right]
+
+        return store_index
+
+    # Convert k-th largest to k-th smallest
+    return quickselect(nums, 0, len(nums) - 1, len(nums) - k) #k_smallest = len(nums) - k
+
+
+# Example usage:
+nums1 = [3, 2, 1, 5, 6, 4]
+k1 = 2
+print(f"The {k1}-th largest element in {nums1} is: {findKthLargest(nums1, k1)}")  # Output: 5
+
+nums2 = [3, 2, 3, 1, 2, 4, 5, 5, 6]
+k2 = 4
+print(f"The {k2}-th largest element in {nums2} is: {findKthLargest(nums2, k2)}")  # Output: 4
+
+nums3 = [7,6,5,4,3,2,1]
+k3 = 5
+print(f"The {k3}-th largest element in {nums3} is: {findKthLargest(nums3,k3)}") #output : 3
 ```
 
 **Explanation:**
 
-The task is to efficiently find the smallest positive integer (greater than 0) that is missing from the given array. The constraints of O(n) time and O(1) space make it a bit tricky. We need to modify the array in-place to achieve this.
-**Python Solution:**
+1. **Quickselect Algorithm:**
 
-```python
-def firstMissingPositive(nums):
-    """
-    Finds the smallest missing positive integer in O(n) time and O(1) space.
+   - Quickselect is a selection algorithm to find the *k*-th smallest element in an unordered list.  It is related to the Quicksort sorting algorithm but, instead of sorting the entire list, it only partitions the list around a pivot and then recursively searches in only one of the partitions.
+   - The average time complexity is O(n) but the worst-case time complexity is O(n^2). To avoid the worst-case scenario, we use a randomized pivot.
 
-    Args:
-        nums: A list of integers.
+2. **`findKthLargest(nums, k)` Function:**
+   - It takes the input list `nums` and the integer `k` as parameters.
+   - It calls the `quickselect()` helper function to do the actual work of finding the element.  Importantly, it transforms *k* (k-th largest) into the equivalent *k_smallest* value. If we want the k-th largest element, that's the same as finding the (n - k)-th smallest element, where n is the length of the array.
 
-    Returns:
-        The smallest missing positive integer.
-    """
+3. **`quickselect(nums, left, right, k_smallest)` Function (Recursive):**
+   - `nums`: The list to search within.
+   - `left`, `right`:  The boundaries of the subarray to search within (inclusive).
+   - `k_smallest`: The index of the element we're looking for (k-th smallest).
 
-    n = len(nums)
+   - **Base Case:** If `left == right`, it means the subarray has only one element, so we return that element.
+   - **Pivot Selection:** A random element within the subarray is chosen as the pivot.  Using a random pivot helps to avoid worst-case performance (O(n^2)) when the input array is already sorted or nearly sorted.
+   - **Partitioning:** The `partition()` function is called to rearrange the subarray around the pivot.  Elements smaller than the pivot are moved to the left of the pivot, and elements larger than the pivot are moved to the right.
+   - **Recursive Calls:**
+     - If `k_smallest` is equal to the pivot index, we've found the element we're looking for, so we return it.
+     - If `k_smallest` is less than the pivot index, it means the k-th smallest element is in the left subarray, so we recursively call `quickselect()` on the left subarray.
+     - If `k_smallest` is greater than the pivot index, it means the k-th smallest element is in the right subarray, so we recursively call `quickselect()` on the right subarray.
 
-    # 1. Check if 1 is present. If not, you're done and 1 is the answer.
-    if 1 not in nums:
-        return 1
+4. **`partition(nums, left, right, pivot_index)` Function:**
+   - `nums`: The list to partition.
+   - `left`, `right`:  The boundaries of the subarray to partition (inclusive).
+   - `pivot_index`: The index of the pivot element.
 
-    # 2. Replace negative numbers, zeros, and numbers larger than n by 1.
-    # After this conversion, nums will contain only positive numbers.
-    for i in range(n):
-        if nums[i] <= 0 or nums[i] > n:
-            nums[i] = 1
-
-    # 3. Use index as a hash key and number sign as a presence detector.
-    # For example, if nums[1] is negative, that means that the number `1`
-    # is present in the array.
-    # If nums[2] is positive, the number 2 is missing.
-    for i in range(n):
-        a = abs(nums[i])
-        # If you meet number a in the array, change the sign of the a-th element.
-        # Be careful with duplicates: do it only once.
-        if a == n:
-            nums[0] = - abs(nums[0])  # Handle n at index 0
-        else:
-            nums[a] = - abs(nums[a])
-
-    # 4. Now the index of the first positive number
-    # will correspond to the first missing positive.
-    for i in range(1, n):
-        if nums[i] > 0:
-            return i
-
-    if nums[0] > 0:
-        return n
-
-    return n + 1  # If nums[0] is negative, then n is missing
-
-# Example Usage:
-nums1 = [1, 2, 0]
-print(f"Input: {nums1}, Output: {firstMissingPositive(nums1)}")  # Output: 3
-
-nums2 = [3, 4, -1, 1]
-print(f"Input: {nums2}, Output: {firstMissingPositive(nums2)}")  # Output: 2
-
-nums3 = [7, 8, 9, 11, 12]
-print(f"Input: {nums3}, Output: {firstMissingPositive(nums3)}")  # Output: 1
-
-nums4 = [1]
-print(f"Input: {nums4}, Output: {firstMissingPositive(nums4)}") #Output: 2
-
-nums5 = [2]
-print(f"Input: {nums5}, Output: {firstMissingPositive(nums5)}") #Output: 1
-```
-
-**Explanation of the Solution:**
-
-1. **Check for 1:**  The algorithm first checks if `1` is present in the array. If it's not, then `1` is the missing positive.
-
-2. **Data Cleaning:**  It replaces negative numbers, zeros, and numbers greater than `n` (the array's length) with `1`. This is crucial because we are going to use the array indices to mark the presence of numbers from 1 to `n`.
-
-3. **Hashing with Sign:** This is the core idea.  We iterate through the array. For each number `a` (its absolute value), we change the sign of the element at index `a`.  Specifically:
-   - If `a` is equal to `n`, we change the sign of `nums[0]` because we don't have an index `n`.
-   - Otherwise, we change the sign of `nums[a]` (to mark the presence of `a`).
-
-   The sign change acts as a marker to indicate that a particular number has been seen.  We use `abs()` to avoid changing the sign multiple times for duplicates.
-
-4. **Finding the Missing Positive:** We iterate through the array again, starting from index 1. The first index `i` where `nums[i]` is positive means that the number `i` is missing.
-
-5. **Edge Cases:**
-   - If `nums[0]` is positive after the hashing, it means `n` is missing.
-   - If all elements from index 1 to n-1 are negative, it means `n+1` is missing.
+   - **Pivot Placement:** It first moves the pivot element to the end of the subarray for convenience.
+   - **Partitioning Loop:** It iterates through the subarray from `left` to `right - 1` (excluding the pivot at the end).  If an element is smaller than the pivot value, it swaps it with the element at `store_index`, effectively moving it to the left side of the subarray.
+   - **Final Pivot Placement:** After the loop, it places the pivot element at its correct sorted position (at `store_index`).
+   - **Return Value:** It returns the new index of the pivot element.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n) - The algorithm iterates through the array a constant number of times (3 times at most).
-*   **Space Complexity:** O(1) - It modifies the array in-place and doesn't use any extra auxiliary space.
+*   **Time Complexity:**
+    *   Average: O(n) - Quickselect on average partitions the array in half at each step.
+    *   Worst: O(n^2) - Can occur if the pivot is consistently the smallest or largest element. Randomized pivot selection makes this very unlikely.
+*   **Space Complexity:** O(1) - Quickselect is an in-place algorithm, meaning it uses a constant amount of extra space (excluding the input array).  The recursive calls use stack space, but the depth of the recursion is typically logarithmic (average case).
