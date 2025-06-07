@@ -1,142 +1,146 @@
-Okay, here's a DSA problem, along with a Python solution and explanation:
+Okay, here's a random DSA problem and a Python solution:
 
 **Problem:**
 
-**K-th Largest Element in an Array**
+**Merge K Sorted Lists**
 
-Given an unsorted array of integers `nums` and an integer `k`, find the *k*-th largest element in the array.
+You are given an array of k linked-lists `lists`, where each linked-list is sorted in ascending order.
 
-Note that it is the *k*-th largest element in the sorted order, not the *k*-th distinct element.
-
-You must solve it in `O(n)` average time complexity.
+Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-Input: nums = [3,2,1,5,6,4], k = 2
-Output: 5
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-```
-Input: nums = [3,2,3,1,2,4,5,5,6], k = 4
-Output: 4
-```
+**Constraints:**
 
-**Python Solution (using Quickselect):**
+*   `k == len(lists)`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
+
+**Python Solution:**
 
 ```python
-import random
+import heapq
 
-def findKthLargest(nums, k):
+# Definition for singly-linked list.
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+    def __lt__(self, other): # Important for heapq!
+        return self.val < other.val
+
+def mergeKLists(lists):
     """
-    Finds the k-th largest element in an array using the Quickselect algorithm.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-        nums: A list of integers.
-        k: The index of the desired element (k-th largest).
+        lists: A list of k sorted linked lists.
 
     Returns:
-        The k-th largest element in the array.
+        The head of the merged sorted linked list.
     """
 
-    def quickselect(nums, left, right, k_smallest):
-        """
-        Recursive helper function for Quickselect.
-        Finds the k_smallest-th smallest element within the subarray nums[left:right+1].
-        """
+    heap = []
 
-        if left == right:
-            return nums[left]
+    # Push the head nodes of all linked lists into the heap
+    for node in lists:
+        if node:  # Check if the list is not empty
+            heapq.heappush(heap, node)
 
-        # Choose a random pivot
-        pivot_index = random.randint(left, right)
-        pivot_index = partition(nums, left, right, pivot_index)  # Partition around the pivot
+    # Create a dummy node to start the merged list
+    dummy = ListNode()
+    tail = dummy
 
-        if k_smallest == pivot_index:
-            return nums[k_smallest]  # Found the element
-        elif k_smallest < pivot_index:
-            return quickselect(nums, left, pivot_index - 1, k_smallest)  # Search left subarray
-        else:
-            return quickselect(nums, pivot_index + 1, right, k_smallest)  # Search right subarray
+    # While the heap is not empty
+    while heap:
+        # Pop the node with the smallest value
+        node = heapq.heappop(heap)
+        tail.next = node
+        tail = tail.next
 
-    def partition(nums, left, right, pivot_index):
-        """
-        Partitions the subarray nums[left:right+1] around the pivot at pivot_index.
-        Returns the new index of the pivot after partitioning.
-        """
+        # If the popped node has a next node, push it into the heap
+        if node.next:
+            heapq.heappush(heap, node.next)
 
-        pivot_value = nums[pivot_index]
+    return dummy.next
 
-        # Move pivot to the end
-        nums[pivot_index], nums[right] = nums[right], nums[pivot_index]
-        store_index = left
+# Helper function to create a linked list from a list of values
+def create_linked_list(values):
+    if not values:
+        return None
+    head = ListNode(values[0])
+    curr = head
+    for val in values[1:]:
+        curr.next = ListNode(val)
+        curr = curr.next
+    return head
 
-        # Partition elements smaller than the pivot to the left
-        for i in range(left, right):
-            if nums[i] < pivot_value:
-                nums[store_index], nums[i] = nums[i], nums[store_index]
-                store_index += 1
-
-        # Move pivot to its final sorted position
-        nums[right], nums[store_index] = nums[store_index], nums[right]
-
-        return store_index
-
-    # Convert k-th largest to k-th smallest
-    return quickselect(nums, 0, len(nums) - 1, len(nums) - k) #k_smallest = len(nums) - k
+# Helper function to print a linked list
+def print_linked_list(head):
+    curr = head
+    while curr:
+        print(curr.val, end=" -> ")
+        curr = curr.next
+    print("None")
 
 
-# Example usage:
-nums1 = [3, 2, 1, 5, 6, 4]
-k1 = 2
-print(f"The {k1}-th largest element in {nums1} is: {findKthLargest(nums1, k1)}")  # Output: 5
+# Example Usage
+if __name__ == '__main__':
+    list1 = create_linked_list([1, 4, 5])
+    list2 = create_linked_list([1, 3, 4])
+    list3 = create_linked_list([2, 6])
 
-nums2 = [3, 2, 3, 1, 2, 4, 5, 5, 6]
-k2 = 4
-print(f"The {k2}-th largest element in {nums2} is: {findKthLargest(nums2, k2)}")  # Output: 4
+    lists = [list1, list2, list3]
+    merged_list = mergeKLists(lists)
 
-nums3 = [7,6,5,4,3,2,1]
-k3 = 5
-print(f"The {k3}-th largest element in {nums3} is: {findKthLargest(nums3,k3)}") #output : 3
+    print("Merged List:")
+    print_linked_list(merged_list)
 ```
 
 **Explanation:**
 
-1. **Quickselect Algorithm:**
+1.  **ListNode Class:**  Defines a simple linked list node with a `val` and a `next` pointer.  Crucially, it includes the `__lt__` method, which allows the `heapq` library to correctly compare `ListNode` objects based on their `val` attribute.  This is essential for the min-heap to work correctly.
 
-   - Quickselect is a selection algorithm to find the *k*-th smallest element in an unordered list.  It is related to the Quicksort sorting algorithm but, instead of sorting the entire list, it only partitions the list around a pivot and then recursively searches in only one of the partitions.
-   - The average time complexity is O(n) but the worst-case time complexity is O(n^2). To avoid the worst-case scenario, we use a randomized pivot.
+2.  **`mergeKLists(lists)` Function:**
 
-2. **`findKthLargest(nums, k)` Function:**
-   - It takes the input list `nums` and the integer `k` as parameters.
-   - It calls the `quickselect()` helper function to do the actual work of finding the element.  Importantly, it transforms *k* (k-th largest) into the equivalent *k_smallest* value. If we want the k-th largest element, that's the same as finding the (n - k)-th smallest element, where n is the length of the array.
+    *   **Initialization:**
+        *   `heap`: A min-heap (priority queue) implemented using `heapq`. We will store the *head nodes* of the linked lists in this heap.  The heap will always keep the smallest node at the top.
+        *   `dummy`: A dummy `ListNode` is created.  This is a common technique in linked list problems to simplify the handling of the head of the merged list. We'll use it to build our merged list.
+        *   `tail`: A pointer that initially points to the dummy node.  It will be used to traverse and append to the merged list.
 
-3. **`quickselect(nums, left, right, k_smallest)` Function (Recursive):**
-   - `nums`: The list to search within.
-   - `left`, `right`:  The boundaries of the subarray to search within (inclusive).
-   - `k_smallest`: The index of the element we're looking for (k-th smallest).
+    *   **Heap Population:**
+        *   The code iterates through the `lists` array.
+        *   For each linked list, if the list is not empty (`if node:`), the *head node* is pushed onto the `heap`.  The `heapq.heappush` function maintains the heap property, ensuring that the smallest node is always at the top.
 
-   - **Base Case:** If `left == right`, it means the subarray has only one element, so we return that element.
-   - **Pivot Selection:** A random element within the subarray is chosen as the pivot.  Using a random pivot helps to avoid worst-case performance (O(n^2)) when the input array is already sorted or nearly sorted.
-   - **Partitioning:** The `partition()` function is called to rearrange the subarray around the pivot.  Elements smaller than the pivot are moved to the left of the pivot, and elements larger than the pivot are moved to the right.
-   - **Recursive Calls:**
-     - If `k_smallest` is equal to the pivot index, we've found the element we're looking for, so we return it.
-     - If `k_smallest` is less than the pivot index, it means the k-th smallest element is in the left subarray, so we recursively call `quickselect()` on the left subarray.
-     - If `k_smallest` is greater than the pivot index, it means the k-th smallest element is in the right subarray, so we recursively call `quickselect()` on the right subarray.
+    *   **Merging:**
+        *   The `while heap:` loop continues as long as there are nodes in the heap.
+        *   `heapq.heappop(heap)`: The node with the smallest value is popped from the heap (this is the top of the min-heap).
+        *   `tail.next = node`: The popped node is appended to the `tail` of the merged list.
+        *   `tail = tail.next`: The `tail` pointer is moved to the newly added node.
+        *   `if node.next:`:  If the popped node has a `next` node (i.e., it's not the end of its original linked list), the `next` node is pushed onto the heap.  This ensures that we consider the remaining nodes in that list for merging.
 
-4. **`partition(nums, left, right, pivot_index)` Function:**
-   - `nums`: The list to partition.
-   - `left`, `right`:  The boundaries of the subarray to partition (inclusive).
-   - `pivot_index`: The index of the pivot element.
+    *   **Return:**
+        *   Finally, `dummy.next` is returned.  This is the head of the merged sorted linked list (skipping the dummy node).
 
-   - **Pivot Placement:** It first moves the pivot element to the end of the subarray for convenience.
-   - **Partitioning Loop:** It iterates through the subarray from `left` to `right - 1` (excluding the pivot at the end).  If an element is smaller than the pivot value, it swaps it with the element at `store_index`, effectively moving it to the left side of the subarray.
-   - **Final Pivot Placement:** After the loop, it places the pivot element at its correct sorted position (at `store_index`).
-   - **Return Value:** It returns the new index of the pivot element.
+3.  **Helper Functions (`create_linked_list`, `print_linked_list`):** These are utility functions to create and print linked lists for testing purposes.
 
-**Time and Space Complexity:**
+**Time Complexity:** O(N log k), where N is the total number of nodes in all linked lists, and k is the number of linked lists.  The `heapq.heappush` and `heapq.heappop` operations take O(log k) time, and we perform these operations for each of the N nodes.
 
-*   **Time Complexity:**
-    *   Average: O(n) - Quickselect on average partitions the array in half at each step.
-    *   Worst: O(n^2) - Can occur if the pivot is consistently the smallest or largest element. Randomized pivot selection makes this very unlikely.
-*   **Space Complexity:** O(1) - Quickselect is an in-place algorithm, meaning it uses a constant amount of extra space (excluding the input array).  The recursive calls use stack space, but the depth of the recursion is typically logarithmic (average case).
+**Space Complexity:** O(k).  The heap stores at most one node from each of the k linked lists.
