@@ -1,99 +1,107 @@
-Okay, here's a random DSA problem, along with a clear explanation and a working Python solution:
+Okay, here's a DSA problem and a corresponding Python solution.
 
 **Problem:**
 
-**First Unique Character in a String**
+**Merge K Sorted Linked Lists**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
+You are given an array of k linked-lists `lists`, each linked-list is sorted in ascending order.
 
-**Example 1:**
+Merge all the linked-lists into one sorted linked-list and return it.
 
-```
-Input: s = "leetcode"
-Output: 0
-```
-
-**Example 2:**
+**Example:**
 
 ```
-Input: s = "loveleetcode"
-Output: 2
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-**Example 3:**
+**Code Solution (Python):**
 
-```
-Input: s = "aabb"
-Output: -1
+```python
+import heapq
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
+    """
+    Merges k sorted linked lists into one sorted linked list.
+
+    Args:
+        lists: A list of ListNode objects representing the heads of the linked lists.
+
+    Returns:
+        A ListNode object representing the head of the merged sorted linked list.
+    """
+
+    heap = []  # Min-heap to store nodes from the linked lists
+    for i, head in enumerate(lists):
+        if head:
+            heapq.heappush(heap, (head.val, i, head))  # Store (value, index, node) in the heap
+
+    dummy = ListNode()  # Dummy node to simplify the merging process
+    curr = dummy
+
+    while heap:
+        val, index, node = heapq.heappop(heap)
+        curr.next = node
+        curr = curr.next
+
+        if node.next:
+            heapq.heappush(heap, (node.next.val, index, node.next))  # Push the next node from the same list
+
+    return dummy.next
+# Example Usage:
+# Create linked lists
+list1 = ListNode(1, ListNode(4, ListNode(5)))
+list2 = ListNode(1, ListNode(3, ListNode(4)))
+list3 = ListNode(2, ListNode(6))
+
+lists = [list1, list2, list3]
+
+# Merge the lists
+merged_list = mergeKLists(lists)
+
+# Print the merged list (optional)
+def print_linked_list(head):
+    result = []
+    while head:
+        result.append(head.val)
+        head = head.next
+    return result
+print(print_linked_list(merged_list)) # Output: [1, 1, 2, 3, 4, 4, 5, 6]
 ```
 
 **Explanation:**
 
-The key idea is to count the frequency of each character in the string.  Then, we iterate through the string again, looking for the first character with a frequency of 1.
+1. **`ListNode` Class:**  A standard class to represent a node in a linked list.
 
-**Python Solution:**
+2. **`mergeKLists(lists)` function:**
+   - **Initialization:**
+     - `heap = []`: Creates an empty min-heap using `heapq` module.  A min-heap is crucial because it allows us to efficiently retrieve the smallest element across all k lists at any given time.
+     - `dummy = ListNode()`: Creates a dummy node. This is a common technique in linked list problems to simplify the handling of the head of the new merged list. We'll point `curr` to this dummy, and then `dummy.next` will eventually be the actual merged list.
+     - **Populating the Heap:** The code iterates through the input `lists`. For each linked list, if it's not empty (`if head:`), it pushes the first node's value along with its index in the `lists` and the node itself onto the heap. `heapq.heappush` maintains the heap property (min-heap).  The index is added to the tuple so that if two values are equal, the tie is broken using the original list index.
 
-```python
-def first_unique_char(s):
-    """
-    Finds the index of the first unique character in a string.
+   - **Merging:**
+     - `while heap:`:  The loop continues as long as there are elements in the heap (i.e., nodes to be processed).
+     - `val, index, node = heapq.heappop(heap)`: Extracts the node with the smallest value from the heap. The `heapq.heappop` function returns the smallest element and removes it from the heap.
+     - `curr.next = node`: Connects the current node (`curr`) of the merged list to the extracted node (`node`).
+     - `curr = curr.next`: Moves `curr` to the newly added node, preparing for the next insertion.
+     - `if node.next:`:  Checks if the extracted node has a next node in its original list. If it does, the next node (along with its value and original list index) is pushed onto the heap.
 
-    Args:
-        s: The input string.
-
-    Returns:
-        The index of the first unique character, or -1 if none exists.
-    """
-
-    # 1. Count character frequencies
-    char_counts = {}
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
-
-    # 2. Find the first unique character's index
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
-
-    # 3. No unique character found
-    return -1
-
-# Example Usage:
-string1 = "leetcode"
-print(f"Input: {string1}, Output: {first_unique_char(string1)}")  # Output: 0
-
-string2 = "loveleetcode"
-print(f"Input: {string2}, Output: {first_unique_char(string2)}")  # Output: 2
-
-string3 = "aabb"
-print(f"Input: {string3}, Output: {first_unique_char(string3)}")  # Output: -1
-
-string4 = "dddccdbba"
-print(f"Input: {string4}, Output: {first_unique_char(string4)}") # Output: 8
-```
-
-**Explanation of the Code:**
-
-1. **`first_unique_char(s)` function:**
-   - Takes the input string `s` as an argument.
-
-2. **Character Frequency Counting:**
-   - `char_counts = {}`:  Initializes an empty dictionary called `char_counts` to store the frequency of each character.
-   - `for char in s:`: Iterates through each character in the string `s`.
-   - `char_counts[char] = char_counts.get(char, 0) + 1`:  For each character `char`:
-     - `char_counts.get(char, 0)`:  Tries to get the current count of the character `char` from the `char_counts` dictionary.  If the character is not already in the dictionary, it returns 0 (the default value).
-     - `+ 1`: Increments the count by 1.
-     - `char_counts[char] = ...`: Updates the count of the character in the `char_counts` dictionary.
-
-3. **Finding the First Unique Character:**
-   - `for i, char in enumerate(s):`: Iterates through the string `s` again, this time using `enumerate` to get both the index (`i`) and the character (`char`).
-   - `if char_counts[char] == 1:`:  Checks if the frequency of the character `char` in the `char_counts` dictionary is equal to 1.  If it is, it means the character is unique.
-   - `return i`: If a unique character is found, the function immediately returns its index `i`.
-
-4. **No Unique Character Found:**
-   - `return -1`: If the loop completes without finding any unique characters (i.e., no character has a frequency of 1), the function returns `-1`.
+   - **Return:** `return dummy.next`:  Finally, the function returns the `next` pointer of the dummy node, which is the head of the merged sorted linked list.
 
 **Time and Space Complexity:**
 
-- **Time Complexity:** O(N), where N is the length of the string `s`.  We iterate through the string twice in the worst case.
-- **Space Complexity:** O(K), where K is the number of unique characters in the string `s`.  In the worst case (if all characters are unique), K could be equal to N.  In practice, for a string using ASCII characters, K will be limited to 128 or 256, making the space complexity effectively O(1).
+*   **Time Complexity:** O(N log k), where N is the total number of nodes across all k lists, and k is the number of lists.  `heapq.heappush` and `heapq.heappop` take O(log k) time, and we perform these operations for each of the N nodes.
+*   **Space Complexity:** O(k), where k is the number of linked lists. This is the space used by the min-heap.  In the worst case (all nodes are very small), we might have k elements in the heap simultaneously.  The output list takes O(N) space, but it is part of the output, so it's typically not counted towards the auxiliary space complexity of the algorithm.
