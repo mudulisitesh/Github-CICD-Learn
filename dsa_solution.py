@@ -1,87 +1,95 @@
-Okay, here's a random DSA problem, along with a Python solution:
+Okay, here's a DSA problem that involves a combination of array manipulation and using a hash map (dictionary in Python) for efficient lookups.
 
-**Problem:**
+**Problem: Find the Longest Subarray with Sum K**
 
-**First Unique Character in a String**
+**Description:**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
+Given an array of integers `nums` and an integer `k`, find the longest contiguous subarray whose sum equals `k`. Return the length of this subarray. If no such subarray exists, return 0.
 
-**Example 1:**
+**Example:**
 
-Input: `s = "leetcode"`
-Output: `0`
+```
+nums = [1, -1, 5, -2, 3]
+k = 3
+Output: 4  (The subarray [1, -1, 5, -2] has sum 3 and length 4)
 
-**Example 2:**
-
-Input: `s = "loveleetcode"`
-Output: `2`
-
-**Example 3:**
-
-Input: `s = "aabb"`
-Output: `-1`
+nums = [-2, -1, 2, 1]
+k = 1
+Output: 2 (The subarray [2,1] has sum 1 and length 2)
+```
 
 **Constraints:**
 
-*   `1 <= s.length <= 105`
-*   `s` consists of only lowercase English letters.
+*   The length of the array can be up to 10<sup>5</sup>.
+*   The array elements can be positive, negative, or zero.
 
-**Python Solution:**
+**Python Code Solution:**
 
 ```python
-def firstUniqChar(s):
+def longest_subarray_with_sum_k(nums, k):
     """
-    Finds the index of the first non-repeating character in a string.
+    Finds the length of the longest contiguous subarray with sum k.
 
     Args:
-        s: The input string.
+        nums: A list of integers.
+        k: The target sum.
 
     Returns:
-        The index of the first non-repeating character, or -1 if none exists.
+        The length of the longest subarray with sum k, or 0 if no such subarray exists.
     """
 
-    char_counts = {}  # Dictionary to store character counts
+    prefix_sum = 0
+    max_len = 0
+    prefix_sum_map = {0: -1}  # Key: prefix sum, Value: index where prefix sum occurs
 
-    # Count the occurrences of each character in the string
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+    for i in range(len(nums)):
+        prefix_sum += nums[i]
 
-    # Iterate through the string again to find the first character with a count of 1
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+        if prefix_sum - k in prefix_sum_map:
+            max_len = max(max_len, i - prefix_sum_map[prefix_sum - k])
 
-    # If no non-repeating character is found, return -1
-    return -1
+        if prefix_sum not in prefix_sum_map:  # Store only the *first* occurrence for longest length
+            prefix_sum_map[prefix_sum] = i
 
-# Example usage:
-string1 = "leetcode"
-print(f"First unique character in '{string1}' is at index: {firstUniqChar(string1)}")  # Output: 0
+    return max_len
 
-string2 = "loveleetcode"
-print(f"First unique character in '{string2}' is at index: {firstUniqChar(string2)}")  # Output: 2
+# Example usage
+nums1 = [1, -1, 5, -2, 3]
+k1 = 3
+print(f"Longest subarray length for nums = {nums1}, k = {k1}: {longest_subarray_with_sum_k(nums1, k1)}")  # Output: 4
 
-string3 = "aabb"
-print(f"First unique character in '{string3}' is at index: {firstUniqChar(string3)}")  # Output: -1
+nums2 = [-2, -1, 2, 1]
+k2 = 1
+print(f"Longest subarray length for nums = {nums2}, k = {k2}: {longest_subarray_with_sum_k(nums2, k2)}")  # Output: 2
+
+nums3 = [5, 8, -4, -4, 9, -2, 2]
+k3 = 0
+print(f"Longest subarray length for nums = {nums3}, k = {k3}: {longest_subarray_with_sum_k(nums3, k3)}") # Output 3
+
+nums4 = [0, 0, 0, 0, 0]
+k4 = 0
+print(f"Longest subarray length for nums = {nums4}, k = {k4}: {longest_subarray_with_sum_k(nums4, k4)}")  # Output: 5
+
+nums5 = [2, 1, 0, 1, 3]
+k5 = 0
+print(f"Longest subarray length for nums = {nums5}, k = {k5}: {longest_subarray_with_sum_k(nums5, k5)}") # Output: 1
 ```
 
 **Explanation:**
 
-1.  **Character Counting:**
-    *   A dictionary `char_counts` is used to store the frequency of each character in the string `s`.
-    *   The code iterates through the string `s`, and for each character, it either adds it to the dictionary with a count of 1 or increments its existing count.
+1.  **Prefix Sum:**  The core idea is to use prefix sums. `prefix_sum` at index `i` is the sum of elements from `nums[0]` to `nums[i]`.  If a subarray `nums[j+1...i]` has sum `k`, then `prefix_sum[i] - prefix_sum[j] = k`.  Therefore, `prefix_sum[j] = prefix_sum[i] - k`.
 
-2.  **Finding the First Unique Character:**
-    *   The code iterates through the string `s` again, this time using `enumerate` to get both the index and the character.
-    *   For each character, it checks its count in the `char_counts` dictionary.
-    *   If the count is 1, it means the character is unique, so the function immediately returns its index.
+2.  **Hash Map (Dictionary):** We use a hash map `prefix_sum_map` to store prefix sums and their corresponding *first* indices. This allows us to quickly look up if a prefix sum `prefix_sum[i] - k` exists.
 
-3.  **Handling No Unique Characters:**
-    *   If the loop completes without finding any character with a count of 1, it means there are no non-repeating characters in the string. In this case, the function returns `-1`.
+3.  **Algorithm:**
+    *   Initialize `prefix_sum` to 0 and `max_len` to 0.  Create the `prefix_sum_map` and initialize it with `{0: -1}`.  The `0: -1` entry handles the case where the subarray starts from the beginning of the `nums` array.
+    *   Iterate through the `nums` array.
+    *   Update `prefix_sum`.
+    *   Check if `prefix_sum - k` is in `prefix_sum_map`. If it is, it means there's a subarray ending at the current index `i` with a sum of `k`. Calculate the length of this subarray (`i - prefix_sum_map[prefix_sum - k]`) and update `max_len` if necessary.
+    *   If the current `prefix_sum` is not in `prefix_sum_map`, add it with its index `i`. It's important to store only the *first* occurrence of each `prefix_sum` in the map.  This ensures that we find the *longest* subarray. If you store a later index, you would potentially be shortening the subarray unnecessarily.
+    *   Return `max_len`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(N), where N is the length of the string `s`. The code iterates through the string twice.
-*   **Space Complexity:** O(1), because at most, the `char_counts` dictionary will store the counts of all the distinct characters in the string.  Since the string consists of lowercase English letters, the dictionary can contain at most 26 entries, which is considered constant space.  So it's technically O(26), simplified to O(1).
-
-This solution is efficient and clearly demonstrates the use of a dictionary (hash map) to solve the problem. It's also easy to understand and maintain.
+*   **Time Complexity:** O(n), where n is the length of the `nums` array. We iterate through the array once.  Hash map lookups and insertions take O(1) on average.
+*   **Space Complexity:** O(n) in the worst case.  The `prefix_sum_map` could potentially store all n prefix sums if they are all distinct.
