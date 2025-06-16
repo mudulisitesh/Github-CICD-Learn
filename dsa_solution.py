@@ -1,135 +1,97 @@
-Okay, here's a DSA problem and a Python solution:
+Okay, here's a DSA problem, along with a Python solution.
 
-**Problem:  Merge K Sorted Lists**
+**Problem:**
 
-You are given an array of `k` linked lists, each linked list is sorted in ascending order.
+**Longest Substring Without Repeating Characters**
 
-Merge all the linked lists into one sorted linked list and return it.
+Given a string `s`, find the length of the longest substring without repeating characters.
 
 **Example:**
 
-```
-Input: lists = [[1,4,5],[1,3,4],[2,6]]
-Output: [1,1,2,3,4,4,5,6]
-Explanation:
-The linked-lists are:
-[
-  1->4->5,
-  1->3->4,
-  2->6
-]
-merging them into one sorted list:
-1->1->2->3->4->4->5->6
-```
+*   **Input:** `s = "abcabcbb"`
+*   **Output:** `3`
+*   **Explanation:** The answer is "abc", with the length of 3.
+
+*   **Input:** `s = "bbbbb"`
+*   **Output:** `1`
+*   **Explanation:** The answer is "b", with the length of 1.
+
+*   **Input:** `s = "pwwkew"`
+*   **Output:** `3`
+*   **Explanation:** The answer is "wke", with the length of 3. Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.
 
 **Solution (Python):**
 
 ```python
-import heapq
-
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def mergeKLists(lists):
+def length_of_longest_substring(s):
     """
-    Merges k sorted linked lists into one sorted linked list.
+    Finds the length of the longest substring without repeating characters.
 
     Args:
-        lists: A list of ListNode heads of the k sorted linked lists.
+        s: The input string.
 
     Returns:
-        The head of the merged sorted linked list.
+        The length of the longest substring without repeating characters.
     """
 
-    heap = []  # Min-heap to store nodes based on their values.
-    for i, head in enumerate(lists):
-        if head:
-            heapq.heappush(heap, (head.val, i, head)) # (value, list_index, node)
-            # list_index used to break ties in case of equal values.  Crucial for correct heapq operation.
+    start = 0
+    end = 0
+    max_len = 0
+    char_index_map = {}  # Stores the most recent index of each character
 
-    dummy = ListNode()  # Dummy node to start the merged list.
-    current = dummy
+    while end < len(s):
+        char = s[end]
 
-    while heap:
-        val, list_index, node = heapq.heappop(heap)
-        current.next = node
-        current = current.next
+        if char in char_index_map and char_index_map[char] >= start:
+            # Repeating character found within the current window
+            start = char_index_map[char] + 1  # Move start to after the previous occurrence
+        else:
+            # No repetition, so increment max_len if the current window is larger.
+            max_len = max(max_len, end - start + 1)
 
-        if node.next:
-            heapq.heappush(heap, (node.next.val, list_index, node.next))
+        char_index_map[char] = end  # Update the index of the character
+        end += 1
 
-    return dummy.next
+    return max_len
 
 
-# Example Usage:
-def create_linked_list(arr):
-    """Creates a linked list from a Python list."""
-    if not arr:
-        return None
+# Example Usage
+string1 = "abcabcbb"
+string2 = "bbbbb"
+string3 = "pwwkew"
 
-    head = ListNode(arr[0])
-    current = head
-    for i in range(1, len(arr)):
-        current.next = ListNode(arr[i])
-        current = current.next
-    return head
-
-def linked_list_to_list(head):
-    """Converts a linked list to a Python list."""
-    result = []
-    current = head
-    while current:
-        result.append(current.val)
-        current = current.next
-    return result
-
-# Example Input
-list1 = create_linked_list([1, 4, 5])
-list2 = create_linked_list([1, 3, 4])
-list3 = create_linked_list([2, 6])
-
-lists = [list1, list2, list3]
-
-# Merge the lists
-merged_list_head = mergeKLists(lists)
-
-# Convert the merged list to a Python list for easy printing
-merged_list = linked_list_to_list(merged_list_head)
-
-print(merged_list) # Output: [1, 1, 2, 3, 4, 4, 5, 6]
+print(f"'{string1}': {length_of_longest_substring(string1)}")
+print(f"'{string2}': {length_of_longest_substring(string2)}")
+print(f"'{string3}': {length_of_longest_substring(string3)}")
 ```
 
 **Explanation:**
 
-1. **`ListNode` Class:** Defines the structure of a node in the linked list.
+1.  **`length_of_longest_substring(s)` function:**
+    *   Initializes `start` and `end` pointers to 0.  These pointers define the sliding window.
+    *   `max_len` keeps track of the maximum length found so far.
+    *   `char_index_map` is a dictionary (hash map) to store the most recent index of each character encountered. This is crucial for efficiently checking for repeating characters within the current window.
 
-2. **`mergeKLists(lists)` Function:**
-   - Takes a list of linked list heads (`lists`) as input.
-   - **Min-Heap:**  Uses a `heapq` (min-heap) to efficiently keep track of the smallest node value among all the lists.  We store tuples of `(value, list_index, node)` in the heap.
-     - The `list_index` is *crucial* for proper heap behavior when values are the same.  `heapq` needs a consistent tie-breaker. Without it, if two nodes from different lists have the same value, the heap can become corrupted leading to incorrect merging.
-   - **Initialization:**
-     - Iterates through the input `lists`.
-     - If a list is not empty (i.e., `head` is not `None`), the head node's value and the node itself are pushed onto the heap.  We also push the list index.
-   - **Merging:**
-     - A `dummy` node is created to simplify the merging process (avoids special handling for the first node).
-     - `current` pointer tracks the current node in the merged list.
-     - While the heap is not empty:
-       - The node with the smallest value (`val`) is popped from the heap.
-       - The node is appended to the merged list (`current.next = node`).
-       - `current` is moved to the newly added node (`current = current.next`).
-       - If the popped node has a `next` node, that `next` node's value and node are pushed onto the heap (along with the list index from which it came).
-   - **Return:**  Returns the `next` of the `dummy` node, which is the head of the merged sorted linked list.
+2.  **`while end < len(s):` loop:**
+    *   This loop iterates through the string using the `end` pointer.
+    *   `char = s[end]` gets the character at the `end` position.
+    *   **`if char in char_index_map and char_index_map[char] >= start:`:** This is the key part. It checks if the current character (`char`) is already in the `char_index_map` *and* if its last seen index (`char_index_map[char]`) is within the current window (`>= start`).
+        *   If both conditions are true, it means we've encountered a repeating character within the current substring.
+        *   We need to move the `start` pointer to `char_index_map[char] + 1`. This effectively shrinks the window to exclude the previous occurrence of the repeating character. The new window starts just after the previous occurrence.
 
-3. **Helper Functions (for Example):**
-   - `create_linked_list(arr)`: Creates a linked list from a Python list.  This is used to set up the input.
-   - `linked_list_to_list(head)`: Converts a linked list back to a Python list, so we can easily print and verify the output.
+    *   **`else:`:** If the character is not a repetition in the current window, it extends the window, so we update `max_len` to be the larger of the current `max_len` and the length of the current window (`end - start + 1`).
 
-**Time Complexity:**
+    *   `char_index_map[char] = end`:  Update the last seen index of the character in the `char_index_map`.  It doesn't matter if the character was already present or not; we always want to update to the *most recent* index.
 
-*   O(N log k), where N is the total number of nodes in all the linked lists, and k is the number of linked lists.  Each node is added to and removed from the heap once.  Heap operations take O(log k) time.
+    *   `end += 1`:  Move the `end` pointer to expand the window.
 
-**Space Complexity:**
+3.  **`return max_len`:** After iterating through the entire string, the function returns the maximum length of the substring without repeating characters.
 
-*   O(k): The space complexity is dominated by the heap, which stores at most one node from each of the k linked lists at any given time.
+**How it Works (Sliding Window):**
+
+The algorithm uses a sliding window approach.  The `start` and `end` pointers define the window.  The `end` pointer always moves forward, expanding the window.  The `start` pointer only moves forward when a repeating character is found within the current window.  The `char_index_map` allows for efficient lookup of character indices, making the repetition check fast.
+
+**Time and Space Complexity:**
+
+*   **Time Complexity:** O(n), where n is the length of the string `s`.  Each character is visited at most twice (once by `end`, and possibly once when `start` is updated due to a repeated character).
+*   **Space Complexity:** O(min(m, n)), where n is the length of the string `s`, and m is the size of the character set (e.g., 26 for lowercase English letters, 128 for ASCII, etc.). The `char_index_map` can store at most the number of distinct characters in the string.  In the worst case (all characters are distinct), the space complexity is O(n). However, if the character set is limited (e.g., only lowercase English letters), the space complexity is bounded by O(m), which would be a constant O(1) assuming m is fixed.  Since we consider the minimum, the complexity is O(min(m, n)).
