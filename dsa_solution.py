@@ -1,100 +1,124 @@
-Okay, here's a DSA problem and a Python solution.
+Okay, here's a problem and a corresponding Python solution:
 
-**Problem:**
+**Problem: First Missing Positive**
 
-**Task Scheduling with Deadlines and Profits**
+Given an unsorted integer array `nums`, find the smallest missing positive integer.
 
-You are given a list of tasks. Each task has a deadline and a profit associated with it. You can only execute one task at a time. Your goal is to maximize the total profit by scheduling tasks such that each task is completed by its deadline.
+You must implement an algorithm that runs in `O(n)` time and uses constant extra space.
 
-**Input:**
-
-*   `tasks`: A list of tuples, where each tuple represents a task in the format `(task_id, deadline, profit)`. `task_id` is simply an identifier for the task.
-
-**Output:**
-
-*   A list of task IDs representing the optimal schedule that maximizes the total profit.
-
-**Example:**
+**Example 1:**
 
 ```
-tasks = [("A", 2, 50), ("B", 1, 20), ("C", 2, 10), ("D", 3, 70), ("E", 1, 40)]
+Input: nums = [1,2,0]
+Output: 3
 ```
 
-**Expected Output:**
+**Example 2:**
 
 ```
-['D', 'A', 'B']  (or some other order with the same tasks; profit = 70 + 50 + 20 = 140)
+Input: nums = [3,4,-1,1]
+Output: 2
+```
+
+**Example 3:**
+
+```
+Input: nums = [7,8,9,11,12]
+Output: 1
+```
+
+**Constraints:**
+
+*   `1 <= nums.length <= 5 * 105`
+*   `-231 <= nums[i] <= 231 - 1`
+**Python Solution:**
+
+```python
+def firstMissingPositive(nums):
+    """
+    Finds the smallest missing positive integer in O(n) time and constant extra space.
+
+    Args:
+        nums: A list of integers.
+
+    Returns:
+        The smallest missing positive integer.
+    """
+    n = len(nums)
+
+    # Check if 1 is present. If not, you're done and 1 is the answer.
+    if 1 not in nums:
+        return 1
+
+    # Replace negative numbers, zeros,
+    # and numbers larger than n by 1s.
+    # After this conversion, nums will contain
+    # only positive numbers.
+    for i in range(n):
+        if nums[i] <= 0 or nums[i] > n:
+            nums[i] = 1
+
+    # Use index as a hash key and number sign as a presence detector.
+    # For example, if nums[1] is negative, that means that the number `1`
+    # is present in the array.
+    # If nums[2] is positive, the number 2 is missing.
+    for i in range(n):
+        a = abs(nums[i])
+        # If you meet number a in the array, change the sign of the a-th element.
+        # Be careful with duplicates: do it only once.
+        if a == n:
+            nums[0] = - abs(nums[0])  # Mark that `n` is present by flipping the sign of nums[0].
+        else:
+            nums[a] = - abs(nums[a])
+
+
+    # Now the index of the first positive number
+    # is equal to the first missing positive.
+    for i in range(1, n):
+        if nums[i] > 0:
+            return i
+
+    if nums[0] > 0:
+        return n
+
+    return n + 1  # If nums[0] is negative, it means `n` is present.
 ```
 
 **Explanation:**
 
-1.  Sort the tasks in descending order of profit.
-2.  Create a schedule (initially empty) to hold the selected tasks.
-3.  Iterate through the sorted tasks:
-    *   For each task, try to schedule it as late as possible (but before its deadline).
-    *   If a slot is available before the deadline, add the task to the schedule.
+1. **Check for 1:** If `1` is not in the array, we immediately return `1` because that's the smallest missing positive.
 
-**Python Code Solution:**
+2. **Handle Invalid Numbers:** We replace all negative numbers, zeros, and numbers greater than `n` with `1`. This is because we're only interested in positive integers within the range `[1, n]`.  Numbers outside this range are irrelevant to the solution.
 
-```python
-def task_scheduling(tasks):
-    """
-    Schedules tasks to maximize profit, considering deadlines.
+3. **Use Index as a Hash:** The core idea is to use the indices of the array to keep track of which numbers are present.
+   - Iterate through the array. For each number `a = abs(nums[i])`, we treat `a` as an index.
+   - If `a` is `n` (equal to the length of the array), we use `nums[0]` to store the information, because there is no index `n` in the `nums` array
+   - Negate the element at index `a` (i.e., `nums[a]`). This indicates that the number `a` is present in the array.
+   - We take the absolute value `abs()` of `nums[i]` to handle duplicate values and ensure we're always using a valid index.
 
-    Args:
-        tasks: A list of tuples (task_id, deadline, profit).
+4. **Find the First Positive Index:** After marking the presence of numbers, iterate through the array again, starting from index 1. The first positive element's index represents the smallest missing positive number.
 
-    Returns:
-        A list of task IDs representing the optimal schedule.
-    """
-
-    # Sort tasks by profit in descending order
-    tasks.sort(key=lambda x: x[2], reverse=True)
-
-    # Find the maximum deadline to determine the schedule size
-    max_deadline = max(task[1] for task in tasks)
-
-    # Initialize the schedule with empty slots
-    schedule = [None] * max_deadline
-
-    total_profit = 0
-    scheduled_tasks = []
-
-    # Iterate through the sorted tasks and try to schedule them
-    for task_id, deadline, profit in tasks:
-        # Find the latest available slot before the deadline
-        for slot in range(min(deadline, max_deadline) - 1, -1, -1):
-            if schedule[slot] is None:
-                schedule[slot] = task_id
-                total_profit += profit
-                scheduled_tasks.append(task_id)
-                break
-
-    return scheduled_tasks
-
-# Example usage:
-tasks = [("A", 2, 50), ("B", 1, 20), ("C", 2, 10), ("D", 3, 70), ("E", 1, 40)]
-optimal_schedule = task_scheduling(tasks)
-print(f"Optimal Schedule: {optimal_schedule}")
-```
-
-**Explanation of the Code:**
-
-1.  **Sorting:** The code starts by sorting the tasks based on their profit in descending order. This is crucial because we want to prioritize the tasks that contribute the most to the overall profit.
-2.  **Initialization:**  `max_deadline` determines the size of the schedule array/list.  The `schedule` list is initialized with `None` values, representing empty slots for each time unit.
-3.  **Scheduling:**
-    *   The code iterates through the sorted tasks.
-    *   For each task, it tries to find an available slot in the `schedule` as late as possible (closer to the deadline), but before the deadline. This is done by looping backward from `deadline - 1` down to 0.  `min(deadline, max_deadline)` is used because deadline could be greater than max_deadline.
-    *   If an empty slot (`schedule[slot] is None`) is found, the task ID is placed in that slot, the `total_profit` is updated, and the task ID is added to the `scheduled_tasks` list.  The `break` statement exits the inner loop because the task has been successfully scheduled.
-4.  **Return:**  Finally, the `scheduled_tasks` list is returned, representing the optimal schedule.
+5. **Handle n Case:** If all elements from `nums[1]` to `nums[n-1]` are negative, then the smallest missing positive is `n` if `nums[0]` is positive.  If `nums[0]` is negative, it means that `n` is present. Therefore, the smallest missing positive is `n + 1`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n log n) for sorting the tasks (where n is the number of tasks). The nested loop for scheduling can take O(n * max_deadline) in the worst case, but in many practical scenarios, the inner loop will break early.  The worst-case time complexity is thus dominated by sorting and is O(n log n).
-*   **Space Complexity:** O(max_deadline) for the `schedule` list, which can be O(n) in the worst case if max_deadline is large.  Also, O(n) space for scheduled_tasks. So overall O(n).
+*   **Time Complexity:** O(n) - The algorithm iterates through the array a few times.
+*   **Space Complexity:** O(1) - It uses constant extra space. The modifications are done in-place.
+**Example Usage:**
 
-**Important Considerations:**
+```python
+nums1 = [1, 2, 0]
+print(firstMissingPositive(nums1))  # Output: 3
 
-*   **Greedy Approach:**  This solution uses a greedy approach. It makes the locally optimal choice (selecting the highest-profit task that can fit) at each step, and in this case, it leads to the globally optimal solution.
-*   **Other Algorithms:** While this greedy approach works well for this particular problem, other scheduling problems might require more complex algorithms like dynamic programming.
-*   **Optimization:**  If `max_deadline` is very large compared to the number of tasks, the `schedule` list can become very large. You might be able to optimize memory usage by using a more sophisticated data structure, like a dictionary, to represent the schedule only for occupied slots.
+nums2 = [3, 4, -1, 1]
+print(firstMissingPositive(nums2))  # Output: 2
+
+nums3 = [7, 8, 9, 11, 12]
+print(firstMissingPositive(nums3))  # Output: 1
+
+nums4 = [1]
+print(firstMissingPositive(nums4)) # Output 2
+
+nums5 = [1,2,3]
+print(firstMissingPositive(nums5)) # Output 4
+```
