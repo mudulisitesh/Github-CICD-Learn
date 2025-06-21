@@ -1,124 +1,84 @@
-Okay, here's a problem and a corresponding Python solution:
+Okay, here's a DSA problem and a Python solution:
 
-**Problem: First Missing Positive**
+**Problem:  Merge Intervals**
 
-Given an unsorted integer array `nums`, find the smallest missing positive integer.
+Given a collection of intervals represented as pairs of integers (start, end), merge all overlapping intervals.  Return a new sorted list of non-overlapping intervals representing the merged intervals.
 
-You must implement an algorithm that runs in `O(n)` time and uses constant extra space.
+**Example:**
 
-**Example 1:**
+Input: `intervals = [[1,3],[2,6],[8,10],[15,18]]`
+Output: `[[1,6],[8,10],[15,18]]`
 
-```
-Input: nums = [1,2,0]
-Output: 3
-```
+Explanation: `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
 
-**Example 2:**
+Input: `intervals = [[1,4],[4,5]]`
+Output: `[[1,5]]`
 
-```
-Input: nums = [3,4,-1,1]
-Output: 2
-```
-
-**Example 3:**
-
-```
-Input: nums = [7,8,9,11,12]
-Output: 1
-```
-
-**Constraints:**
-
-*   `1 <= nums.length <= 5 * 105`
-*   `-231 <= nums[i] <= 231 - 1`
 **Python Solution:**
 
 ```python
-def firstMissingPositive(nums):
+def merge_intervals(intervals):
     """
-    Finds the smallest missing positive integer in O(n) time and constant extra space.
+    Merges overlapping intervals in a list.
 
     Args:
-        nums: A list of integers.
+        intervals: A list of intervals, where each interval is a list of two integers [start, end].
 
     Returns:
-        The smallest missing positive integer.
+        A new list of non-overlapping intervals representing the merged intervals.
     """
-    n = len(nums)
 
-    # Check if 1 is present. If not, you're done and 1 is the answer.
-    if 1 not in nums:
-        return 1
+    # Sort intervals by their start times.  This is crucial for the algorithm.
+    intervals.sort(key=lambda x: x[0])  #Sort in ascending order based on x[0]
 
-    # Replace negative numbers, zeros,
-    # and numbers larger than n by 1s.
-    # After this conversion, nums will contain
-    # only positive numbers.
-    for i in range(n):
-        if nums[i] <= 0 or nums[i] > n:
-            nums[i] = 1
+    merged = []
 
-    # Use index as a hash key and number sign as a presence detector.
-    # For example, if nums[1] is negative, that means that the number `1`
-    # is present in the array.
-    # If nums[2] is positive, the number 2 is missing.
-    for i in range(n):
-        a = abs(nums[i])
-        # If you meet number a in the array, change the sign of the a-th element.
-        # Be careful with duplicates: do it only once.
-        if a == n:
-            nums[0] = - abs(nums[0])  # Mark that `n` is present by flipping the sign of nums[0].
+    for interval in intervals:
+        # If the list of merged intervals is empty or if the current
+        # interval does not overlap with the last interval, simply append it.
+        if not merged or merged[-1][1] < interval[0]:
+            merged.append(interval)
         else:
-            nums[a] = - abs(nums[a])
+            # Otherwise, there is overlap, so we merge the current interval
+            # with the last interval.  The end is the max of the two.
+            merged[-1][1] = max(merged[-1][1], interval[1])
 
+    return merged
 
-    # Now the index of the first positive number
-    # is equal to the first missing positive.
-    for i in range(1, n):
-        if nums[i] > 0:
-            return i
+# Example usage:
+intervals1 = [[1,3],[2,6],[8,10],[15,18]]
+result1 = merge_intervals(intervals1)
+print(f"Merged intervals for {intervals1}: {result1}")  # Output: [[1, 6], [8, 10], [15, 18]]
 
-    if nums[0] > 0:
-        return n
+intervals2 = [[1,4],[4,5]]
+result2 = merge_intervals(intervals2)
+print(f"Merged intervals for {intervals2}: {result2}")  # Output: [[1, 5]]
 
-    return n + 1  # If nums[0] is negative, it means `n` is present.
+intervals3 = [[1,4],[0,4]]
+result3 = merge_intervals(intervals3)
+print(f"Merged intervals for {intervals3}: {result3}")  # Output: [[0, 4]]
+
+intervals4 = [[1,4],[0,0]]
+result4 = merge_intervals(intervals4)
+print(f"Merged intervals for {intervals4}: {result4}")  # Output: [[0, 0], [1, 4]]
+
+intervals5 = [[1,4],[0,2],[3,5]]
+result5 = merge_intervals(intervals5)
+print(f"Merged intervals for {intervals5}: {result5}")  # Output: [[0, 5]]
 ```
 
 **Explanation:**
 
-1. **Check for 1:** If `1` is not in the array, we immediately return `1` because that's the smallest missing positive.
+1. **Sort Intervals:** The first step is to sort the intervals based on their starting times.  This is the most important part of the algorithm.  Sorting allows us to process the intervals in order, efficiently checking for overlaps.  The `intervals.sort(key=lambda x: x[0])` line uses a lambda function to define the sorting key as the first element (start time) of each interval.
 
-2. **Handle Invalid Numbers:** We replace all negative numbers, zeros, and numbers greater than `n` with `1`. This is because we're only interested in positive integers within the range `[1, n]`.  Numbers outside this range are irrelevant to the solution.
+2. **Iterate and Merge:**
+   - We initialize an empty list `merged` to store the resulting merged intervals.
+   - We iterate through the sorted `intervals` list.
+   - **No Overlap:** If the `merged` list is empty (first interval) or the current interval's start time is greater than the end time of the last interval in `merged` (no overlap), we simply append the current interval to `merged`.
+   - **Overlap:** If there's an overlap (the current interval's start time is less than or equal to the end time of the last interval in `merged`), we merge the intervals.  We update the end time of the last interval in `merged` to be the maximum of the original end time and the end time of the current interval. This ensures that we extend the merged interval to cover the entire overlapping range.
 
-3. **Use Index as a Hash:** The core idea is to use the indices of the array to keep track of which numbers are present.
-   - Iterate through the array. For each number `a = abs(nums[i])`, we treat `a` as an index.
-   - If `a` is `n` (equal to the length of the array), we use `nums[0]` to store the information, because there is no index `n` in the `nums` array
-   - Negate the element at index `a` (i.e., `nums[a]`). This indicates that the number `a` is present in the array.
-   - We take the absolute value `abs()` of `nums[i]` to handle duplicate values and ensure we're always using a valid index.
+3. **Return:** Finally, we return the `merged` list, which contains the non-overlapping, merged intervals.
 
-4. **Find the First Positive Index:** After marking the presence of numbers, iterate through the array again, starting from index 1. The first positive element's index represents the smallest missing positive number.
+**Time Complexity:** O(n log n) due to the sorting step.  The rest of the algorithm takes O(n) time.
 
-5. **Handle n Case:** If all elements from `nums[1]` to `nums[n-1]` are negative, then the smallest missing positive is `n` if `nums[0]` is positive.  If `nums[0]` is negative, it means that `n` is present. Therefore, the smallest missing positive is `n + 1`.
-
-**Time and Space Complexity:**
-
-*   **Time Complexity:** O(n) - The algorithm iterates through the array a few times.
-*   **Space Complexity:** O(1) - It uses constant extra space. The modifications are done in-place.
-**Example Usage:**
-
-```python
-nums1 = [1, 2, 0]
-print(firstMissingPositive(nums1))  # Output: 3
-
-nums2 = [3, 4, -1, 1]
-print(firstMissingPositive(nums2))  # Output: 2
-
-nums3 = [7, 8, 9, 11, 12]
-print(firstMissingPositive(nums3))  # Output: 1
-
-nums4 = [1]
-print(firstMissingPositive(nums4)) # Output 2
-
-nums5 = [1,2,3]
-print(firstMissingPositive(nums5)) # Output 4
-```
+**Space Complexity:** O(n) in the worst case, where no intervals overlap, and the `merged` list contains all the original intervals.  O(1) in the best case, where all intervals are merged into one. (Not considering the space for the original input.)  The space complexity also depends on the in-place sorting algorithm used.  Python's `sort()` is generally Timsort, which has good average and worst-case space complexity.
