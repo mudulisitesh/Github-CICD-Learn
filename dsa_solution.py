@@ -1,95 +1,80 @@
-Okay, here's a problem description followed by a Python solution using dynamic programming:
+Okay, here's a DSA problem and its Python solution, along with an explanation:
 
-**Problem:**
+**Problem: Group Anagrams**
 
-**Coin Change Problem (Number of Ways)**
+Given an array of strings `strs`, group the anagrams together. You can return the answer in **any order**.
 
-You are given a set of coin denominations `coins` and a target amount `amount`. You have an unlimited supply of each coin denomination.  Write a function that determines the number of possible ways to make change for the given `amount` using the provided `coins`.
+An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
 
 **Example:**
 
 ```
-coins = [1, 2, 5]
-amount = 5
-
-Expected Output: 4  (Because: 5, 2+2+1, 2+1+1+1, 1+1+1+1+1)
-```
-
-**Python Solution (Dynamic Programming):**
-
-```python
-def coin_change(coins, amount):
-    """
-    Calculates the number of ways to make change for a given amount using a set of coins.
-
-    Args:
-        coins: A list of coin denominations.
-        amount: The target amount.
-
-    Returns:
-        The number of possible ways to make change.
-    """
-
-    # dp[i][j] represents the number of ways to make change for amount j using the first i coins
-    dp = [[0 for _ in range(amount + 1)] for _ in range(len(coins) + 1)]
-
-    # Base case: If the amount is 0, there's one way to make change (using no coins).
-    for i in range(len(coins) + 1):
-        dp[i][0] = 1
-
-    # Iterate through the coins and amounts
-    for i in range(1, len(coins) + 1):
-        for j in range(1, amount + 1):
-            # If the current coin denomination is less than or equal to the current amount
-            if coins[i - 1] <= j:
-                # The number of ways to make change is the sum of:
-                # 1. The number of ways to make change without using the current coin (dp[i-1][j])
-                # 2. The number of ways to make change by using the current coin (dp[i][j - coins[i-1]])
-                dp[i][j] = dp[i - 1][j] + dp[i][j - coins[i - 1]]
-            else:
-                # If the current coin is greater than the current amount, we cannot use it.
-                # So, the number of ways is the same as using the previous coins.
-                dp[i][j] = dp[i - 1][j]
-
-    return dp[len(coins)][amount]
-
-# Example Usage
-coins = [1, 2, 5]
-amount = 5
-result = coin_change(coins, amount)
-print(f"Number of ways to make change for {amount}: {result}") # Output: 4
-
-coins = [2]
-amount = 3
-result = coin_change(coins, amount)
-print(f"Number of ways to make change for {amount}: {result}") # Output: 0
-
-coins = [1,2,3]
-amount = 4
-result = coin_change(coins, amount)
-print(f"Number of ways to make change for {amount}: {result}") # Output: 4
+Input: strs = ["eat","tea","tan","ate","nat","bat"]
+Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
 ```
 
 **Explanation:**
 
-1. **Dynamic Programming Table:**
-   - `dp[i][j]` stores the number of ways to make change for amount `j` using the first `i` coins.
+*   "eat", "tea", and "ate" are anagrams of each other.
+*   "tan" and "nat" are anagrams of each other.
+*   "bat" is not an anagram of any other string in the list.
 
-2. **Base Case:**
-   - `dp[i][0] = 1` for all `i`.  This means there's one way to make change for an amount of 0 (using no coins).
+**Solution (Python):**
 
-3. **Iteration:**
-   - The code iterates through the coins and amounts.
-   - For each coin `coins[i-1]` and amount `j`:
-     - If `coins[i-1] <= j` (the coin's value is less than or equal to the amount), then the number of ways to make change is the sum of two possibilities:
-       - `dp[i-1][j]`: The number of ways to make change without using the current coin.
-       - `dp[i][j - coins[i-1]]`: The number of ways to make change by using at least one of the current coin.  We subtract the coin's value from the amount and look up the number of ways to make change for the remaining amount using the same set of coins (hence `dp[i]` instead of `dp[i-1]`).
-     - If `coins[i-1] > j` (the coin's value is greater than the amount), then we cannot use the current coin.  The number of ways to make change is the same as using only the previous coins: `dp[i-1][j]`.
+```python
+from collections import defaultdict
 
-4. **Return Value:**
-   - `dp[len(coins)][amount]` contains the final answer – the number of ways to make change for the target amount using all the given coins.
+def groupAnagrams(strs):
+    """
+    Groups anagrams together in a list of strings.
+
+    Args:
+      strs: A list of strings.
+
+    Returns:
+      A list of lists, where each inner list contains anagrams.
+    """
+
+    anagram_groups = defaultdict(list)  # Dictionary to store anagrams, key is sorted string
+
+    for s in strs:
+        sorted_s = "".join(sorted(s))  # Sort the string to use as a key
+        anagram_groups[sorted_s].append(s)
+
+    return list(anagram_groups.values())  # Return the values (lists of anagrams)
+
+
+# Example Usage:
+strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
+result = groupAnagrams(strs)
+print(result)  # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']] (or any other order)
+```
+
+**Explanation:**
+
+1.  **`defaultdict(list)`:** We use a `defaultdict` from the `collections` module.  This is like a regular dictionary, but if you try to access a key that doesn't exist, it automatically creates that key with a default value (in this case, an empty list).  This is perfect for grouping.
+
+2.  **Iterate through Strings:** The code iterates through each string `s` in the input list `strs`.
+
+3.  **Sort and Create Key:** The core idea is to sort each string. Anagrams, by definition, have the same characters but in a different order. When you sort them, they become identical.
+    *   `sorted(s)` returns a list of the characters in `s` sorted alphabetically.
+    *   `"".join(...)` joins these characters back into a string.  This sorted string is now our key.
+
+4.  **Group Anagrams:**
+    *   `anagram_groups[sorted_s].append(s)`:  We use the sorted string `sorted_s` as the key in our `anagram_groups` dictionary. We then append the original string `s` to the list associated with that key.  If the key doesn't exist yet, `defaultdict` creates it with an empty list, and then `s` is added.
+
+5.  **Return Values:**
+    *   `list(anagram_groups.values())`:  Finally, we return the values of the `anagram_groups` dictionary. The values are the lists containing the grouped anagrams. `list()` converts the dictionary's "view" of values into a standard list.
 
 **Time and Space Complexity:**
 
-- **Time Complexity:** O(n * amount), where `n` is the number of coins.
-- **Space Complexity:** O(n * amount) due to the `dp` table.  (You could potentially optimize this to O(amount) by using only one row of the DP table, but it makes the code slightly less readable.)
+*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input and K is the maximum length of a string.  We iterate through each string (N), and for each string, we sort it (K log K).
+*   **Space Complexity:** O(N * K), where N is the number of strings and K is the maximum length of a string.  In the worst case, we might store all the strings in the `anagram_groups` dictionary.
+
+**Why this approach is good:**
+
+*   **Efficiency:** Using the sorted string as a key is a very efficient way to identify anagrams.
+*   **Clarity:** The code is relatively easy to understand and follow.
+*   **Use of `defaultdict`:**  `defaultdict` makes the code cleaner by automatically handling the creation of new lists for each anagram group.
+
+This solution is a common and efficient way to solve the Group Anagrams problem.  It's a good example of how to use a hash table (in this case, a dictionary) to group elements based on a property (being an anagram).
