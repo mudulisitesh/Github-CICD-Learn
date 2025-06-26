@@ -1,80 +1,146 @@
-Okay, here's a DSA problem and its Python solution, along with an explanation:
+Okay, here's a DSA problem and its Python solution:
 
-**Problem: Group Anagrams**
+**Problem:**
 
-Given an array of strings `strs`, group the anagrams together. You can return the answer in **any order**.
+**Merge K Sorted Lists**
 
-An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
+You are given an array of `k` linked-lists, each linked-list is sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-Input: strs = ["eat","tea","tan","ate","nat","bat"]
-Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-**Explanation:**
+**Constraints:**
 
-*   "eat", "tea", and "ate" are anagrams of each other.
-*   "tan" and "nat" are anagrams of each other.
-*   "bat" is not an anagram of any other string in the list.
+*   `k == lists.length`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
 
-**Solution (Python):**
+**Python Solution:**
 
 ```python
-from collections import defaultdict
+import heapq
 
-def groupAnagrams(strs):
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
     """
-    Groups anagrams together in a list of strings.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-      strs: A list of strings.
+        lists: A list of ListNode objects representing the heads of the k sorted lists.
 
     Returns:
-      A list of lists, where each inner list contains anagrams.
+        A ListNode object representing the head of the merged sorted list.
     """
 
-    anagram_groups = defaultdict(list)  # Dictionary to store anagrams, key is sorted string
+    heap = []  # Min-heap to store the smallest nodes from each list
+    for i in range(len(lists)):
+        if lists[i]: #Only push into heap if the list is not empty
+            heapq.heappush(heap, (lists[i].val, i, lists[i])) #Push (val, index, node)
 
-    for s in strs:
-        sorted_s = "".join(sorted(s))  # Sort the string to use as a key
-        anagram_groups[sorted_s].append(s)
+    dummy = ListNode(0)  # Dummy node for the merged list
+    curr = dummy
 
-    return list(anagram_groups.values())  # Return the values (lists of anagrams)
+    while heap:
+        val, index, node = heapq.heappop(heap)
+        curr.next = node
+        curr = curr.next
 
+        if node.next:
+            heapq.heappush(heap, (node.next.val, index, node.next))
 
-# Example Usage:
-strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
-result = groupAnagrams(strs)
-print(result)  # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']] (or any other order)
+    return dummy.next
+
+# Example Usage (for testing)
+
+# Helper function to create a linked list from a list of values
+def create_linked_list(values):
+    if not values:
+        return None
+    head = ListNode(values[0])
+    curr = head
+    for i in range(1, len(values)):
+        curr.next = ListNode(values[i])
+        curr = curr.next
+    return head
+
+# Helper function to convert a linked list to a list for easy comparison
+def linked_list_to_list(head):
+    result = []
+    curr = head
+    while curr:
+        result.append(curr.val)
+        curr = curr.next
+    return result
+
+# Example lists
+list1 = create_linked_list([1, 4, 5])
+list2 = create_linked_list([1, 3, 4])
+list3 = create_linked_list([2, 6])
+
+lists = [list1, list2, list3]
+
+# Merge the lists
+merged_list = mergeKLists(lists)
+
+# Convert the merged list to a list for output
+merged_list_values = linked_list_to_list(merged_list)
+
+print(merged_list_values)  # Output: [1, 1, 2, 3, 4, 4, 5, 6]
+
+list4 = create_linked_list([])
+list5 = create_linked_list([1,2,3])
+lists = [list4, list5]
+
+merged_list = mergeKLists(lists)
+merged_list_values = linked_list_to_list(merged_list)
+
+print(merged_list_values) #Output: [1, 2, 3]
 ```
 
 **Explanation:**
 
-1.  **`defaultdict(list)`:** We use a `defaultdict` from the `collections` module.  This is like a regular dictionary, but if you try to access a key that doesn't exist, it automatically creates that key with a default value (in this case, an empty list).  This is perfect for grouping.
+1.  **`ListNode` Class:** Defines the structure of a node in a linked list.
 
-2.  **Iterate through Strings:** The code iterates through each string `s` in the input list `strs`.
+2.  **`mergeKLists(lists)` Function:**
+    *   **Heap:**  Uses a min-heap (`heapq`) to keep track of the smallest node from each list. The heap stores tuples of `(node.val, index, node)` where index is the list index, this makes sure when the values are equal, the heap doesn't compare the nodes, which aren't comparable and throw an error.
+    *   **Initialization:**
+        *   Iterates through the input `lists`.
+        *   For each non-empty list, it pushes the first node (value and the list index) onto the heap.
+        *   Creates a dummy node `dummy` to simplify the construction of the merged list.  `curr` pointer is initialized to `dummy`.
+    *   **Merging Process:**
+        *   While the heap is not empty:
+            *   `heapq.heappop(heap)` removes the smallest node (along with the list index and node itself) from the heap.
+            *   Appends this node to the merged list by `curr.next = node`.  Moves `curr` forward: `curr = curr.next`.
+            *   If the removed node has a `next` node, pushes the `next` node (along with the list index) onto the heap.
+    *   **Return:** Returns `dummy.next`, which is the head of the merged sorted linked list.
 
-3.  **Sort and Create Key:** The core idea is to sort each string. Anagrams, by definition, have the same characters but in a different order. When you sort them, they become identical.
-    *   `sorted(s)` returns a list of the characters in `s` sorted alphabetically.
-    *   `"".join(...)` joins these characters back into a string.  This sorted string is now our key.
+3.  **Helper Functions (for testing):**
+    *   `create_linked_list(values)`: Creates a linked list from a list of values.
+    *   `linked_list_to_list(head)`: Converts a linked list to a regular Python list (for easy printing and comparison).
 
-4.  **Group Anagrams:**
-    *   `anagram_groups[sorted_s].append(s)`:  We use the sorted string `sorted_s` as the key in our `anagram_groups` dictionary. We then append the original string `s` to the list associated with that key.  If the key doesn't exist yet, `defaultdict` creates it with an empty list, and then `s` is added.
+**Key Concepts:**
 
-5.  **Return Values:**
-    *   `list(anagram_groups.values())`:  Finally, we return the values of the `anagram_groups` dictionary. The values are the lists containing the grouped anagrams. `list()` converts the dictionary's "view" of values into a standard list.
-
-**Time and Space Complexity:**
-
-*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input and K is the maximum length of a string.  We iterate through each string (N), and for each string, we sort it (K log K).
-*   **Space Complexity:** O(N * K), where N is the number of strings and K is the maximum length of a string.  In the worst case, we might store all the strings in the `anagram_groups` dictionary.
-
-**Why this approach is good:**
-
-*   **Efficiency:** Using the sorted string as a key is a very efficient way to identify anagrams.
-*   **Clarity:** The code is relatively easy to understand and follow.
-*   **Use of `defaultdict`:**  `defaultdict` makes the code cleaner by automatically handling the creation of new lists for each anagram group.
-
-This solution is a common and efficient way to solve the Group Anagrams problem.  It's a good example of how to use a hash table (in this case, a dictionary) to group elements based on a property (being an anagram).
+*   **Min-Heap:**  The min-heap efficiently finds the smallest element among the heads of the `k` lists at any given time.  `heapq` in Python provides a min-heap implementation.
+*   **Linked Lists:**  Understanding how to manipulate linked list nodes (creating, traversing, appending) is crucial.
+*   **Dummy Node:** The dummy node simplifies the process of building the merged list, especially when handling the head node.
+*   **Time Complexity:** O(N log k), where N is the total number of nodes across all lists and k is the number of lists.  Each node is added to the heap and removed once. The heap operations (push and pop) take O(log k) time.
+*   **Space Complexity:** O(k) due to the size of the min-heap, which at most contains one node from each of the `k` lists. O(1) additional space if you don't consider the space for the resulting linked list.
