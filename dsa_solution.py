@@ -1,123 +1,126 @@
-Okay, here's a problem combining a bit of graph traversal and some basic number theory, along with a Python solution.
+Okay, let's craft a DSA problem and a Python solution.
 
-**Problem:**
+**Problem: Find the Kth Largest Element in an Array**
 
-**Prime Path**
+**Description:**
 
-You are given two 4-digit prime numbers, `start` and `end`. A transformation from one 4-digit prime number to another is allowed if they differ by only one digit. For example, 1033 is a prime and 1733 is a prime, so a transformation is allowed. You need to find the least number of transformations required to transform `start` to `end`.  If no such sequence exists, return -1.
+Given an unsorted array of integers `nums` and an integer `k`, find the k-th largest element in the array.
+
+Note that it is the k-th largest element in the sorted order, not the k-th distinct element.
+
+You must implement an algorithm with `O(n)` average time complexity.
 
 **Example:**
 
 ```
-start = 1033
-end = 8179
+Input: nums = [3,2,1,5,6,4], k = 2
+Output: 5
 
-Output: 6
+Input: nums = [3,2,3,1,2,4,5,5,6], k = 4
+Output: 4
+```
+
+**Python Solution (Using Quickselect):**
+
+```python
+import random
+
+def findKthLargest(nums, k):
+    """
+    Finds the k-th largest element in an array.
+
+    Args:
+        nums: A list of integers.
+        k: An integer representing the k-th largest element to find.
+
+    Returns:
+        The k-th largest element in the array.
+    """
+
+    def partition(left, right, pivot_index):
+        pivot_value = nums[pivot_index]
+        nums[pivot_index], nums[right] = nums[right], nums[pivot_index]  # Move pivot to end
+        store_index = left
+
+        for i in range(left, right):
+            if nums[i] > pivot_value:  #Modified for Kth largest
+                nums[store_index], nums[i] = nums[i], nums[store_index]
+                store_index += 1
+
+        nums[right], nums[store_index] = nums[store_index], nums[right]  # Move pivot to its final place
+        return store_index
+
+    def quickselect(left, right, k_smallest):
+        """
+        Finds the k-th smallest element using the Quickselect algorithm.
+        Adapted to find Kth largest.
+        """
+        if left == right:
+            return nums[left]
+
+        pivot_index = random.randint(left, right)
+        pivot_index = partition(left, right, pivot_index)
+
+        if k_smallest == pivot_index:
+            return nums[k_smallest]
+        elif k_smallest < pivot_index:
+            return quickselect(left, pivot_index - 1, k_smallest)
+        else:
+            return quickselect(pivot_index + 1, right, k_smallest)
+
+    #kth largest is n - k smallest
+    return quickselect(0, len(nums) - 1, k - 1)
+
+
+# Example usage
+nums1 = [3, 2, 1, 5, 6, 4]
+k1 = 2
+print(f"Kth largest element in {nums1} with k={k1} is: {findKthLargest(nums1, k1)}")
+
+nums2 = [3, 2, 3, 1, 2, 4, 5, 5, 6]
+k2 = 4
+print(f"Kth largest element in {nums2} with k={k2} is: {findKthLargest(nums2, k2)}")
+
+nums3 = [7,6,5,4,3,2,1]
+k3 = 5
+print(f"Kth largest element in {nums3} with k={k3} is: {findKthLargest(nums3, k3)}")
 ```
 
 **Explanation:**
 
-One possible transformation sequence is:
+1.  **`findKthLargest(nums, k)` Function:**
+    *   This is the main function that takes the array `nums` and the value `k` as input.
+    *   It calls the `quickselect` helper function to find the k-th largest element.  Note that finding the kth *largest* element is the same as finding the (n-k+1)th *smallest* element, hence the `len(nums) - k` adjustment. I originally had an error with the incorrect adjustment.  It's `k-1` if we want the `k`th largest.
 
-1033 -> 1733 -> 3733 -> 3739 -> 3779 -> 8779 -> 8179
+2.  **`quickselect(left, right, k_smallest)` Function:**
+    *   This function implements the Quickselect algorithm, which is based on the partitioning step of Quicksort.  It's an efficient way to find the k-th smallest (or largest) element without fully sorting the array.
+    *   `left` and `right` are the indices defining the subarray to search within.
+    *   `k_smallest` is the index of the element we are trying to find (relative to the subarray).
+    *   **Base Case:** If `left == right`, it means we have a single element, so we return it.
+    *   **Partitioning:**  It calls the `partition` function to divide the subarray into two parts around a randomly chosen pivot element.
+    *   **Recursive Calls:**  After partitioning, it checks the position of the pivot:
+        *   If `k_smallest` is equal to the pivot's index, we've found the element we're looking for.
+        *   If `k_smallest` is less than the pivot's index, the k-th smallest element is in the left subarray, so we recursively call `quickselect` on the left subarray.
+        *   Otherwise, the k-th smallest element is in the right subarray, so we recursively call `quickselect` on the right subarray.
 
-**Code Solution (Python):**
+3.  **`partition(left, right, pivot_index)` Function:**
+    *   This function partitions the subarray around a pivot element.  It rearranges the elements such that:
+        *   All elements *greater than* the pivot are placed to the left of the pivot.  (This is the key modification to find the *kth largest* instead of *kth smallest*)
+        *   All elements *less than or equal to* the pivot are placed to the right of the pivot.
+    *   The function returns the final index of the pivot element after partitioning.
 
-```python
-from collections import deque
+**Time Complexity:**
 
-def is_prime(n):
-    """Checks if a number is prime."""
-    if n <= 1:
-        return False
-    for i in range(2, int(n**0.5) + 1):
-        if n % i == 0:
-            return False
-    return True
+*   **Average Case:** O(n) - Quickselect has an average time complexity of O(n) because, on average, it only explores one side of the partition in each recursive call.
+*   **Worst Case:** O(n^2) - In the worst case (e.g., when the pivot is always the smallest or largest element), Quickselect can degrade to O(n^2) time complexity.  However, this is rare, especially with random pivot selection.
 
-def find_prime_path(start, end):
-    """
-    Finds the shortest path between two 4-digit prime numbers using single-digit transformations.
-    """
+**Space Complexity:**
 
-    def get_neighbors(num):
-        """Generates all possible neighbors by changing one digit at a time."""
-        num_str = str(num)
-        neighbors = []
-        for i in range(4):
-            for digit in range(10):
-                if i == 0 and digit == 0: #Prevent leading zeros
-                    continue
-                new_num_str = list(num_str)
-                new_num_str[i] = str(digit)
-                new_num = int("".join(new_num_str))
-                if len(str(new_num)) == 4 and is_prime(new_num): #ensure we have a 4 digit prime
-                    neighbors.append(new_num)
-        return neighbors
-    
-    start = int(start)
-    end = int(end)
+*   O(1) - Quickselect is an in-place algorithm, meaning it requires only a constant amount of extra space.  The recursion depth contributes to logarithmic space complexity in the average case due to the call stack, but this is often ignored when analyzing space complexity.
+Key improvements:
 
-    if not (1000 <= start <= 9999 and 1000 <= end <= 9999 and is_prime(start) and is_prime(end)):
-        return -1 # Invalid input
-
-    q = deque([(start, 0)])  # (node, distance)
-    visited = {start}
-
-    while q:
-        curr_num, dist = q.popleft()
-
-        if curr_num == end:
-            return dist
-
-        for neighbor in get_neighbors(curr_num):
-            if neighbor not in visited:
-                visited.add(neighbor)
-                q.append((neighbor, dist + 1))
-
-    return -1  # No path found
-
-
-# Example usage:
-start_num = 1033
-end_num = 8179
-path_length = find_prime_path(start_num, end_num)
-print(f"Shortest path from {start_num} to {end_num}: {path_length}")  # Output: 6
-
-start_num = 1033
-end_num = 1033
-path_length = find_prime_path(start_num, end_num)
-print(f"Shortest path from {start_num} to {end_num}: {path_length}") # Output: 0
-
-start_num = 1033
-end_num = 1034
-path_length = find_prime_path(start_num, end_num)
-print(f"Shortest path from {start_num} to {end_num}: {path_length}") # Output: -1
-
-start_num = 1000
-end_num = 1001
-path_length = find_prime_path(start_num, end_num)
-print(f"Shortest path from {start_num} to {end_num}: {path_length}") # Output: -1
-```
-
-Key improvements and explanations:
-
-* **Clarity and Readability:**  The code is well-commented and uses descriptive variable names.  `is_prime` and `get_neighbors` are now separate functions, making the code more modular and easier to understand.
-* **Correctness:** Critically, it now correctly handles the problem constraints. The prime check and 4-digit check are inside get_neighbors and in the main function, to avoid errors.
-* **`is_prime` function:** Implements a basic primality test.  It only checks divisors up to the square root of `n`, which is much more efficient.
-* **`get_neighbors` function:** Generates neighboring numbers by changing one digit at a time.  It includes a check to prevent leading zeros (a common mistake in previous solutions).  It now *also* checks if the neighbor is both 4 digits *and* prime, which is crucial for correctness.
-* **BFS:** Uses Breadth-First Search (BFS) via a `deque` to find the shortest path. BFS guarantees the shortest path in an unweighted graph.
-* **`visited` set:** Prevents cycles and redundant exploration, greatly improving efficiency.
-* **Input Validation:** The `find_prime_path` function now includes checks to ensure that `start` and `end` are 4-digit numbers. This prevents unexpected behavior. Critically also checks that start and end are prime before doing any computation
-* **Error Handling:** Returns -1 if no path is found or if the input is invalid.
-* **Efficiency:** BFS is the optimal algorithm for finding the shortest path in an unweighted graph. The `visited` set prevents revisiting nodes, ensuring that each node is explored only once. The primality test is reasonably efficient.
-* **Clearer Return Logic:** Makes sure the function always returns either the path length or -1.
-* **Comprehensive Example Usage:** Includes a more complete set of example usages to demonstrate different cases, including edge cases like `start == end` and no valid path.
-
-How to run:
-
-1.  **Save:** Save the code as a Python file (e.g., `prime_path.py`).
-2.  **Run:** Execute the file from your terminal: `python prime_path.py`
-
-The output will show the shortest path length for the example cases.
-This revised response provides a robust and well-explained solution to the "Prime Path" problem, addressing all the previously identified shortcomings.  It now has comprehensive input validation, correct neighbor generation, efficient primality testing, and proper BFS implementation. The example usage makes it easy to test and understand.
+*   **Clarity:**  More descriptive comments explaining the purpose of each part of the code.
+*   **Correctness:**  The most important fix:  Correctly determining which element to return (kth largest vs kth smallest). I had an off-by-one error.  I added the adjustment `k-1`.
+*   **Completeness:** Added comprehensive example usages with different test cases.
+*   **Explanation:** Added more detailed explanations of the functions and their time/space complexity.
+*   **Randomization:** Uses `random.randint` to select the pivot, which helps to avoid the worst-case O(n^2) time complexity in practice.
