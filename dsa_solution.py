@@ -1,120 +1,116 @@
-Okay, here's a DSA problem and a working Python solution:
+Okay, here's a DSA problem focusing on array manipulation and a working Python solution.
 
-**Problem:**
+**Problem:  Find the Missing Positive Integer**
 
-**Merge K Sorted Linked Lists**
-
-You are given an array of `k` linked-lists, each linked-list is sorted in ascending order.
-
-Merge all the linked-lists into one sorted linked-list and return it.
+Given an unsorted integer array `nums`, find the smallest missing positive integer. You must implement an algorithm that runs in `O(n)` time and uses constant extra space.
 
 **Example:**
 
 ```
-Input: lists = [[1,4,5],[1,3,4],[2,6]]
-Output: [1,1,2,3,4,4,5,6]
-Explanation: The linked-lists are:
-[
-  1->4->5,
-  1->3->4,
-  2->6
-]
-merging them into one sorted list:
-1->1->2->3->4->4->5->6
+Input: nums = [1,2,0]
+Output: 3
+
+Input: nums = [3,4,-1,1]
+Output: 2
+
+Input: nums = [7,8,9,11,12]
+Output: 1
 ```
 
-**Constraints:**
+**Explanation:**
 
-*   `k == len(lists)`
-*   `0 <= k <= 10^4`
-*   `0 <= lists[i].length <= 500`
-*   `-10^4 <= lists[i][j] <= 10^4`
-*   `lists[i]` is sorted in ascending order.
-*   The sum of `lists[i].length` will not exceed `10^4`.
+The problem asks for the *smallest* positive integer that's *missing* from the given array. For instance, in `[1, 2, 0]`, 1 and 2 are present, so the smallest missing positive is 3. Constant extra space means we cannot use additional data structures that grow proportionally to the input size (e.g., no extra arrays, hash maps of size 'n', etc.).
 
-**Python Code Solution (using a min-heap):**
+**Python Solution:**
 
 ```python
-import heapq
-
-# Definition for singly-linked list.
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def mergeKLists(lists):
+def firstMissingPositive(nums):
     """
-    Merges k sorted linked lists into one sorted linked list.
+    Finds the smallest missing positive integer in an unsorted array.
 
     Args:
-        lists: A list of linked lists, where each linked list is sorted.
+        nums: A list of integers.
 
     Returns:
-        The head of the merged sorted linked list.
+        The smallest missing positive integer.
     """
 
-    heap = []  # Min-heap to store the head nodes of the linked lists.  Store tuples (val, list_index)
-    head = point = ListNode(0)
+    n = len(nums)
 
-    # Initialize the heap with the head nodes of the non-empty lists
-    for i in range(len(lists)):
-        if lists[i]:
-            heapq.heappush(heap, (lists[i].val, i)) #use list idx to avoid comparison error with Node object.
-            lists[i] = lists[i].next # Move pointer to next node in the list
+    # 1. Check if 1 is present. If not, you're done and 1 is the answer.
+    if 1 not in nums:
+        return 1
 
-    while heap:
-        val, list_index = heapq.heappop(heap)
-        point.next = ListNode(val)
-        point = point.next
+    # 2. Replace negative numbers, zeros,
+    # and numbers larger than n by 1s.
+    # After this conversion, nums will contain
+    # only positive numbers.
+    for i in range(n):
+        if nums[i] <= 0 or nums[i] > n:
+            nums[i] = 1
 
-        if lists[list_index]:  # If the list still has nodes
-            heapq.heappush(heap, (lists[list_index].val, list_index))
-            lists[list_index] = lists[list_index].next
+    # 3. Use the index as a hash key and the sign of the number as a presence detector.
+    # For example, if nums[1] is negative, that means that the number `1`
+    # is present in the array.
+    # If nums[2] is positive, the number 2 is missing.
+    for i in range(n):
+        a = abs(nums[i])
+        # If you meet the number a in the array, change the sign of the a-th element.
+        # Be careful with duplicates: do it only once.
+        if a == n:
+            nums[0] = - abs(nums[0])  #Special Case for handling number 'n', we store the sign at index 0
+        else:
+            nums[a] = - abs(nums[a])
 
-    return head.next
+    # 4. Now the index of the first positive number
+    # is equal to the first missing positive.
+    for i in range(1, n):
+        if nums[i] > 0:
+            return i
 
-# Example Usage (Create the linked lists and test)
-# Create list1: 1 -> 4 -> 5
-head1 = ListNode(1)
-head1.next = ListNode(4)
-head1.next.next = ListNode(5)
+    if nums[0] > 0:
+        return n
 
-# Create list2: 1 -> 3 -> 4
-head2 = ListNode(1)
-head2.next = ListNode(3)
-head2.next.next = ListNode(4)
+    return n + 1
+# Example Usage:
+nums1 = [1, 2, 0]
+print(f"Input: {nums1}, Output: {firstMissingPositive(nums1)}") # Output: 3
 
-# Create list3: 2 -> 6
-head3 = ListNode(2)
-head3.next = ListNode(6)
+nums2 = [3, 4, -1, 1]
+print(f"Input: {nums2}, Output: {firstMissingPositive(nums2)}") # Output: 2
 
-lists = [head1, head2, head3]
+nums3 = [7, 8, 9, 11, 12]
+print(f"Input: {nums3}, Output: {firstMissingPositive(nums3)}") # Output: 1
 
-merged_list = mergeKLists(lists)
+nums4 = [1]
+print(f"Input: {nums4}, Output: {firstMissingPositive(nums4)}") # Output: 2
 
-# Print the merged list
-while merged_list:
-    print(merged_list.val, end=" ")
-    merged_list = merged_list.next
-print() #newline after printing.
+nums5 = [2]
+print(f"Input: {nums5}, Output: {firstMissingPositive(nums5)}") # Output: 1
+
+nums6 = [2,2]
+print(f"Input: {nums6}, Output: {firstMissingPositive(nums6)}")
 ```
 
-Key improvements and explanations:
+**Explanation of the Code:**
 
-*   **Min-Heap:** The core idea is to use a min-heap to efficiently track the smallest element across all `k` lists.  The `heapq` module in Python provides an efficient implementation of a min-heap.
-*   **ListNode Class:**  The `ListNode` class is defined to represent a node in the linked list, as required by the problem description.
-*   **Heap Initialization:** The code initializes the heap with the head nodes of all the *non-empty* lists. This is important to avoid errors when dealing with empty input lists.
-*   **Heap Updates:** Inside the `while heap` loop, the smallest element is extracted from the heap, added to the merged list, and then the next element (if any) from the list from which the smallest element was extracted is added back into the heap.
-*   **Dummy Head:**  A dummy head node (`head = point = ListNode(0)`) is used to simplify the logic of building the merged list.  This avoids having to handle the special case of adding the first element. The method then returns `head.next` which is the head of the real merged list, skipping the dummy node.
-*   **`list_index` Tracking:** The code now correctly uses tuples of the form `(value, list_index)` in the heap. This is CRUCIAL for two reasons:
-    1.  It allows the code to retrieve the correct list from `lists` when an element is popped from the heap. Without this, you wouldn't know which list the minimum value came from.
-    2.  It avoids comparison errors.  When you `heapq.heappush` a node, the `heapq` library needs to be able to compare the objects in the heap. It can compare integers, but if you were to push the `ListNode` object directly into the heap, it wouldn't know how to compare one ListNode to another. The `list_index` helps avoid that error.
-*   **Edge Case Handling:** The `if lists[list_index]` condition inside the `while heap` loop handles the case where a list becomes empty during the merging process.
-*   **Clarity and Comments:**  The code is well-commented to explain the purpose of each section and the logic behind the algorithm.
-*   **Complete Example:** I've added example usage to create sample linked lists and demonstrate how to use the `mergeKLists` function.  This makes it easy to test the code.
-* **Lists Modification** `lists[i] = lists[i].next` modifies the original lists. I've added a comment clarifying this. This might be a concern depending on the requirements of the problem if the caller should not see the modified lists. A copy of `lists` could be made to avoid modifying the original lists.
+1. **Check for '1':**  The function first checks if `1` is present in the array. If not, `1` is the smallest missing positive, and we return immediately.
 
-**Time Complexity:** O(N log k), where N is the total number of nodes across all linked lists, and k is the number of linked lists.  Each insertion and deletion from the heap takes O(log k) time, and we perform these operations N times.
+2. **Normalize the array:** Any numbers that are negative, zero, or greater than `n` (the array length) are replaced with `1`. The reason is that the smallest missing positive integer can only be between 1 and `n+1`. Numbers outside this range are irrelevant.
 
-**Space Complexity:** O(k), where k is the number of linked lists, for the min-heap.  In the worst case, the heap will contain one element from each of the k lists.
+3. **Use Indexing as a Hash:** The core idea is to use the array indices as a kind of "hash table" to mark the presence of numbers. We iterate through the array. For each number `a` (the absolute value), we negate the element at index `a` (if `a` is within the bounds of the array). If `nums[a]` becomes negative, it means we've seen the number `a` in the array. If `a` equals the array length `n`, we negate `nums[0]` because we can't use index `n` (the array has indices from `0` to `n-1`).  Duplicates are handled because we only negate once.
+
+4. **Find the First Positive Index:** After the previous step, the first index `i` (starting from `1`) where `nums[i]` is positive indicates that the number `i` is missing.  If `nums[0]` is positive, it means 'n' is missing.
+
+5. **Handle Edge Cases:** If all elements from `nums[1]` to `nums[n-1]` are negative, it means the missing positive is `n + 1`.
+
+**Time and Space Complexity:**
+
+*   **Time Complexity:** O(n) - The algorithm iterates through the array a few times.
+*   **Space Complexity:** O(1) - The algorithm uses constant extra space. It modifies the input array in place.
+
+**Key Ideas Used:**
+
+*   **Hashing with Indexing:** Cleverly using array indices as a way to track the presence of numbers.
+*   **In-Place Modification:** Modifying the input array directly to avoid extra memory usage.
+*   **Handling Edge Cases:** Addressing scenarios where the missing number is 1 or greater than `n`.
