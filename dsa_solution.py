@@ -1,150 +1,85 @@
-Okay, here's a problem and a Python solution:
+Okay, here's a randomly generated DSA problem and a Python solution:
 
 **Problem:**
 
-**Merge K Sorted Lists**
+**K-th Largest Element in a Stream**
 
-You are given an array of `k` linked-lists, each linked-list is sorted in ascending order.
+Design a class to find the k-th largest element in a stream.  You will be given an integer `k` and an initial array of integers `nums`. Your class should have the following methods:
 
-Merge all the linked-lists into one sorted linked-list and return it.
+*   `__init__(self, k: int, nums: List[int])`: Initializes the object with the integer `k` and the stream of integers `nums`.
+*   `add(self, val: int) -> int`: Appends the integer `val` to the stream and returns the k-th largest element in the current stream.  If the stream has fewer than `k` elements, return the smallest element.
 
 **Example:**
 
-```
-Input: lists = [[1,4,5],[1,3,4],[2,6]]
-Output: [1,1,2,3,4,4,5,6]
-Explanation: The linked-lists are:
-[
-  1->4->5,
-  1->3->4,
-  2->6
-]
-merging them into one sorted list:
-1->1->2->3->4->4->5->6
+```python
+k = 3
+nums = [4, 5, 8, 2]
+kthLargest = KthLargest(3, nums)
+print(kthLargest.add(3))   # Output: 4
+print(kthLargest.add(5))   # Output: 5
+print(kthLargest.add(10))  # Output: 5
+print(kthLargest.add(9))   # Output: 8
+print(kthLargest.add(4))   # Output: 8
 ```
 
-**Constraints:**
-
-*   `k == len(lists)`
-*   `0 <= k <= 10^4`
-*   `0 <= lists[i].length <= 500`
-*   `-10^4 <= lists[i][j] <= 10^4`
-*   `lists[i]` is sorted in ascending order.
-*   The sum of `lists[i].length` will not exceed `10^4`.
-
-**Python Code Solution (using a min-heap / priority queue):**
+**Python Solution:**
 
 ```python
 import heapq
 
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+class KthLargest:
 
-def mergeKLists(lists):
-    """
-    Merges k sorted linked lists into one sorted linked list.
+    def __init__(self, k: int, nums: list[int]):
+        self.k = k
+        self.heap = nums  # initialize heap with initial nums
+        heapq.heapify(self.heap)
 
-    Args:
-      lists: A list of ListNode objects, where each ListNode is the head of a sorted linked list.
+        # maintain only the k largest elements in the heap
+        while len(self.heap) > k:
+            heapq.heappop(self.heap)
 
-    Returns:
-      A ListNode object representing the head of the merged sorted linked list.
-    """
+    def add(self, val: int) -> int:
+        heapq.heappush(self.heap, val)
 
-    heap = []  # Min-heap to store (value, list_index, node) tuples
-    for i in range(len(lists)):
-        if lists[i]:
-            heapq.heappush(heap, (lists[i].val, i, lists[i]))
+        # maintain only the k largest elements in the heap
+        if len(self.heap) > self.k:
+            heapq.heappop(self.heap)
 
-    dummy = ListNode()  # Dummy head node for the result list
-    curr = dummy
-
-    while heap:
-        val, list_index, node = heapq.heappop(heap)
-        curr.next = node
-        curr = curr.next
-
-        if node.next:
-            heapq.heappush(heap, (node.next.val, list_index, node.next))
-
-    return dummy.next
+        return self.heap[0] # the root of the heap is the kth largest
 
 
-# Example usage (you'll need to create ListNode objects to test)
-
-# Helper function to create a linked list from a list of values
-def create_linked_list(values):
-    if not values:
-        return None
-    head = ListNode(values[0])
-    curr = head
-    for i in range(1, len(values)):
-        curr.next = ListNode(values[i])
-        curr = curr.next
-    return head
-
-# Helper function to print a linked list
-def print_linked_list(head):
-    curr = head
-    while curr:
-        print(curr.val, end=" -> ")
-        curr = curr.next
-    print("None")
-
-
-
-if __name__ == '__main__':
-    # Example usage:
-    list1 = create_linked_list([1, 4, 5])
-    list2 = create_linked_list([1, 3, 4])
-    list3 = create_linked_list([2, 6])
-
-    lists = [list1, list2, list3]
-
-    merged_list = mergeKLists(lists)
-
-    print("Merged List:")
-    print_linked_list(merged_list) #Output: 1 -> 1 -> 2 -> 3 -> 4 -> 4 -> 5 -> 6 -> None
+# Example Usage:
+k = 3
+nums = [4, 5, 8, 2]
+kthLargest = KthLargest(k, nums)
+print(kthLargest.add(3))
+print(kthLargest.add(5))
+print(kthLargest.add(10))
+print(kthLargest.add(9))
+print(kthLargest.add(4))
 ```
 
 **Explanation:**
 
-1.  **ListNode Class:**  Defines a node structure for a singly linked list.
+1.  **`__init__(self, k: int, nums: List[int])`:**
+    *   Stores `k`.
+    *   Initializes a min-heap (`self.heap`) with the initial `nums`. A min-heap is used because we want to quickly access and remove the *smallest* element among the largest `k` elements.
+    *   `heapq.heapify(self.heap)` converts the list `self.heap` into a heap in-place.
+    *   The `while` loop ensures that the heap only contains the `k` largest elements from the initial list.  It repeatedly removes the smallest element (root of the min-heap) until the heap size is `k`.
 
-2.  **`mergeKLists(lists)` function:**
-    *   **Initialization:**
-        *   `heap`: A min-heap (priority queue) is used to efficiently track the smallest element across all `k` lists.  We store tuples in the heap of the form `(value, list_index, node)`, where:
-            *   `value` is the value of the node.
-            *   `list_index` is the index of the list the node belongs to. This is important for keeping track of which list to advance when we pop an element from the heap.
-            *   `node` is the actual `ListNode` object.
-        *   `dummy`: A dummy head node is created to simplify the process of building the merged list.  We'll return `dummy.next`.
-        *   `curr`: A pointer to the current tail of the merged list.
+2.  **`add(self, val: int) -> int`:**
+    *   `heapq.heappush(self.heap, val)` adds the new value `val` to the heap.  The heap property is maintained after the insertion.
+    *   If the heap's size becomes greater than `k`, we remove the smallest element using `heapq.heappop(self.heap)`. This ensures that `self.heap` always contains the `k` largest elements seen so far.
+    *   The root of the min-heap, `self.heap[0]`, is now the k-th largest element in the stream, so we return it.
 
-    *   **Building the Heap:**  The code iterates through the `lists` array.  If a list is not empty (i.e., `lists[i]` is not `None`), the first node of that list (along with its value and index) is pushed onto the heap using `heapq.heappush()`.
+**Why this is efficient:**
 
-    *   **Merging (Main Loop):**
-        *   `while heap:`: The loop continues as long as there are elements in the heap.
-        *   `val, list_index, node = heapq.heappop(heap)`: The smallest element (minimum `val`) is popped from the heap, along with its list index and the node itself.  `heapq.heappop()` always returns the smallest element in the heap.
-        *   `curr.next = node`: The popped node (`node`) is appended to the merged list (pointed to by `curr`).
-        *   `curr = curr.next`:  The `curr` pointer is moved to the newly added node.
-        *   `if node.next:`: If the popped node has a next node in its original list, that next node is pushed onto the heap, so it can be considered for merging in subsequent iterations.
+*   **Heap Data Structure:**  Using a min-heap is crucial.  Finding the smallest of `k` elements in a heap takes O(1) time.  Adding or removing an element from a heap takes O(log k) time, where `k` is the number of elements in the heap.
+*   **Time Complexity:**
+    *   `__init__`: O(n log k), where n is the length of the initial `nums` array.  Heapifying takes O(n), and then the while loop takes at most O(n log k) (actually better in practice).
+    *   `add`: O(log k) because we do a `heappush` and a possible `heappop`.
+*   **Space Complexity:** O(k), as we only store `k` elements in the heap.
 
-    *   **Return:**  Finally, `dummy.next` is returned, which is the head of the merged sorted linked list.
+**Alternative (but less efficient for streams with a lot of `add` calls):**
 
-3.  **Helper Functions:**  `create_linked_list` and `print_linked_list` are provided to make it easier to create test cases and verify the output.
-
-**Time and Space Complexity:**
-
-*   **Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists and k is the number of linked lists.  The `heapq.heappush` and `heapq.heappop` operations take O(log k) time, and we perform these operations for each of the N nodes.
-*   **Space Complexity:** O(k), because the heap can contain at most one node from each of the `k` lists at any time.
-
-**Key Concepts Used:**
-
-*   **Linked Lists:**  The fundamental data structure for the problem.
-*   **Min-Heap (Priority Queue):**  Essential for efficiently finding the smallest element among the heads of the `k` lists.  The `heapq` module in Python provides a convenient implementation of a min-heap.
-*   **Dummy Node:** A common technique used to simplify linked list manipulations.
-*   **Divide and Conquer (implicitly):**  While not explicitly a recursive divide-and-conquer solution, the min-heap approach effectively divides the problem by maintaining a "pool" of smallest elements from each list and iteratively merging them.
-
-This solution is generally considered the most efficient for the Merge K Sorted Lists problem.  I hope this explanation is helpful! Let me know if you have any other questions.
+A simpler, but potentially less efficient, approach would be to simply sort the list in the `add` function each time and return the k-th largest element. This would have a time complexity of O(n log n) for each `add` call, where n is the current number of elements in the stream. The heap-based approach is much better when you need to call `add` many times.
