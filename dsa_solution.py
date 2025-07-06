@@ -1,103 +1,85 @@
-Okay, here's a problem that involves a combination of data structures and algorithmic thinking:
+Okay, here's a DSA problem and a Python solution:
 
 **Problem:**
 
-**Largest Rectangle in Histogram**
+**Nearest Smaller Elements**
 
-Given an array of integers `heights` representing the histogram's bar heights where the width of each bar is 1, find the area of the largest rectangle in the histogram.
+Given an array of integers `nums`, for each element `nums[i]`, find the nearest smaller element to its left. If there is no smaller element to the left, consider the nearest smaller element as -1. Return an array of the nearest smaller elements for each element in the input array.
 
 **Example:**
 
 ```
-Input: heights = [2,1,5,6,2,3]
-Output: 10
-Explanation: The largest rectangle is shown in the shaded area, which has area = 5 * 2 = 10.
+Input: nums = [4, 5, 2, 10, 8]
+Output: [-1, 4, -1, 2, 2]
 ```
 
-**Explanation/Approach:**
+**Explanation:**
 
-The key idea is to use a stack to keep track of the indices of bars that are potentially part of a larger rectangle. We iterate through the heights array. If the current bar is taller than the bar at the top of the stack, we push the current bar's index onto the stack. If the current bar is shorter than the bar at the top of the stack, we pop bars from the stack until we find a bar that is shorter or equal to the current bar. When we pop a bar, we calculate the area of the rectangle with that bar as the shortest bar. The width of the rectangle is determined by the distance between the current index and the index of the bar on the stack (if the stack is not empty) or the current index itself (if the stack is empty).
+*   For `nums[0] = 4`, there is no smaller element to its left. Hence, -1.
+*   For `nums[1] = 5`, the nearest smaller element to its left is 4.
+*   For `nums[2] = 2`, there is no smaller element to its left. Hence, -1.
+*   For `nums[3] = 10`, the nearest smaller element to its left is 2.
+*   For `nums[4] = 8`, the nearest smaller element to its left is 2.
 
-**Python Code Solution:**
+**Python Solution:**
 
 ```python
-def largestRectangleArea(heights):
+def nearest_smaller_elements(nums):
     """
-    Finds the area of the largest rectangle in a histogram.
+    Finds the nearest smaller element to the left for each element in the input array.
 
     Args:
-        heights: A list of integers representing the histogram's bar heights.
+        nums: A list of integers.
 
     Returns:
-        The area of the largest rectangle.
+        A list of integers representing the nearest smaller elements.
     """
 
-    stack = []  # Store indices of bars
-    max_area = 0
-    n = len(heights)
+    result = []
+    stack = []  # Use a stack to keep track of potentially smaller elements
 
-    for i in range(n):
-        while stack and heights[i] < heights[stack[-1]]:
-            height = heights[stack.pop()]
-            width = i if not stack else i - stack[-1] - 1
-            max_area = max(max_area, height * width)
+    for num in nums:
+        while stack and stack[-1] >= num:
+            stack.pop()
 
-        stack.append(i)
+        if not stack:
+            result.append(-1)
+        else:
+            result.append(stack[-1])
 
-    # Process remaining bars in the stack
-    while stack:
-        height = heights[stack.pop()]
-        width = n if not stack else n - stack[-1] - 1
-        max_area = max(max_area, height * width)
+        stack.append(num)
 
-    return max_area
+    return result
 
-# Example Usage:
-heights = [2, 1, 5, 6, 2, 3]
-result = largestRectangleArea(heights)
-print(f"Largest Rectangle Area: {result}")  # Output: Largest Rectangle Area: 10
+# Example usage:
+nums = [4, 5, 2, 10, 8]
+output = nearest_smaller_elements(nums)
+print(output)  # Output: [-1, 4, -1, 2, 2]
 
-heights2 = [2,4]
-result2 = largestRectangleArea(heights2)
-print(f"Largest Rectangle Area: {result2}") # Output: Largest Rectangle Area: 4
+nums2 = [1, 3, 2, 4]
+output2 = nearest_smaller_elements(nums2)
+print(output2) # Output: [-1, 1, 1, 2]
 
-heights3 = [4,2,0,3,2,4,3,4]
-result3 = largestRectangleArea(heights3)
-print(f"Largest Rectangle Area: {result3}") # Output: Largest Rectangle Area: 10
-
-heights4 = [0,9,8,9,5,9,2,3,2,3]
-result4 = largestRectangleArea(heights4)
-print(f"Largest Rectangle Area: {result4}") #Output: Largest Rectangle Area: 20
+nums3 = [5,4,3,2,1]
+output3 = nearest_smaller_elements(nums3)
+print(output3) #Output: [-1, -1, -1, -1, -1]
 ```
 
-**Explanation of the Code:**
+**Explanation of the Solution:**
 
-1.  **Initialization:**
-    *   `stack`: An empty list to store indices of bars.
-    *   `max_area`: Initialized to 0 to store the maximum area found so far.
-    *   `n`: The number of bars in the histogram.
+1.  **Stack Data Structure:**  We use a stack to efficiently keep track of the elements that could potentially be the nearest smaller element to the left for future elements in the array.  The stack will maintain a decreasing order of elements from bottom to top.
 
-2.  **Iterating Through the Histogram:**
-    *   The code iterates through the `heights` array from left to right.
-    *   **`while stack and heights[i] < heights[stack[-1]]`:** This is the core logic.  It checks if the stack is not empty *and* the height of the current bar (`heights[i]`) is less than the height of the bar at the top of the stack (`heights[stack[-1]]`). If both conditions are true, it means we've found a bar that's shorter than the bar at the top of the stack, so the rectangle extending from the top of the stack cannot extend to the current bar. Therefore, we need to pop the top bar from the stack and calculate its maximum possible area.
-    *   **`height = heights[stack.pop()]`:**  Pop the index of the top bar from the stack and retrieve its height.
-    *   **`width = i if not stack else i - stack[-1] - 1`:** Calculate the width of the rectangle.
-        *   If the stack is now empty after popping, it means the popped bar was the shortest bar from the beginning to the current index `i`. So, the width is `i`.
-        *   If the stack is *not* empty, it means there's a bar to the left of the popped bar. The width is the distance between the current index `i` and the index of the bar at the top of the stack (`stack[-1]`) minus 1.  This gives us the width of the rectangle where the popped bar is the shortest.
-    *   **`max_area = max(max_area, height * width)`:** Update `max_area` with the larger of the current `max_area` and the calculated area.
-    *   **`stack.append(i)`:** After the `while` loop, the current bar's index is pushed onto the stack. This is because it's either taller than the bar at the top of the stack or the stack is empty (meaning it could potentially be part of a larger rectangle later).
+2.  **Iteration:**  We iterate through the `nums` array.
 
-3.  **Processing Remaining Bars in the Stack:**
-    *   After the main loop finishes, there might still be bars remaining in the stack. This means that these bars could be part of a larger rectangle that extends to the end of the histogram.
-    *   The `while stack:` loop processes the remaining bars in the stack in a similar way as before. The only difference is that the width is calculated differently:
-        *   `width = n if not stack else n - stack[-1] - 1`
-        *   If the stack is empty, it means the popped bar was the shortest bar in the entire histogram, so the width is `n` (the entire width of the histogram).
-        *   If the stack is not empty, the width is the distance between the end of the histogram (`n`) and the index of the bar at the top of the stack (`stack[-1]`) minus 1.
-    *   `max_area = max(max_area, height * width)`: Updates the maximum area.
+3.  **Stack Maintenance:**
+    *   `while stack and stack[-1] >= num:`:  Before considering the current number `num`, we pop elements from the stack as long as the top of the stack is greater than or equal to `num`.  This is because elements in the stack that are greater than or equal to the current `num` cannot be the nearest smaller element for any element to the right of the current position. We want to maintain the decreasing order in the stack.
+    *   `if not stack:`: If the stack is empty after the popping, it means there are no smaller elements to the left of `num`. So we append -1 to the `result`.
+    *   `else:`: If the stack is not empty, the top of the stack `stack[-1]` is the nearest smaller element to the left of `num`. So we append it to the `result`.
+    *   `stack.append(num)`: Finally, we push the current number `num` onto the stack.
 
-4.  **Return `max_area`:**  The function returns the final calculated maximum area.
+4.  **Return:**  After iterating through the entire array, we return the `result` array containing the nearest smaller elements.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the number of bars.  Each bar is pushed onto and popped from the stack at most once.
-*   **Space Complexity:** O(n) in the worst case, when the stack might contain all the bars. This happens if the heights are sorted in ascending order.
+*   **Time Complexity:** O(n), where n is the length of the input array `nums`. Although there is a `while` loop inside the `for` loop, each element is pushed onto the stack and popped from the stack at most once. Therefore, the amortized time complexity is O(n).
+*   **Space Complexity:** O(n), because in the worst case, the stack can store all the elements of the input array.
