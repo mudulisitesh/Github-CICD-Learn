@@ -2,84 +2,116 @@ Okay, here's a DSA problem and a Python solution:
 
 **Problem:**
 
-**Nearest Smaller Elements**
+**Largest Range**
 
-Given an array of integers `nums`, for each element `nums[i]`, find the nearest smaller element to its left. If there is no smaller element to the left, consider the nearest smaller element as -1. Return an array of the nearest smaller elements for each element in the input array.
+Given an array of integers, write a function that finds the largest range (inclusive) of integers contained in the array.  The range should be represented as a two-element array, `[first, last]`, where `first` is the first number in the range and `last` is the last number in the range.
+
+A range `[a, b]` is considered larger than `[c, d]` if `(b - a) > (d - c)`.
+
+You don't need to return the smallest such range if there are multiple ranges of the same size.
 
 **Example:**
 
 ```
-Input: nums = [4, 5, 2, 10, 8]
-Output: [-1, 4, -1, 2, 2]
+Input: array = [1, 11, 3, 0, 15, 5, 2, 4, 10, 7, 12, 6]
+Output: [0, 7]
 ```
 
 **Explanation:**
 
-*   For `nums[0] = 4`, there is no smaller element to its left. Hence, -1.
-*   For `nums[1] = 5`, the nearest smaller element to its left is 4.
-*   For `nums[2] = 2`, there is no smaller element to its left. Hence, -1.
-*   For `nums[3] = 10`, the nearest smaller element to its left is 2.
-*   For `nums[4] = 8`, the nearest smaller element to its left is 2.
+The largest range of consecutive numbers in the input array is `[0, 1, 2, 3, 4, 5, 6, 7]`.
+Therefore, the output is `[0, 7]`.
 
 **Python Solution:**
 
 ```python
-def nearest_smaller_elements(nums):
+def largestRange(array):
     """
-    Finds the nearest smaller element to the left for each element in the input array.
+    Finds the largest range (inclusive) of integers contained in the array.
 
     Args:
-        nums: A list of integers.
+        array: A list of integers.
 
     Returns:
-        A list of integers representing the nearest smaller elements.
+        A list of two integers, representing the first and last number in the largest range.
     """
 
-    result = []
-    stack = []  # Use a stack to keep track of potentially smaller elements
+    nums = {}
+    for num in array:
+        nums[num] = True  # Mark each number as unvisited
 
-    for num in nums:
-        while stack and stack[-1] >= num:
-            stack.pop()
+    longest_range = [0, 0]
+    max_length = 0
 
-        if not stack:
-            result.append(-1)
-        else:
-            result.append(stack[-1])
+    for num in array:
+        if not nums[num]:
+            continue  # Skip already visited numbers
 
-        stack.append(num)
+        nums[num] = False  # Mark as visited
+        current_length = 1
+        left = num - 1
+        right = num + 1
 
-    return result
+        while left in nums:
+            nums[left] = False
+            current_length += 1
+            left -= 1
+
+        while right in nums:
+            nums[right] = False
+            current_length += 1
+            right += 1
+
+        if current_length > max_length:
+            max_length = current_length
+            longest_range = [left + 1, right - 1]
+
+    return longest_range
 
 # Example usage:
-nums = [4, 5, 2, 10, 8]
-output = nearest_smaller_elements(nums)
-print(output)  # Output: [-1, 4, -1, 2, 2]
+array = [1, 11, 3, 0, 15, 5, 2, 4, 10, 7, 12, 6]
+result = largestRange(array)
+print(result)  # Output: [0, 7]
 
-nums2 = [1, 3, 2, 4]
-output2 = nearest_smaller_elements(nums2)
-print(output2) # Output: [-1, 1, 1, 2]
-
-nums3 = [5,4,3,2,1]
-output3 = nearest_smaller_elements(nums3)
-print(output3) #Output: [-1, -1, -1, -1, -1]
+array2 = [4,2,1,3]
+result2 = largestRange(array2)
+print(result2) #Output: [1,4]
 ```
 
-**Explanation of the Solution:**
+**Explanation of the Code:**
 
-1.  **Stack Data Structure:**  We use a stack to efficiently keep track of the elements that could potentially be the nearest smaller element to the left for future elements in the array.  The stack will maintain a decreasing order of elements from bottom to top.
+1. **`largestRange(array)` function:**
+   - Takes the input array of integers.
+   - Initializes a dictionary `nums` to store the presence of each number in the array.  Initially, all numbers are marked as `True` (unvisited).
+   - Initializes `longest_range` to `[0, 0]` and `max_length` to 0. These will store the result and its length.
 
-2.  **Iteration:**  We iterate through the `nums` array.
+2. **Iteration:**
+   - The code iterates through the input `array`.
+   - **Check if Visited:** For each number `num` in the array, it checks if `nums[num]` is `False`.  If it's `False`, it means the number has already been visited as part of a previous range calculation, so it's skipped using `continue`.
 
-3.  **Stack Maintenance:**
-    *   `while stack and stack[-1] >= num:`:  Before considering the current number `num`, we pop elements from the stack as long as the top of the stack is greater than or equal to `num`.  This is because elements in the stack that are greater than or equal to the current `num` cannot be the nearest smaller element for any element to the right of the current position. We want to maintain the decreasing order in the stack.
-    *   `if not stack:`: If the stack is empty after the popping, it means there are no smaller elements to the left of `num`. So we append -1 to the `result`.
-    *   `else:`: If the stack is not empty, the top of the stack `stack[-1]` is the nearest smaller element to the left of `num`. So we append it to the `result`.
-    *   `stack.append(num)`: Finally, we push the current number `num` onto the stack.
+3. **Mark as Visited and Expand Range:**
+   - `nums[num] = False`: The current number `num` is marked as visited.
+   - `current_length = 1`: The initial length of the range is set to 1 (just the current number itself).
+   - `left = num - 1` and `right = num + 1`:  Pointers `left` and `right` are initialized to explore the numbers immediately to the left and right of `num`.
 
-4.  **Return:**  After iterating through the entire array, we return the `result` array containing the nearest smaller elements.
+4. **Expand Left:**
+   - `while left in nums:`:  This loop continues as long as numbers to the left of `num` exist in the `nums` dictionary (meaning they are present in the original array).
+   - `nums[left] = False`: The number `left` is marked as visited.
+   - `current_length += 1`: The length of the current range is incremented.
+   - `left -= 1`: The `left` pointer moves further to the left.
+
+5. **Expand Right:**
+   - `while right in nums:`:  This loop does the same as the left loop, but expands the range to the right.
+
+6. **Update Longest Range:**
+   - `if current_length > max_length:`: If the `current_length` of the range found is greater than the `max_length` seen so far:
+     - `max_length = current_length`: Update `max_length`.
+     - `longest_range = [left + 1, right - 1]`: Update `longest_range` to the start and end of the new longest range.  We add 1 to `left` and subtract 1 from `right` because the `while` loops decrement `left` and increment `right` one too many times.
+
+7. **Return:**
+   - The function returns the `longest_range` found.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the input array `nums`. Although there is a `while` loop inside the `for` loop, each element is pushed onto the stack and popped from the stack at most once. Therefore, the amortized time complexity is O(n).
-*   **Space Complexity:** O(n), because in the worst case, the stack can store all the elements of the input array.
+- **Time Complexity:** O(n), where n is the length of the input array. Although there are nested loops, each number in the array is visited and marked as visited only once.
+- **Space Complexity:** O(n), where n is the length of the input array, due to the `nums` dictionary which stores all the numbers in the array.
