@@ -1,117 +1,90 @@
-Okay, here's a DSA problem and a Python solution:
+Okay, here's a randomly generated DSA problem, followed by a Python solution with explanations.
 
-**Problem:**
+**Problem:  Find the First Non-Repeating Character**
 
-**Largest Range**
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
-Given an array of integers, write a function that finds the largest range (inclusive) of integers contained in the array.  The range should be represented as a two-element array, `[first, last]`, where `first` is the first number in the range and `last` is the last number in the range.
+**Example 1:**
 
-A range `[a, b]` is considered larger than `[c, d]` if `(b - a) > (d - c)`.
+Input: s = "leetcode"
+Output: 0
 
-You don't need to return the smallest such range if there are multiple ranges of the same size.
+**Example 2:**
 
-**Example:**
+Input: s = "loveleetcode"
+Output: 2
 
-```
-Input: array = [1, 11, 3, 0, 15, 5, 2, 4, 10, 7, 12, 6]
-Output: [0, 7]
-```
+**Example 3:**
 
-**Explanation:**
+Input: s = "aabb"
+Output: -1
 
-The largest range of consecutive numbers in the input array is `[0, 1, 2, 3, 4, 5, 6, 7]`.
-Therefore, the output is `[0, 7]`.
+**Constraints:**
+
+*   `1 <= s.length <= 10^5`
+*   `s` consists of lowercase English letters.
 
 **Python Solution:**
 
 ```python
-def largestRange(array):
+def first_unique_char(s):
     """
-    Finds the largest range (inclusive) of integers contained in the array.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        array: A list of integers.
+        s: The input string.
 
     Returns:
-        A list of two integers, representing the first and last number in the largest range.
+        The index of the first non-repeating character, or -1 if none exists.
     """
 
-    nums = {}
-    for num in array:
-        nums[num] = True  # Mark each number as unvisited
+    char_counts = {}  # Dictionary to store character counts
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    longest_range = [0, 0]
-    max_length = 0
+    # Iterate through the string to find the first character with count 1
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-    for num in array:
-        if not nums[num]:
-            continue  # Skip already visited numbers
+    return -1  # No non-repeating character found
 
-        nums[num] = False  # Mark as visited
-        current_length = 1
-        left = num - 1
-        right = num + 1
 
-        while left in nums:
-            nums[left] = False
-            current_length += 1
-            left -= 1
+# Example Usage:
+string1 = "leetcode"
+string2 = "loveleetcode"
+string3 = "aabb"
 
-        while right in nums:
-            nums[right] = False
-            current_length += 1
-            right += 1
-
-        if current_length > max_length:
-            max_length = current_length
-            longest_range = [left + 1, right - 1]
-
-    return longest_range
-
-# Example usage:
-array = [1, 11, 3, 0, 15, 5, 2, 4, 10, 7, 12, 6]
-result = largestRange(array)
-print(result)  # Output: [0, 7]
-
-array2 = [4,2,1,3]
-result2 = largestRange(array2)
-print(result2) #Output: [1,4]
+print(f"'{string1}': {first_unique_char(string1)}")  # Output: 0
+print(f"'{string2}': {first_unique_char(string2)}")  # Output: 2
+print(f"'{string3}': {first_unique_char(string3)}")  # Output: -1
 ```
 
-**Explanation of the Code:**
+**Explanation:**
 
-1. **`largestRange(array)` function:**
-   - Takes the input array of integers.
-   - Initializes a dictionary `nums` to store the presence of each number in the array.  Initially, all numbers are marked as `True` (unvisited).
-   - Initializes `longest_range` to `[0, 0]` and `max_length` to 0. These will store the result and its length.
+1.  **Character Counting:**
+    *   We use a dictionary `char_counts` to store the frequency of each character in the string `s`.
+    *   We iterate through the string, and for each character:
+        *   If the character is already in the dictionary, we increment its count.
+        *   If the character is not in the dictionary, we add it with a count of 1.  `char_counts.get(char, 0)` is a concise way to either retrieve the existing count or default to 0 if it's the first time we've seen the character.
 
-2. **Iteration:**
-   - The code iterates through the input `array`.
-   - **Check if Visited:** For each number `num` in the array, it checks if `nums[num]` is `False`.  If it's `False`, it means the number has already been visited as part of a previous range calculation, so it's skipped using `continue`.
+2.  **Finding the First Unique:**
+    *   After counting the characters, we iterate through the string `s` again, this time keeping track of the index `i`.
+    *   For each character at index `i`, we check its count in the `char_counts` dictionary.
+    *   If the count is 1, it means the character is non-repeating. We immediately return the index `i`.
 
-3. **Mark as Visited and Expand Range:**
-   - `nums[num] = False`: The current number `num` is marked as visited.
-   - `current_length = 1`: The initial length of the range is set to 1 (just the current number itself).
-   - `left = num - 1` and `right = num + 1`:  Pointers `left` and `right` are initialized to explore the numbers immediately to the left and right of `num`.
-
-4. **Expand Left:**
-   - `while left in nums:`:  This loop continues as long as numbers to the left of `num` exist in the `nums` dictionary (meaning they are present in the original array).
-   - `nums[left] = False`: The number `left` is marked as visited.
-   - `current_length += 1`: The length of the current range is incremented.
-   - `left -= 1`: The `left` pointer moves further to the left.
-
-5. **Expand Right:**
-   - `while right in nums:`:  This loop does the same as the left loop, but expands the range to the right.
-
-6. **Update Longest Range:**
-   - `if current_length > max_length:`: If the `current_length` of the range found is greater than the `max_length` seen so far:
-     - `max_length = current_length`: Update `max_length`.
-     - `longest_range = [left + 1, right - 1]`: Update `longest_range` to the start and end of the new longest range.  We add 1 to `left` and subtract 1 from `right` because the `while` loops decrement `left` and increment `right` one too many times.
-
-7. **Return:**
-   - The function returns the `longest_range` found.
+3.  **No Unique Character:**
+    *   If we complete the second loop without finding any character with a count of 1, it means there are no non-repeating characters in the string.  In this case, we return -1.
 
 **Time and Space Complexity:**
 
-- **Time Complexity:** O(n), where n is the length of the input array. Although there are nested loops, each number in the array is visited and marked as visited only once.
-- **Space Complexity:** O(n), where n is the length of the input array, due to the `nums` dictionary which stores all the numbers in the array.
+*   **Time Complexity:** O(N), where N is the length of the string `s`. We iterate through the string twice.
+*   **Space Complexity:** O(1). In the worst case, the dictionary `char_counts` will store the count of all unique characters in the string. Since the string consists of lowercase English letters, the maximum number of unique characters is 26, making the space complexity constant.  We can say O(26) which simplifies to O(1). If it was Unicode, it would be O(U) where U is the number of unique Unicode characters, potentially much larger.
+
+**Why this approach is good:**
+
+*   **Clarity:** The code is relatively straightforward and easy to understand.
+*   **Efficiency:**  It avoids nested loops, resulting in a linear time complexity.
+*   **Readability:**  Using a dictionary to store counts is a common and well-understood approach for this type of problem.
+
+This is a common and important type of string problem that often appears in coding interviews.  Understanding the frequency counting approach and how to efficiently iterate through the string is key to solving this and similar problems.
