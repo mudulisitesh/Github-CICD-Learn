@@ -1,10 +1,10 @@
-Okay, here's a DSA problem along with a Python solution:
+Okay, here's a problem and a Python solution.  Let's make it a reasonably practical one.
 
 **Problem:**
 
-**Merge K Sorted Linked Lists**
+**Merge K Sorted Lists**
 
-You are given an array of k linked-lists `lists`, each linked-list is sorted in ascending order.
+You are given an array of k linked-lists, each linked-list is sorted in ascending order.
 
 Merge all the linked-lists into one sorted linked-list and return it.
 
@@ -25,7 +25,7 @@ merging them into one sorted list:
 
 **Constraints:**
 
-*   `k == len(lists)`
+*   `k == lists.length`
 *   `0 <= k <= 10^4`
 *   `0 <= lists[i].length <= 500`
 *   `-10^4 <= lists[i][j] <= 10^4`
@@ -37,104 +37,103 @@ merging them into one sorted list:
 ```python
 import heapq
 
-# Definition for singly-linked list.
 class ListNode:
     def __init__(self, val=0, next=None):
         self.val = val
         self.next = next
 
-    def __lt__(self, other):  # Required for heap comparison
-        return self.val < other.val
-class Solution:
-    def mergeKLists(self, lists: list[ListNode]) -> ListNode:
-        """
-        Merges k sorted linked lists into one sorted linked list.
+def mergeKLists(lists):
+    """
+    Merges k sorted linked lists into one sorted linked list.
 
-        Args:
-            lists: A list of ListNode objects, where each ListNode represents the head
-                   of a sorted linked list.
+    Args:
+        lists: A list of k sorted linked lists.
 
-        Returns:
-            The head of the merged sorted linked list, or None if the input list is empty.
-        """
+    Returns:
+        The head of the merged sorted linked list.
+    """
 
-        heap = [] #min heap
+    heap = []  # Min-heap to store the head nodes of the lists
+    for i in range(len(lists)):
+        if lists[i]:
+            heapq.heappush(heap, (lists[i].val, i, lists[i]))  # (val, list_index, node)
 
-        # Push the head of each list onto the heap.
-        for i in range(len(lists)):
-            if lists[i]:  #avoid pushing none values
-                 heapq.heappush(heap, lists[i])
+    dummy = ListNode(0)  # Dummy node to simplify the merging process
+    curr = dummy
 
+    while heap:
+        val, list_index, node = heapq.heappop(heap)
+        curr.next = node
+        curr = curr.next
 
-        dummy = ListNode(0)  # Dummy node for the merged list
-        current = dummy
+        if node.next:
+            heapq.heappush(heap, (node.next.val, list_index, node.next))
 
-        while heap:
-            # Pop the smallest node from the heap.
-            node = heapq.heappop(heap)
-            current.next = node
-            current = current.next
+    return dummy.next
 
-            # If the popped node has a next node, push it onto the heap.
-            if node.next:
-                heapq.heappush(heap, node.next)
+# Example Usage (create linked lists and test):
+def create_linked_list(arr):
+    """Helper function to create a linked list from an array."""
+    dummy = ListNode(0)
+    curr = dummy
+    for val in arr:
+        curr.next = ListNode(val)
+        curr = curr.next
+    return dummy.next
 
-        return dummy.next
-#Example Usage (for testing):
-if __name__ == '__main__':
+# Create some sample linked lists
+list1 = create_linked_list([1, 4, 5])
+list2 = create_linked_list([1, 3, 4])
+list3 = create_linked_list([2, 6])
 
-    # Create some sample linked lists:
-    list1 = ListNode(1, ListNode(4, ListNode(5)))
-    list2 = ListNode(1, ListNode(3, ListNode(4)))
-    list3 = ListNode(2, ListNode(6))
+lists = [list1, list2, list3]
 
-    lists = [list1, list2, list3]
+# Merge the lists
+merged_list = mergeKLists(lists)
 
-    solution = Solution()
-    merged_list = solution.mergeKLists(lists)
+# Print the merged list (for verification)
+def print_linked_list(head):
+    """Helper function to print a linked list."""
+    result = []
+    while head:
+        result.append(head.val)
+        head = head.next
+    print(result)
 
-    # Print the merged list (for verification):
-    while merged_list:
-        print(merged_list.val, end=" ")
-        merged_list = merged_list.next
-    print() # newline
-
+print_linked_list(merged_list)  # Output: [1, 1, 2, 3, 4, 4, 5, 6]
 ```
 
 **Explanation:**
 
-1.  **`ListNode` Class:** Defines the structure of a node in the linked list, with `val` (the node's value) and `next` (a pointer to the next node).  The `__lt__` method is crucial; it defines how `ListNode` objects are compared. The `heapq` library relies on this to properly maintain the min-heap property.
+1.  **`ListNode` Class:** Defines the structure of a node in the linked list, with a `val` (value) and a `next` pointer.
 
 2.  **`mergeKLists(lists)` Function:**
     *   **Initialization:**
-        *   `heap = []`: Initializes an empty min-heap.  We'll use this to keep track of the smallest nodes across all the linked lists.
-        *   `dummy = ListNode(0)`: Creates a dummy node.  This is a common technique for building linked lists; it simplifies the logic.  We'll attach the merged list to the `next` of the dummy node.
-        *   `current = dummy`: `current` is a pointer that will traverse the merged list as we build it.
+        *   `heap`: A min-heap is used to efficiently track the smallest elements across all linked lists. We store tuples in the heap: `(value, list_index, node)`. `list_index` is necessary because if two nodes have the same value, the heapq breaks ties lexicographically using the other elements of the tuple.  Without the `list_index`, heapq would try to compare the `ListNode` objects directly, which is not supported by default.  This prevents errors during heap operations.
+        *   `dummy`: A dummy node is created to simplify the insertion of the merged list.  We'll return `dummy.next` which will be the head of the actual merged list.
+        *   `curr`:  A pointer to the current node in the merged list. It starts at the dummy node.
+
     *   **Heap Initialization:**
-        *   The code iterates through the input `lists`. For each linked list, it checks if the list is not empty (`if lists[i]:`). If it's not empty, the head node (`lists[i]`) is pushed onto the heap. Crucially, the `__lt__` method of the `ListNode` ensures that the smallest node will always be at the top of the heap.
-    *   **Merging:**
-        *   `while heap:`: The main loop continues as long as the heap is not empty (meaning there are still nodes to process).
-        *   `node = heapq.heappop(heap)`: The smallest node (`node`) is extracted from the heap.
-        *   `current.next = node`:  The extracted node is appended to the merged list.
-        *   `current = current.next`:  The `current` pointer is moved to the newly added node.
-        *   `if node.next:`: If the extracted node had a `next` node, it means there are more elements in that particular linked list. So, the `next` node is pushed onto the heap.
-    *   **Return:**  Finally, `dummy.next` is returned, which is the head of the merged sorted linked list.
+        *   Iterates through the `lists` array.  If a linked list is not empty (i.e., `lists[i]` is not `None`), its head node is added to the min-heap.
 
-**How the Heap Works (Key Concept):**
+    *   **Merging Loop:**
+        *   The `while heap:` loop continues as long as there are nodes in the heap.
+        *   `heapq.heappop(heap)`: Retrieves and removes the smallest element (node) from the heap. This is the node with the smallest value across all the lists.
+        *   `curr.next = node`: The extracted node is appended to the merged list (pointed to by `curr`).
+        *   `curr = curr.next`: The `curr` pointer is moved to the newly added node.
+        *   `if node.next:`: If the extracted node has a next node in its original list, that next node is added to the heap to be considered for merging.
 
-The min-heap ensures that you always have quick access to the node with the smallest value among all the lists.  When you pop a node, you know it's the smallest, so you can add it to the merged list.  Then, if that node had a `next` node in its original list, you add the `next` node to the heap, maintaining the sorted order.
+    *   **Return:**
+        *   `dummy.next`:  Returns the head of the merged sorted linked list.
 
-**Time Complexity:**
+3.  **Helper Functions:**
+    *   `create_linked_list(arr)`: Creates a linked list from an array for testing purposes.
+    *   `print_linked_list(head)`: Prints the contents of a linked list to the console for verification.
 
-*   O(N log k), where N is the total number of nodes in all the linked lists, and k is the number of linked lists.  Each node is added to and removed from the heap once, and heap operations take O(log k) time.
+**Key Concepts:**
 
-**Space Complexity:**
-
-*   O(k), where k is the number of linked lists. This is the space used by the min-heap to store the head nodes of the lists.  In the worst case, the heap will contain one node from each list.  The space complexity of the output list itself is O(N), but that's usually not counted when analyzing the auxiliary space complexity of the algorithm.
-
-**Important Considerations:**
-
-*   **Heap Customization:** The heap in Python's `heapq` module works on built-in types like integers and strings directly.  For custom objects (like `ListNode`), you need to define a comparison operator (like `__lt__`) so the heap knows how to order them.
-*   **Handling Empty Lists:**  The code explicitly checks for empty lists (`if lists[i]`) to avoid adding `None` values to the heap, which would cause errors.
-*   **Dummy Node:** Using a dummy node at the beginning greatly simplifies the linked list construction.  Without it, you'd need to handle the special case of the first node separately.
-*   **Alternatives:** While the heap-based approach is common and efficient, there are other ways to solve this problem (e.g., repeatedly merging two lists at a time), but they are generally less efficient.
+*   **Linked Lists:** Understanding how linked lists are structured and how to traverse them.
+*   **Min-Heap:**  A data structure that efficiently finds the smallest element among a set of elements. The `heapq` module in Python provides a convenient implementation of a min-heap.
+*   **Priority Queue:** A min-heap is a common way to implement a priority queue, where elements are retrieved based on their priority (in this case, the value of the node).
+*   **Time Complexity:** O(N log k), where N is the total number of nodes across all linked lists, and k is the number of linked lists.  Heap operations (push and pop) take O(log k) time, and they are performed at most N times.
+*   **Space Complexity:** O(k).  The heap holds at most one node from each of the k lists at any given time.  The space used by the output list is O(N), but the problem explicitly requests the *merged* list, so we consider it part of the required output rather than auxiliary space.
