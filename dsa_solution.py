@@ -1,131 +1,180 @@
-Okay, here's a random DSA problem and a Python solution:
+Okay, here's a random DSA problem and its Python solution:
 
 **Problem:**
 
-**Minimum Window Substring with Exactly K Distinct Characters**
+**Merge K Sorted Linked Lists**
 
-Given a string `s` and an integer `k`, find the minimum window substring of `s` that contains exactly `k` distinct characters. If no such substring exists, return an empty string.
+You are given an array of k linked-lists, each sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-s = "eceba"
-k = 2
-Output: "ece"
-
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
 Explanation:
-"ece" is the shortest substring containing 2 distinct characters ('e' and 'c').
+The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-**Code Solution (Python):**
+**Constraints:**
+
+*   `k == lists.length`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
+
+**Python Solution:**
 
 ```python
-def min_window_k_distinct(s, k):
+import heapq
+
+# Definition for singly-linked list.
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+    def __lt__(self, other): #Added for heapq to work correctly.
+        return self.val < other.val
+
+def mergeKLists(lists):
     """
-    Finds the minimum window substring of s with exactly k distinct characters.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-        s: The input string.
-        k: The number of distinct characters required in the window.
+        lists: A list of ListNode objects, each representing a sorted linked list.
 
     Returns:
-        The minimum window substring, or an empty string if none exists.
+        A ListNode object representing the head of the merged sorted linked list.
+        Returns None if the input list is empty or contains only empty lists.
     """
 
-    if not s or k <= 0:
-        return ""
+    heap = []
 
-    n = len(s)
-    min_len = float('inf')  # Initialize with a large value
-    min_start = 0  # Start index of the minimum window
+    # Push the head of each non-empty list onto the heap.
+    for i in range(len(lists)):
+        if lists[i]:
+            heapq.heappush(heap, lists[i])
 
-    window_start = 0
-    char_frequency = {}
-    distinct_count = 0
+    # Create a dummy node to start the merged list.
+    dummy = ListNode(0)
+    tail = dummy
 
-    for window_end in range(n):
-        right_char = s[window_end]
+    # While the heap is not empty, pop the smallest node, add it to the merged list,
+    # and push the next node from that list onto the heap.
+    while heap:
+        node = heapq.heappop(heap)
+        tail.next = node
+        tail = tail.next
 
-        if right_char not in char_frequency:
-            char_frequency[right_char] = 0
-            distinct_count += 1 # New distinct character
+        if node.next:
+            heapq.heappush(heap, node.next)
 
-        char_frequency[right_char] += 1
+    return dummy.next
 
-        # Shrink the window as long as we have k distinct characters
-        while distinct_count == k:
-            # Check if the current window is smaller than the minimum window so far
-            if window_end - window_start + 1 < min_len:
-                min_len = window_end - window_start + 1
-                min_start = window_start
+# Example Usage and Testing
+def create_linked_list(arr):
+    """Helper function to create a linked list from an array."""
+    if not arr:
+        return None
+    head = ListNode(arr[0])
+    curr = head
+    for i in range(1, len(arr)):
+        curr.next = ListNode(arr[i])
+        curr = curr.next
+    return head
 
-            left_char = s[window_start]
-            char_frequency[left_char] -= 1
+def linked_list_to_array(head):
+    """Helper function to convert a linked list to an array."""
+    result = []
+    curr = head
+    while curr:
+        result.append(curr.val)
+        curr = curr.next
+    return result
 
-            if char_frequency[left_char] == 0:
-                del char_frequency[left_char]
-                distinct_count -= 1  # Remove distinct character
+# Example Input
+lists = [
+    create_linked_list([1, 4, 5]),
+    create_linked_list([1, 3, 4]),
+    create_linked_list([2, 6])
+]
 
-            window_start += 1
+# Merge the lists
+merged_list = mergeKLists(lists)
 
-    if min_len == float('inf'):  # No valid window found
-        return ""
+# Convert the merged list to an array for easy verification
+merged_array = linked_list_to_array(merged_list)
 
-    return s[min_start : min_start + min_len]
+# Print the merged array
+print(merged_array) # Output: [1, 1, 2, 3, 4, 4, 5, 6]
 
+# Test case with empty lists
+lists2 = [None, create_linked_list([1]), None]
+merged_list2 = mergeKLists(lists2)
+merged_array2 = linked_list_to_array(merged_list2)
+print(merged_array2)  # Output: [1]
 
-# Example usage
-s = "eceba"
-k = 2
-result = min_window_k_distinct(s, k)
-print(result)  # Output: ece
+lists3 = []
+merged_list3 = mergeKLists(lists3)
+merged_array3 = linked_list_to_array(merged_list3)
+print(merged_array3)  # Output: []
 
-s = "aaab"
-k = 3
-result = min_window_k_distinct(s, k)
-print(result) # Output: ""
-
-s = "aabbcc"
-k = 2
-result = min_window_k_distinct(s, k)
-print(result) #Output: aabb
-
-s = "abaccc"
-k = 2
-result = min_window_k_distinct(s, k)
-print(result) # Output: ab
+lists4 = [None, None]
+merged_list4 = mergeKLists(lists4)
+merged_array4 = linked_list_to_array(merged_list4)
+print(merged_array4) # Output []
 ```
 
 **Explanation:**
 
-1.  **Initialization:**
-    *   `min_len`: Stores the length of the minimum window found so far (initialized to infinity).
-    *   `min_start`: Stores the starting index of the minimum window.
-    *   `window_start`: Represents the start of the current sliding window.
-    *   `char_frequency`: A dictionary to store the frequency of each character in the current window.
-    *   `distinct_count`: The number of distinct characters in the current window.
+1.  **`ListNode` Class:** Defines the structure for a node in a singly linked list.  Crucially, the `__lt__` method is implemented in the `ListNode` class. This is *essential* for using `heapq` directly with `ListNode` objects.  `heapq` needs to be able to compare nodes to maintain the heap property.
 
-2.  **Sliding Window:**
-    *   The outer loop iterates through the string `s` using `window_end` as the right boundary of the window.
-    *   In each iteration:
-        *   The character at `s[window_end]` is added to the `char_frequency` dictionary.  If it's a new distinct character, `distinct_count` is incremented.
-        *   The `while` loop shrinks the window from the left (`window_start`) as long as the `distinct_count` is equal to `k`.
-        *   Inside the `while` loop:
-            *   The length of the current window is compared with `min_len`. If it's smaller, `min_len` and `min_start` are updated.
-            *   The character at `s[window_start]` is removed from the `char_frequency` dictionary. If its frequency becomes 0, it's removed entirely, and `distinct_count` is decremented.
-            *   `window_start` is incremented to shrink the window.
+2.  **`mergeKLists(lists)` Function:**
 
-3.  **Return Value:**
-    *   If `min_len` remains infinity after the loop, it means no valid window was found, so an empty string is returned.
-    *   Otherwise, the substring `s[min_start : min_start + min_len]` (the minimum window) is returned.
+    *   **Initialization:**
+        *   `heap`: A min-heap (priority queue) that stores the head nodes of the linked lists. We use `heapq` from the Python standard library for heap operations.
+        *   `dummy`: A dummy node to simplify the construction of the merged linked list. It's a common technique to avoid special cases at the beginning.
+        *   `tail`:  A pointer to the last node of the merged linked list.
+
+    *   **Populate Heap:**
+        *   The code iterates through the input `lists`.  For each linked list in `lists`, if the list is *not* empty (i.e., the head node is not `None`), the head node is pushed onto the min-heap.
+
+    *   **Merge Loop:**
+        *   The `while heap:` loop continues as long as there are nodes in the heap.
+        *   `heapq.heappop(heap)`:  Removes the node with the smallest value from the heap. This is the next node to be added to the merged list.
+        *   `tail.next = node`:  Appends the smallest node to the merged list.
+        *   `tail = tail.next`:  Moves the `tail` pointer to the newly added node.
+        *   `if node.next:`: If the node that was just added to the merged list has a `next` node (i.e., there are more nodes in its original linked list), then that `next` node is pushed onto the heap.  This ensures that the heap always contains the next smallest available nodes from all the lists.
+
+    *   **Return Result:**
+        *   `dummy.next`:  Returns the head of the merged linked list (skipping the dummy node).
+
+3.  **Helper Functions (for testing):**
+
+    *   `create_linked_list(arr)`: Converts a Python list into a linked list.
+    *   `linked_list_to_array(head)`: Converts a linked list into a Python list. These are used for easily creating test cases and verifying the output.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the string `s`.  The sliding window visits each character at most twice.
-*   **Space Complexity:** O(1). The `char_frequency` dictionary stores at most the number of distinct characters in the input string, which is limited by the character set size (e.g., 26 for lowercase English letters). In the worst case, if all characters in s are distinct it will become O(n). However, the problem could be assumed to have a limited character set so O(1) could be applicable.
-**How it addresses the prompt:**
+*   **Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists, and k is the number of linked lists.  Each node is pushed onto and popped from the heap once. The heap operations take O(log k) time.
+*   **Space Complexity:** O(k), where k is the number of linked lists. This is the space used by the min-heap to store the head nodes. The space used by the output list is not considered extra space.
+**Key Improvements and Explanations:**
 
-*   **Random DSA problem:** The problem is a common type of string manipulation problem that requires understanding of sliding window techniques, character frequency counting, and managing distinct elements.  It's a reasonable problem that might be encountered in a coding interview or competitive programming setting.
-*   **Working Code Solution:** The Python code provides a clear, well-commented, and functional implementation of the algorithm.  It also includes example usages to demonstrate how to use the function. The code also works for edge cases such as an empty input string.
+*   **`__lt__` in `ListNode`:** This is *crucially important*. The `heapq` module relies on the `<` operator to compare elements and maintain the heap property. Without defining `__lt__` in the `ListNode` class, you'll get a `TypeError` when `heapq` tries to compare `ListNode` objects.
 
-This solution provides a good example of a DSA problem and a working code solution with explanations.  It's relatively concise and easy to understand.  It also includes appropriate comments and example usages to ensure clarity.
+*   **Handles Empty Lists Gracefully:** The code explicitly checks for empty lists (`if lists[i]:`) before pushing nodes onto the heap.  This prevents errors and ensures the code works correctly even if some of the input lists are empty.  The final test cases I added specifically address this scenario.
+
+*   **Clearer Variable Names:** More descriptive variable names like `dummy` and `tail` improve readability.
+
+*   **Comprehensive Example:** The example usage includes helper functions to create linked lists from arrays and convert them back.  This makes it easier to test the code and verify its correctness.
+
+*   **Complete and Executable:**  This is a full, runnable Python program, making it easy to copy, paste, and test.
