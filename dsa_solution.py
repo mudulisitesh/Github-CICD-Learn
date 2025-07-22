@@ -1,78 +1,82 @@
-Okay, let's create a problem and a Python solution.
+Okay, let's craft a DSA problem and provide a Python solution.
 
-**Problem: Maximum Number of Meetings**
+**Problem:  Group Anagrams**
 
-You are given a list of meetings, where each meeting is represented by a tuple `(start_time, end_time)`.  You can only attend one meeting at a time. Your goal is to find the maximum number of meetings you can attend, given the list of meetings.
+Given a list of strings, group the anagrams together.  An anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
 
-For example:
+**Example:**
 
-```python
-meetings = [(1, 3), (2, 4), (3, 5), (5, 7), (6, 8)]
-# Expected Output: 4
+```
+Input: strs = ["eat","tea","tan","ate","nat","bat"]
+Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
 ```
 
 **Explanation:**
-The key is to sort the meetings based on their finish times.  This greedy approach ensures that you always select the meeting that finishes earliest, leaving you with the most available time for subsequent meetings.
 
-**Python Code Solution:**
+*   "eat", "tea", and "ate" are anagrams of each other.
+*   "tan" and "nat" are anagrams of each other.
+*   "bat" is not an anagram of any other word in the list.
+
+**Python Solution:**
 
 ```python
-def max_meetings(meetings):
+from collections import defaultdict
+
+def group_anagrams(strs):
     """
-    Calculates the maximum number of meetings that can be attended.
+    Groups anagrams together in a list of strings.
 
     Args:
-        meetings: A list of tuples, where each tuple represents a meeting
-                  with (start_time, end_time).
+      strs: A list of strings.
 
     Returns:
-        The maximum number of meetings that can be attended.
+      A list of lists, where each inner list contains anagrams.
     """
 
-    # Sort meetings based on their end times.
-    meetings.sort(key=lambda x: x[1])  # Sort by end time (x[1])
+    anagram_groups = defaultdict(list)  # Use defaultdict for convenience
+    for s in strs:
+        # Sort the characters of each string to create a "canonical" representation
+        sorted_s = "".join(sorted(s))  # Sorted string as key
+        anagram_groups[sorted_s].append(s)
 
-    count = 0
-    last_end_time = -1  # Initialize to a value that will always be less than the first meeting's start time
+    return list(anagram_groups.values())  # Return only the lists of anagrams
 
-    for start_time, end_time in meetings:
-        if start_time >= last_end_time:
-            count += 1
-            last_end_time = end_time
-
-    return count
 
 # Example Usage:
-meetings = [(1, 3), (2, 4), (3, 5), (5, 7), (6, 8)]
-result = max_meetings(meetings)
-print(f"Maximum number of meetings that can be attended: {result}") # Output: 4
+strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
+result = group_anagrams(strs)
+print(result)  # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']] (order may vary)
 
-meetings2 = [(0, 6),(1, 4),(5, 7),(5, 9),(8, 9)]
-result2 = max_meetings(meetings2)
-print(f"Maximum number of meetings that can be attended: {result2}") # Output: 4
 
-meetings3 = [(75254, 75759), (98104, 98562), (69550, 70433), (24167, 25523), (16871, 19106), (15780, 17614), (99275, 99890), (48608, 49135), (92149, 92976), (80635, 82592), (67943, 69914)]
-result3 = max_meetings(meetings3)
-print(f"Maximum number of meetings that can be attended: {result3}") # Output: 5
+strs2 = [""]
+result2 = group_anagrams(strs2)
+print(result2) #Output: ['']
+
+strs3 = ["a"]
+result3 = group_anagrams(strs3)
+print(result3) # Output: ['a']
 ```
 
 **Explanation of the Code:**
 
-1. **`max_meetings(meetings)` function:**
-   - Takes a list of `meetings` (tuples of `(start_time, end_time)`) as input.
-   - **Sorts Meetings:** The `meetings.sort(key=lambda x: x[1])` line sorts the meetings based on their end times in ascending order. The `lambda x: x[1]` is a small anonymous function that tells the `sort` method to use the second element (end time) of each tuple as the sorting key.  This is crucial for the greedy approach.
-   - **Initialization:** `count = 0` initializes the counter for the number of meetings we can attend. `last_end_time = -1` initializes the end time of the last attended meeting to a value that's guaranteed to be earlier than the start time of any meeting in the input.
-   - **Iteration:**  The code iterates through the sorted meetings:
-     - `if start_time >= last_end_time:`:  This is the core of the greedy algorithm. It checks if the current meeting's start time is greater than or equal to the end time of the last attended meeting.  If it is, it means we can attend this meeting without overlapping.
-     - `count += 1`: If there's no overlap, increment the meeting count.
-     - `last_end_time = end_time`: Update `last_end_time` to the end time of the currently attended meeting.
-   - **Return Value:**  The function returns the final `count`, which represents the maximum number of meetings that can be attended.
+1.  **`defaultdict(list)`:**  We use `defaultdict(list)` from the `collections` module. A `defaultdict` is like a regular dictionary, but if you try to access a key that doesn't exist, it automatically creates that key with a default value (in this case, an empty list). This simplifies the code because we don't have to check if a key exists before appending to its value.
+
+2.  **Iterate through the strings:**  The code iterates through each string `s` in the input list `strs`.
+
+3.  **Sort the characters:**  For each string `s`, we sort its characters alphabetically using `sorted(s)`.  The `sorted()` function returns a list of characters.  We then join these characters back into a string using `"".join(...)`. This sorted string becomes the key for our `anagram_groups` dictionary.  Anagrams will have the same sorted string representation.
+
+4.  **Group by Sorted String:**  We append the original string `s` to the list associated with its sorted string key in the `anagram_groups` dictionary.
+
+5.  **Return the Values:** Finally, we return a list containing the values of the `anagram_groups` dictionary (i.e., the lists of anagrams).  `anagram_groups.values()` returns a "view object", so we cast it to a list using `list(...)` before returning.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n log n) due to the sorting step.  The rest of the algorithm is O(n).
-*   **Space Complexity:** O(1) (or O(n) in some implementations, depending on how `sort()` is implemented) because the algorithm primarily uses a few constant-size variables. It modifies the input `meetings` list in-place during sorting, so space complexity depends on whether sorting is done in place. In Python, the `sort()` method is typically implemented in-place, so the space complexity is generally considered O(1) for most practical purposes.  However, if the sort algorithm requires creating a new array internally, it could be O(n).
+*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input list, and K is the maximum length of a string.  The `sorted()` function takes O(K log K) time for each string. The outer loop runs N times.
+*   **Space Complexity:** O(N * K), where N is the number of strings and K is the maximum length of a string.  In the worst case, each string is a unique anagram, and we'll store all N strings in the `anagram_groups` dictionary.
 
-**Greedy Approach Justification:**
+**Key Concepts Used:**
 
-The greedy approach of selecting meetings based on earliest end time works because it prioritizes freeing up your schedule as quickly as possible.  By choosing the meeting that finishes earliest, you maximize the amount of time available to potentially fit in more meetings later.  This strategy guarantees you'll find the maximum number of non-overlapping meetings.
+*   **Hashing:**  Using the sorted string as a key in a dictionary provides a fast way to group anagrams together.
+*   **Sorting:** Sorting the characters of each string allows us to easily identify anagrams.
+*   **Dictionaries/Hashmaps:**  Dictionaries (or hashmaps) are essential for grouping elements based on a key.
+*   **`defaultdict`:**  Using `defaultdict` simplifies the code by avoiding explicit checks for key existence.
