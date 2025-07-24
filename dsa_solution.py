@@ -1,109 +1,86 @@
-Okay, here's a randomly generated DSA problem and a Python solution:
+Okay, here's a random DSA problem and a Python solution:
 
-**Problem:  "Longest Substring with At Most K Distinct Characters"**
+**Problem:**
 
-**Description:**
+**Group Anagrams**
 
-Given a string `s` and an integer `k`, find the length of the longest substring of `s` that contains at most `k` distinct characters.
+Given an array of strings `strs`, group the anagrams together.  You can return the answer in **any order**.
 
-**Example:**
+An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
+
+**Example 1:**
 
 ```
-s = "eceba"
-k = 2
+Input: strs = ["eat","tea","tan","ate","nat","bat"]
+Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
 ```
 
-The longest substring containing at most 2 distinct characters is "ece" with a length of 3.
+**Example 2:**
+
+```
+Input: strs = [""]
+Output: [[""]]
+```
+
+**Example 3:**
+
+```
+Input: strs = ["a"]
+Output: [["a"]]
+```
 
 **Constraints:**
 
-*   `1 <= s.length <= 10^5`
-*   `0 <= k <= 50`
-*   `s` consists of lowercase English letters.
+*   `1 <= strs.length <= 10^4`
+*   `0 <= strs[i].length <= 100`
+*   `strs[i]` consists of lowercase English letters.
 
-**Python Solution (Sliding Window Approach):**
+**Python Solution:**
 
 ```python
-def longest_substring_with_k_distinct(s: str, k: int) -> int:
+from collections import defaultdict
+
+def groupAnagrams(strs):
     """
-    Finds the length of the longest substring of s with at most k distinct characters.
+    Groups anagrams from a list of strings.
 
     Args:
-        s: The input string.
-        k: The maximum number of distinct characters allowed.
+        strs: A list of strings.
 
     Returns:
-        The length of the longest substring.
+        A list of lists, where each inner list contains anagrams.
     """
+    anagram_groups = defaultdict(list)  # Dictionary to store anagrams
+    for s in strs:
+        # Sort the string to create a canonical representation for anagrams
+        sorted_s = "".join(sorted(s))
+        anagram_groups[sorted_s].append(s)
+    return list(anagram_groups.values())
 
-    if k == 0:
-        return 0
+# Example Usage:
+strs1 = ["eat", "tea", "tan", "ate", "nat", "bat"]
+print(groupAnagrams(strs1)) # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']] (order may vary)
 
-    window_start = 0
-    max_length = 0
-    char_frequency = {}  # Store the frequency of characters in the current window
+strs2 = [""]
+print(groupAnagrams(strs2))  # Output: [['']]
 
-    for window_end in range(len(s)):
-        right_char = s[window_end]
-        char_frequency[right_char] = char_frequency.get(right_char, 0) + 1
-
-        while len(char_frequency) > k:
-            left_char = s[window_start]
-            char_frequency[left_char] -= 1
-            if char_frequency[left_char] == 0:
-                del char_frequency[left_char]  # Remove char if frequency is 0
-            window_start += 1
-
-        max_length = max(max_length, window_end - window_start + 1)  # Update max_length
-
-    return max_length
-
-# Example usage:
-s = "eceba"
-k = 2
-result = longest_substring_with_k_distinct(s, k)
-print(f"Longest substring with at most {k} distinct characters in '{s}': {result}") # Output: 3
-
-s = "aaabbb"
-k = 1
-result = longest_substring_with_k_distinct(s,k)
-print(f"Longest substring with at most {k} distinct characters in '{s}': {result}") # Output: 3
-
-s = "abaccc"
-k = 2
-result = longest_substring_with_k_distinct(s,k)
-print(f"Longest substring with at most {k} distinct characters in '{s}': {result}") # Output: 4
-
-s = "a"
-k = 0
-result = longest_substring_with_k_distinct(s,k)
-print(f"Longest substring with at most {k} distinct characters in '{s}': {result}") # Output: 0
+strs3 = ["a"]
+print(groupAnagrams(strs3))  # Output: [['a']]
 ```
 
 **Explanation:**
 
-1.  **Initialization:**
-    *   `window_start`:  Index of the start of the sliding window (initially 0).
-    *   `max_length`:  Length of the longest substring found so far (initially 0).
-    *   `char_frequency`: A dictionary to store the frequency of each character in the current window.
+1.  **`defaultdict(list)`:** We use a `defaultdict(list)` which is a specialized dictionary. If you try to access a key that doesn't exist, it automatically creates that key with an empty list as its value. This is perfect for grouping elements.
 
-2.  **Sliding Window:**
-    *   The code iterates through the string using `window_end` as the index of the end of the sliding window.
-    *   For each character at `window_end`, we update its frequency in the `char_frequency` dictionary.
+2.  **Sorting for Canonical Representation:** The core idea is that anagrams will have the same letters, just in different orders.  If we sort the letters of each word, we'll get the same string for all anagrams.  For example, "eat", "tea", and "ate" all become "aet" when sorted.  This sorted string becomes the key in our `anagram_groups` dictionary.
 
-3.  **Maintaining the Constraint:**
-    *   The `while` loop ensures that the number of distinct characters in the `char_frequency` dictionary does not exceed `k`.
-    *   If the number of distinct characters exceeds `k`, we shrink the window from the left (`window_start`).
-    *   We decrement the frequency of the character at `window_start` in `char_frequency`. If the frequency becomes 0, we remove the character from the dictionary.
-    *   We increment `window_start` to move the window's starting position.
+3.  **Iteration and Grouping:**  We iterate through the input list of strings `strs`. For each string `s`:
+    *   We sort it using `sorted(s)` (which returns a list of characters) and then join the sorted characters back into a string using `"".join(...)`.
+    *   We use this sorted string as the key in `anagram_groups`, and we `append` the original string `s` to the list associated with that key.
 
-4.  **Updating Maximum Length:**
-    *   After each iteration (or when the number of distinct characters is within the limit), we update `max_length` with the maximum length of the current window ( `window_end - window_start + 1`).
-
-5.  **Return Value:**
-    *   Finally, the function returns the `max_length`.
+4.  **Returning the Groups:** Finally, `anagram_groups.values()` gives us a collection of lists (the values in the dictionary), where each list contains the strings that are anagrams of each other.  We convert this collection to a regular list using `list(...)` and return it.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the string `s`.  In the worst case, each character in the string is visited twice (once by `window_end` and possibly once by `window_start`).
-*   **Space Complexity:** O(k), where k is the maximum number of distinct characters allowed.  In the worst case, the `char_frequency` dictionary will store up to `k` distinct characters. In cases where k is similar or equal to the number of unique characters in `s`, the space complexity might be closer to O(number of unique characters). In practice, since k is capped at 50, the space complexity is considered effectively O(1).
+*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input list and K is the average length of the strings. This is because we iterate through each string (O(N)), and for each string, we sort it (O(K log K)).
+*   **Space Complexity:** O(N * K), where N is the number of strings and K is the average length of the strings. In the worst case, all strings are unique and have distinct characters, so we store all the strings in the `anagram_groups` dictionary.
