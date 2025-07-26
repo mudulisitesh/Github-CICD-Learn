@@ -1,128 +1,138 @@
-Okay, here's a problem involving a graph traversal and a working Python solution:
+Okay, here's a random DSA problem and a Python solution:
 
-**Problem: Islands in a Grid (Connected Components)**
+**Problem:**
 
-You are given a 2D grid of '1's (land) and '0's (water).  An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically (not diagonally).  Count the number of islands in the grid.
+**Merge K Sorted Lists**
+
+You are given an array of k linked-lists, each linked-list is sorted in ascending order.
+
+Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-grid = [
-  ["1","1","1","1","0"],
-  ["1","1","0","1","0"],
-  ["1","1","0","0","0"],
-  ["0","0","0","0","0"]
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
 ]
-
-Output: 1
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-```
-grid = [
-  ["1","1","0","0","0"],
-  ["1","1","0","0","0"],
-  ["0","0","1","0","0"],
-  ["0","0","0","1","1"]
+**Constraints:**
+
+*   `k == lists.length`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
+
+**Python Solution (using a Min-Heap):**
+
+```python
+import heapq
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
+    """
+    Merges k sorted linked lists into one sorted linked list.
+
+    Args:
+      lists: A list of linked lists, where each list is sorted.
+
+    Returns:
+      The head of the merged sorted linked list.
+    """
+
+    # Create a min-heap.  We store (value, list_index) tuples in the heap.
+    # list_index is needed to know which list to pull the next node from.
+    heap = []
+
+    # Initialize the heap with the heads of the non-empty lists.
+    for i in range(len(lists)):
+        if lists[i]:  # Check if the list is not empty
+            heapq.heappush(heap, (lists[i].val, i))
+            lists[i] = lists[i].next  # advance to the next node
+
+    # Create a dummy head for the merged list.
+    dummy = ListNode(0)
+    tail = dummy
+
+    # While the heap is not empty:
+    while heap:
+        # Get the smallest value from the heap.
+        val, list_index = heapq.heappop(heap)
+
+        # Add the node to the merged list.
+        tail.next = ListNode(val)
+        tail = tail.next
+
+        # Check if there are more nodes in the list from which we just took a node.
+        if lists[list_index]:
+            heapq.heappush(heap, (lists[list_index].val, list_index))
+            lists[list_index] = lists[list_index].next
+
+    return dummy.next  # Return the merged list (excluding the dummy head).
+
+# Example usage and helper function to create linked lists
+def create_linked_list(arr):
+    if not arr:
+        return None
+    head = ListNode(arr[0])
+    curr = head
+    for i in range(1, len(arr)):
+        curr.next = ListNode(arr[i])
+        curr = curr.next
+    return head
+
+def linked_list_to_array(head):
+    result = []
+    curr = head
+    while curr:
+        result.append(curr.val)
+        curr = curr.next
+    return result
+
+# Example
+lists = [
+    create_linked_list([1, 4, 5]),
+    create_linked_list([1, 3, 4]),
+    create_linked_list([2, 6])
 ]
 
-Output: 3
+merged_list = mergeKLists(lists)
+print(linked_list_to_array(merged_list)) # Output: [1, 1, 2, 3, 4, 4, 5, 6]
 ```
 
 **Explanation:**
 
-The key idea is to traverse the grid.  When you find a '1', you've found the start of an island.  Use Depth-First Search (DFS) or Breadth-First Search (BFS) to explore the entire connected component of that island, marking all visited '1's as visited (e.g., by changing them to '0's). Each time you start a new DFS/BFS from an unvisited '1', you've found a new island.
+1.  **ListNode Class:** Defines the standard linked list node structure.
+2.  **`mergeKLists(lists)` function:**
+    *   **Heap Initialization:**
+        *   A min-heap `heap` is created using `heapq`.  The heap stores tuples of `(value, list_index)`.  The `value` is used for sorting, and `list_index` is crucial for tracking which list a given node came from, so we can efficiently advance to the next node in that list.
+        *   The code iterates through the input `lists`. For each non-empty linked list, it pushes the value of the head node and the list's index into the heap. Importantly, it also *advances* the head of that list to the next node. This ensures that the original `lists` array is effectively storing the *remaining* (unprocessed) portions of the lists as the algorithm progresses.
+    *   **Dummy Node:**  A `dummy` node is created. This simplifies the process of building the merged list, as we don't have to worry about special cases for the head.
+    *   **Merging Loop:**
+        *   While the heap is not empty:
+            *   `heapq.heappop(heap)` retrieves and removes the smallest value (along with its list index) from the heap.
+            *   A new `ListNode` is created with the extracted value, and it's appended to the `tail` of the merged list.  `tail` is then advanced to the newly added node.
+            *   The code then checks if there are more nodes remaining in the list from which the node was just taken (using the `list_index`). If so, it pushes the next node's value (and the list index) onto the heap, again advancing the corresponding list in the `lists` array to its next node.
+    *   **Return Value:** The function returns `dummy.next`, which is the head of the merged sorted linked list (excluding the dummy node).
 
-**Python Solution (DFS):**
+3. **`create_linked_list(arr)` helper function:**  Converts an array into a linked list.
+4. **`linked_list_to_array(head)` helper function:** Converts a linked list into an array for easy printing and verification.
 
-```python
-def num_islands(grid):
-    """
-    Counts the number of islands in a 2D grid.
+**Time Complexity:** O(N log k), where N is the total number of nodes in all the lists, and k is the number of lists.  We perform `N` heap operations, and each heap operation takes O(log k) time.
 
-    Args:
-        grid: A list of lists of strings, representing the grid.
+**Space Complexity:** O(k), where k is the number of linked lists.  The heap stores at most one node from each list at any given time. In the worst-case scenario, the heap can grow to contain all the heads of the linked lists.
 
-    Returns:
-        The number of islands in the grid.
-    """
-
-    if not grid:
-        return 0
-
-    rows = len(grid)
-    cols = len(grid[0])
-    num_islands = 0
-
-    def dfs(row, col):
-        """Performs Depth-First Search to mark an island as visited."""
-        if row < 0 or row >= rows or col < 0 or col >= cols or grid[row][col] == '0':
-            return
-
-        # Mark as visited by changing to '0'
-        grid[row][col] = '0'
-
-        # Explore adjacent cells
-        dfs(row + 1, col)  # Down
-        dfs(row - 1, col)  # Up
-        dfs(row, col + 1)  # Right
-        dfs(row, col - 1)  # Left
-
-    for row in range(rows):
-        for col in range(cols):
-            if grid[row][col] == '1':
-                num_islands += 1
-                dfs(row, col)
-
-    return num_islands
-
-# Example Usage:
-grid1 = [
-  ["1","1","1","1","0"],
-  ["1","1","0","1","0"],
-  ["1","1","0","0","0"],
-  ["0","0","0","0","0"]
-]
-print(f"Number of islands in grid1: {num_islands(grid1)}")  # Output: 1
-
-grid2 = [
-  ["1","1","0","0","0"],
-  ["1","1","0","0","0"],
-  ["0","0","1","0","0"],
-  ["0","0","0","1","1"]
-]
-print(f"Number of islands in grid2: {num_islands(grid2)}")  # Output: 3
-
-grid3 = [
-    ["1","0","1","0","1"]
-]
-
-print(f"Number of islands in grid3: {num_islands(grid3)}") # Output: 3
-```
-
-**Explanation of the Code:**
-
-1.  **`num_islands(grid)`:**
-    *   Checks for an empty grid.
-    *   Gets the number of rows and columns.
-    *   Initializes `num_islands` to 0.
-    *   Iterates through each cell in the grid.
-    *   If a cell is '1', it increments `num_islands` and calls `dfs()` to explore the island.
-
-2.  **`dfs(row, col)`:**
-    *   **Base Case:**  Checks if the current cell is out of bounds or is water ('0'). If so, it returns.
-    *   **Mark as Visited:** Sets the current cell to '0' (water) to prevent revisiting it and causing infinite recursion.
-    *   **Recursive Calls:**  Recursively calls `dfs()` on the four adjacent cells (up, down, left, right).
-
-**Time and Space Complexity:**
-
-*   **Time Complexity:** O(M \* N), where M is the number of rows and N is the number of columns in the grid.  We visit each cell at most once.
-*   **Space Complexity:** O(M \* N) in the worst case due to the recursion stack in DFS. This happens when the entire grid is filled with '1's, and the DFS will potentially explore the entire grid. In the best case(when the grid is filled with waters), the space complexity is O(1).
-
-**Key Concepts:**
-
-*   **Graph Traversal:** The grid can be thought of as a graph where each '1' is a node and adjacent '1's have edges between them.
-*   **Depth-First Search (DFS):** A common algorithm for exploring graphs.
-*   **Connected Components:**  A set of vertices in a graph that are reachable from each other.  Each island is a connected component.
-*   **In-Place Modification:**  The code modifies the grid in place by changing '1's to '0's to mark them as visited.  If you need to preserve the original grid, you would need to create a separate `visited` matrix.
-
-This solution efficiently counts the number of islands by using DFS to explore and mark each connected island as visited. Remember that you could also use BFS instead of DFS to solve this problem.  The logic would be similar.
+This is a common and well-regarded solution for the "Merge K Sorted Lists" problem. The use of a min-heap provides an efficient way to track and select the smallest value from all the lists at each step.
