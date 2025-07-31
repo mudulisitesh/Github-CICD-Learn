@@ -1,98 +1,109 @@
-Okay, here's a problem related to arrays and a common algorithmic technique (two pointers).
+Okay, here's a random DSA problem, followed by a Python solution.
 
-**Problem:**
+**Problem: First Unique Character in a String**
 
-**Merge Sorted Arrays**
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
 
-You are given two sorted integer arrays, `nums1` and `nums2`, and two integers, `m` and `n`, representing the number of elements in `nums1` and `nums2` respectively.
+**Example 1:**
 
-Merge `nums2` into `nums1` as one sorted array.
+Input: `s = "leetcode"`
+Output: `0`
 
-**Important:**
+**Example 2:**
 
-*   `nums1` has a length of `m + n`, where the first `m` elements denote the elements that should be merged, and the last `n` elements are initially 0 and should be ignored.
-*   `nums2` has a length of `n`.
+Input: `s = "loveleetcode"`
+Output: `2`
 
-**Example:**
+**Example 3:**
 
-```
-Input: nums1 = [1,2,3,0,0,0], m = 3, nums2 = [2,5,6], n = 3
-Output: [1,2,2,3,5,6]
-Explanation: The arrays we are merging are [1,2,3] and [2,5,6].
-The result of the merge is [1,2,2,3,5,6].
-```
+Input: `s = "aabb"`
+Output: `-1`
 
 **Python Solution:**
 
 ```python
-def merge_sorted_arrays(nums1, m, nums2, n):
+def firstUniqChar(s):
     """
-    Merges two sorted arrays nums1 and nums2 into nums1.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        nums1 (list[int]): The first sorted array (modified in-place).
-        m (int): The number of elements in nums1 that are valid.
-        nums2 (list[int]): The second sorted array.
-        n (int): The number of elements in nums2.
+        s: The input string.
+
+    Returns:
+        The index of the first non-repeating character, or -1 if none exists.
     """
-    # Initialize pointers
-    p1 = m - 1  # Pointer for nums1 (valid elements)
-    p2 = n - 1  # Pointer for nums2
-    p = m + n - 1 # Pointer for the merged array (nums1)
 
-    # Start merging from the end
-    while p1 >= 0 and p2 >= 0:
-        if nums1[p1] > nums2[p2]:
-            nums1[p] = nums1[p1]
-            p1 -= 1
-        else:
-            nums1[p] = nums2[p2]
-            p2 -= 1
-        p -= 1
+    char_counts = {}  # Dictionary to store character counts
 
-    # If there are any remaining elements in nums2, copy them to nums1
-    while p2 >= 0:
-        nums1[p] = nums2[p2]
-        p2 -= 1
-        p -= 1
+    # Count the occurrences of each character
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
+    # Find the first character with count 1
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
+
+    return -1  # No unique character found
 # Example Usage:
-nums1 = [1, 2, 3, 0, 0, 0]
-m = 3
-nums2 = [2, 5, 6]
-n = 3
-merge_sorted_arrays(nums1, m, nums2, n)
-print(nums1) # Output: [1, 2, 2, 3, 5, 6]
+s1 = "leetcode"
+print(f"First unique char in '{s1}': {firstUniqChar(s1)}")  # Output: 0
 
-nums1 = [1]
-m = 1
-nums2 = []
-n = 0
-merge_sorted_arrays(nums1, m, nums2, n)
-print(nums1) # Output: [1]
+s2 = "loveleetcode"
+print(f"First unique char in '{s2}': {firstUniqChar(s2)}")  # Output: 2
+
+s3 = "aabb"
+print(f"First unique char in '{s3}': {firstUniqChar(s3)}")  # Output: -1
+
+s4 = ""
+print(f"First unique char in '{s4}': {firstUniqChar(s4)}") # Output: -1
+
+s5 = "abcabcbb"
+print(f"First unique char in '{s5}': {firstUniqChar(s5)}") # Output: -1
+
+s6 = "a"
+print(f"First unique char in '{s6}': {firstUniqChar(s6)}") # Output: 0
+
+s7 = "adaadcb"
+print(f"First unique char in '{s7}': {firstUniqChar(s7)}") # Output: 6
 ```
 
 **Explanation:**
 
-1.  **Initialization:**
-    *   `p1`:  Points to the last valid element in `nums1` (index `m - 1`).
-    *   `p2`: Points to the last element in `nums2` (index `n - 1`).
-    *   `p`:  Points to the last position in the merged array (`nums1`) where we'll be placing elements (index `m + n - 1`).
+1. **Character Counts:**  A dictionary `char_counts` is used to store the frequency of each character in the string. The `.get(char, 0)` method efficiently retrieves the current count (or defaults to 0 if the character hasn't been seen yet) and increments it.
 
-2.  **Merging from the End:**
-    *   The `while p1 >= 0 and p2 >= 0` loop compares the elements at `nums1[p1]` and `nums2[p2]`.
-    *   If `nums1[p1]` is greater, it's placed at `nums1[p]`. `p1` and `p` are decremented.
-    *   Otherwise, `nums2[p2]` is placed at `nums1[p]`. `p2` and `p` are decremented.  We're essentially filling `nums1` from the end, ensuring that the merged portion stays sorted.
+2. **First Unique Character:** The code then iterates through the string `s` *again*.  This time, it checks the count of each character using the `char_counts` dictionary. If a character's count is equal to 1, it means the character appears only once, so the function immediately returns its index `i`.
 
-3.  **Handling Remaining Elements in `nums2`:**
-    *   After the main loop, it's possible that there are still elements left in `nums2` (if `nums2` has smaller values than the elements in `nums1`).  The `while p2 >= 0` loop handles this case by copying the remaining elements from `nums2` to the beginning of `nums1`.
-    *   There's no need to handle the case where there are remaining elements in `nums1` because they are already in their correct positions.
-
-**Key Idea (Two Pointers):**
-
-This solution uses the "two pointers" technique effectively.  We maintain two pointers, one for each array, and use them to iterate and compare elements.  By moving the pointers based on the comparison, we can efficiently merge the arrays in a sorted manner. We start from the end to avoid overwriting elements that haven't been processed yet in `nums1`.
+3. **No Unique Character:** If the loop completes without finding any character with a count of 1, the function returns `-1`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(m + n), where m and n are the lengths of `nums1` and `nums2` respectively. This is because we iterate through both arrays at most once.
-*   **Space Complexity:** O(1).  We are performing the merge in-place, so we don't use any extra space proportional to the input size.
+*   **Time Complexity:** O(n), where n is the length of the string `s`. We iterate through the string twice in the worst case.
+*   **Space Complexity:** O(1). Although we use a dictionary, in the worst case, it will store at most 26 characters (for lowercase English letters). So it's considered constant space with respect to the length of the input string (because the maximum size of the dictionary doesn't depend on the size of the string, assuming the string only contains ASCII characters). If the input string can contain any Unicode character, then the space complexity is O(number of unique characters in the input string), which could be up to O(n) in some cases.  However, in practice, the number of unique characters is often much smaller than `n`. Using a fixed-size array of size 256 (assuming extended ASCII) could also be an option for constant space if the character set is limited.
+
+**Alternative Solution (using collections.Counter):**
+
+```python
+from collections import Counter
+
+def firstUniqChar_counter(s):
+    """
+    Finds the index of the first non-repeating character using collections.Counter.
+
+    Args:
+        s: The input string.
+
+    Returns:
+        The index of the first non-repeating character, or -1 if none exists.
+    """
+
+    char_counts = Counter(s)
+
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
+
+    return -1
+```
+
+This alternative is more concise because `collections.Counter` does the character counting automatically.  The time and space complexity are the same as the first solution.  It's generally preferred for its readability.
