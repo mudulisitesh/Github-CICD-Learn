@@ -1,109 +1,95 @@
-Okay, here's a random DSA problem, followed by a Python solution.
+Okay, here's a DSA problem focusing on string manipulation and a corresponding Python solution:
 
-**Problem: First Unique Character in a String**
+**Problem:**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
+**Palindrome Substring Removal**
 
-**Example 1:**
+You are given a string `s`.  In one step, you can remove any contiguous palindromic substring from `s`. What is the minimum number of steps to remove all characters from the string `s`?
 
-Input: `s = "leetcode"`
-Output: `0`
+**Example:**
 
-**Example 2:**
+*   `s = "ababa"`:  You can remove the entire string in one step (because "ababa" is a palindrome).
+*   `s = "abbc"`: You can remove "bb" in one step, leaving "ac". Then remove "a" and "c" in two separate steps. Total steps: 3.
+*   `s = "abaacca"`: You can remove "aa" in one step, leaving "abaacc". Then remove "aba" in one step, leaving "cc". Finally remove "cc" in one step. Total steps: 3.
+*   `s = "abcddcba"`: You can remove the entire string in one step since it is a palindrome.
 
-Input: `s = "loveleetcode"`
-Output: `2`
+**Constraints:**
 
-**Example 3:**
-
-Input: `s = "aabb"`
-Output: `-1`
+*   1 <= `len(s)` <= 100
+*   `s` contains only lowercase English letters.
 
 **Python Solution:**
 
 ```python
-def firstUniqChar(s):
+def min_palindrome_removal(s):
     """
-    Finds the index of the first non-repeating character in a string.
+    Calculates the minimum number of steps to remove all characters from a string
+    by removing contiguous palindromic substrings.
 
     Args:
         s: The input string.
 
     Returns:
-        The index of the first non-repeating character, or -1 if none exists.
+        The minimum number of steps required.
     """
 
-    char_counts = {}  # Dictionary to store character counts
+    n = len(s)
+    dp = [[0] * n for _ in range(n)]
 
-    # Count the occurrences of each character
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+    for i in range(n):
+        dp[i][i] = 1  # Single character is a palindrome
 
-    # Find the first character with count 1
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+    for length in range(2, n + 1):
+        for i in range(n - length + 1):
+            j = i + length - 1
 
-    return -1  # No unique character found
+            if s[i] == s[j]:
+                if length == 2:
+                    dp[i][j] = 1 # Two same characters form a palindrome
+                else:
+                    dp[i][j] = dp[i+1][j-1] #Check if removing s[i] and s[j] results in palindrome.
+            
+            if dp[i][j] == 0:
+              dp[i][j] = min(dp[i][k] + dp[k+1][j] for k in range(i, j))
+
+    return dp[0][n - 1]
+
+
 # Example Usage:
-s1 = "leetcode"
-print(f"First unique char in '{s1}': {firstUniqChar(s1)}")  # Output: 0
-
-s2 = "loveleetcode"
-print(f"First unique char in '{s2}': {firstUniqChar(s2)}")  # Output: 2
-
-s3 = "aabb"
-print(f"First unique char in '{s3}': {firstUniqChar(s3)}")  # Output: -1
-
-s4 = ""
-print(f"First unique char in '{s4}': {firstUniqChar(s4)}") # Output: -1
-
-s5 = "abcabcbb"
-print(f"First unique char in '{s5}': {firstUniqChar(s5)}") # Output: -1
-
-s6 = "a"
-print(f"First unique char in '{s6}': {firstUniqChar(s6)}") # Output: 0
-
-s7 = "adaadcb"
-print(f"First unique char in '{s7}': {firstUniqChar(s7)}") # Output: 6
+print(min_palindrome_removal("ababa"))  # Output: 1
+print(min_palindrome_removal("abbc"))  # Output: 3
+print(min_palindrome_removal("abaacca")) # Output: 3
+print(min_palindrome_removal("abcddcba")) # Output: 1
+print(min_palindrome_removal("abcd")) # Output 4
 ```
 
 **Explanation:**
 
-1. **Character Counts:**  A dictionary `char_counts` is used to store the frequency of each character in the string. The `.get(char, 0)` method efficiently retrieves the current count (or defaults to 0 if the character hasn't been seen yet) and increments it.
+1.  **Dynamic Programming:** The solution uses dynamic programming to efficiently determine the minimum steps.  `dp[i][j]` stores the minimum number of steps needed to remove the substring `s[i:j+1]`.
 
-2. **First Unique Character:** The code then iterates through the string `s` *again*.  This time, it checks the count of each character using the `char_counts` dictionary. If a character's count is equal to 1, it means the character appears only once, so the function immediately returns its index `i`.
+2.  **Base Case:**  `dp[i][i] = 1` because a single character is a palindrome and requires one step to remove.
 
-3. **No Unique Character:** If the loop completes without finding any character with a count of 1, the function returns `-1`.
+3.  **Iteration:**
+    *   We iterate through all possible substring lengths (from 2 to `n`).
+    *   For each length, we iterate through all possible starting positions `i`.
+    *   `j = i + length - 1` calculates the ending position of the substring.
+
+4.  **Palindrome Check:**
+    *   If `s[i] == s[j]`, the first and last characters are the same.  Then, we consider if the substring between `i+1` and `j-1` is also a palindrome.
+       * If the length is exactly 2, then since s[i] == s[j], we have a palindrome of length 2. Thus, dp[i][j] = 1.
+       * Otherwise, we check if `dp[i+1][j-1]` is also a palindrome, if that is the case then `dp[i][j] = 1` since we can remove the palindrome.
+
+5.  **Non-Palindrome Case:**
+    * If the substring is not a palindrome. Then we have to split it into subproblems.  We try splitting at all possible indices `k` between `i` and `j-1`.
+    * `dp[i][j] = min(dp[i][k] + dp[k+1][j] for k in range(i, j))` This line calculates the minimum steps by considering all possible split points `k` within the substring `s[i:j+1]`. It takes the minimum of (steps to remove `s[i:k+1]`) + (steps to remove `s[k+1:j+1]`).
+
+6.  **Result:**  `dp[0][n - 1]` contains the minimum number of steps to remove the entire string `s`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the string `s`. We iterate through the string twice in the worst case.
-*   **Space Complexity:** O(1). Although we use a dictionary, in the worst case, it will store at most 26 characters (for lowercase English letters). So it's considered constant space with respect to the length of the input string (because the maximum size of the dictionary doesn't depend on the size of the string, assuming the string only contains ASCII characters). If the input string can contain any Unicode character, then the space complexity is O(number of unique characters in the input string), which could be up to O(n) in some cases.  However, in practice, the number of unique characters is often much smaller than `n`. Using a fixed-size array of size 256 (assuming extended ASCII) could also be an option for constant space if the character set is limited.
+*   **Time Complexity:** O(n<sup>3</sup>) due to the three nested loops (two for iterating through substrings and one for the splitting point `k`).
+*   **Space Complexity:** O(n<sup>2</sup>) for the `dp` table.
 
-**Alternative Solution (using collections.Counter):**
+**Key Improvements over Naive Recursion:**
 
-```python
-from collections import Counter
-
-def firstUniqChar_counter(s):
-    """
-    Finds the index of the first non-repeating character using collections.Counter.
-
-    Args:
-        s: The input string.
-
-    Returns:
-        The index of the first non-repeating character, or -1 if none exists.
-    """
-
-    char_counts = Counter(s)
-
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
-
-    return -1
-```
-
-This alternative is more concise because `collections.Counter` does the character counting automatically.  The time and space complexity are the same as the first solution.  It's generally preferred for its readability.
+*   Dynamic programming avoids recomputing the same subproblems multiple times, which is what a naive recursive approach would do.  This significantly improves the efficiency.  The overlapping subproblems are efficiently solved using memoization (or, in this case, a bottom-up approach).
