@@ -1,85 +1,80 @@
-Okay, here's a random DSA problem and a Python solution:
+Okay, here's a DSA problem and a Python solution.
 
-**Problem:**
+**Problem:  Find the First Non-Repeating Character**
 
-**Merge Intervals**
-
-Given a collection of intervals represented as a list of lists, where each inner list contains the start and end points of an interval (e.g., `[[1,3], [2,6], [8,10], [15,18]]`), merge all overlapping intervals and return a list of non-overlapping intervals that cover all the intervals in the input.
+Given a string, find the first non-repeating character in it.  If it does not exist, return None.
 
 **Example:**
 
-Input: `[[1,3], [2,6], [8,10], [15,18]]`
-Output: `[[1,6], [8,10], [15,18]]`
-
-Explanation: The intervals `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
-
-Input: `[[1,4],[4,5]]`
-Output: `[[1,5]]`
-
-**Python Solution:**
-
-```python
-def merge_intervals(intervals):
-    """
-    Merges overlapping intervals in a list of intervals.
-
-    Args:
-        intervals: A list of intervals, where each interval is a list [start, end].
-
-    Returns:
-        A list of merged non-overlapping intervals.
-    """
-
-    if not intervals:
-        return []
-
-    # Sort the intervals based on the start time
-    intervals.sort(key=lambda x: x[0])
-
-    merged = []
-    for interval in intervals:
-        # If the list of merged intervals is empty or if the current
-        # interval does not overlap with the last interval, simply append it.
-        if not merged or interval[0] > merged[-1][1]:
-            merged.append(interval)
-        else:
-            # Otherwise, there is overlap, so we merge the current and last
-            # intervals.  The end time will be the max of both interval's ends.
-            merged[-1][1] = max(merged[-1][1], interval[1])
-
-    return merged
-
-# Example Usage:
-intervals1 = [[1,3], [2,6], [8,10], [15,18]]
-print(f"Input: {intervals1}, Output: {merge_intervals(intervals1)}") # Output: [[1, 6], [8, 10], [15, 18]]
-
-intervals2 = [[1,4],[4,5]]
-print(f"Input: {intervals2}, Output: {merge_intervals(intervals2)}") # Output: [[1, 5]]
-
-intervals3 = [[1,4],[0,4]]
-print(f"Input: {intervals3}, Output: {merge_intervals(intervals3)}") # Output: [[0, 4]]
-
-intervals4 = [[1,4],[0,0]]
-print(f"Input: {intervals4}, Output: {merge_intervals(intervals4)}") # Output: [[0, 0], [1, 4]]
-
-intervals5 = [[1,4],[0,2],[3,5]]
-print(f"Input: {intervals5}, Output: {merge_intervals(intervals5)}") # Output: [[0, 5]]
-
-intervals6 = [[7,9],[6,10],[4,5],[1,3],[2,4]]
-print(f"Input: {intervals6}, Output: {merge_intervals(intervals6)}") # Output: [[1, 5], [6, 10]]
-```
+*   `string = "leetcode"`  Output: `l`
+*   `string = "loveleetcode"` Output: `v`
+*   `string = "aabbcc"` Output: `None`
 
 **Explanation:**
 
-1. **Sort:** The intervals are sorted based on their starting points.  This is crucial for efficiently merging overlapping intervals.
+The goal is to identify the character that appears only once in the string and is also the earliest one that does so. We can use a hash map (dictionary in Python) to store character counts and then iterate through the string again to find the first character with a count of 1.
 
-2. **Iterate and Merge:**
-   - We maintain a `merged` list to store the non-overlapping intervals.
-   - For each interval in the sorted `intervals` list:
-     - If `merged` is empty or the current interval doesn't overlap with the last interval in `merged`, we simply append the current interval to `merged`.  No overlap means that the current interval's start time is greater than the last interval's end time.
-     - If there's overlap, we update the end time of the last interval in `merged` to be the maximum of the two intervals' end times.
+**Python Code:**
+
+```python
+def first_non_repeating_char(s):
+    """
+    Finds the first non-repeating character in a string.
+
+    Args:
+      s: The input string.
+
+    Returns:
+      The first non-repeating character, or None if it doesn't exist.
+    """
+
+    char_counts = {}  # Use a dictionary to store character counts
+
+    # Count the occurrences of each character
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
+
+    # Find the first character with a count of 1
+    for char in s:
+        if char_counts[char] == 1:
+            return char
+
+    # If no non-repeating character is found, return None
+    return None
+
+# Example usage
+string1 = "leetcode"
+string2 = "loveleetcode"
+string3 = "aabbcc"
+
+print(f"First non-repeating char in '{string1}': {first_non_repeating_char(string1)}") # Output: l
+print(f"First non-repeating char in '{string2}': {first_non_repeating_char(string2)}") # Output: v
+print(f"First non-repeating char in '{string3}': {first_non_repeating_char(string3)}") # Output: None
+```
+
+**Explanation of the Code:**
+
+1.  **`first_non_repeating_char(s)` Function:**
+    *   Takes the input string `s` as an argument.
+    *   Initializes an empty dictionary called `char_counts`. This dictionary will store the count of each character in the string.
+
+2.  **Counting Character Occurrences:**
+    *   The code iterates through each character `char` in the string `s`.
+    *   For each character, it updates the `char_counts` dictionary.
+        *   `char_counts.get(char, 0)`: This tries to get the current count of the character `char` from the dictionary. If the character is not already in the dictionary (i.e., it's the first time we've seen it), `get()` returns a default value of 0.
+        *   `+ 1`: We increment the count by 1.
+        *   `char_counts[char] = ...`: We store the updated count back into the `char_counts` dictionary for the character `char`.
+
+3.  **Finding the First Non-Repeating Character:**
+    *   The code iterates through the string `s` *again*. This is necessary to maintain the original order of characters in the string.
+    *   For each character `char` in the string, it checks if `char_counts[char] == 1`.  This means the character only appears once in the string.
+    *   If a character with a count of 1 is found, the function immediately returns that character.  This ensures we return the *first* non-repeating character.
+
+4.  **Handling the Case of No Non-Repeating Character:**
+    *   If the loop completes without finding any character with a count of 1, it means there are no non-repeating characters in the string.
+    *   In this case, the function returns `None`.
 
 **Time and Space Complexity:**
 
-- **Time Complexity:** O(n log n) primarily due to the sorting step. The rest of the algorithm is O(n).
-- **Space Complexity:** O(n) in the worst case, where no intervals overlap, and the `merged` list contains all the original intervals.  In many cases, it will be less than O(n) because intervals are merged.
+*   **Time Complexity:** O(n), where n is the length of the string.  We iterate through the string twice, but each iteration is linear.
+*   **Space Complexity:** O(1).  In the worst case, the `char_counts` dictionary will store all unique characters in the string. In most character sets (e.g., ASCII), the number of unique characters is limited to a constant (like 128 or 256), so the space complexity is considered O(1) or constant.  In theory, if the input string used a truly unbounded unicode character set, it could approach O(n) but that's very unlikely in practical use cases.  In practice, O(1) is more accurate.
