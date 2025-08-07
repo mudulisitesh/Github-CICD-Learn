@@ -1,144 +1,103 @@
-Okay, here's a problem and a Python solution:
+Okay, here's a DSA problem, along with a clear explanation and a working Python solution:
 
 **Problem:**
 
-**Minimum Window Substring**
+**Merge Intervals**
 
-Given a string `s` and a string `t`, find the minimum window in `s` which will contain all the characters in `t`. If there is no such window in `s` that covers all characters in `t`, return an empty string "".
+Given a collection of intervals, merge all overlapping intervals.
 
-**Example:**
+**Example 1:**
 
-```
-s = "ADOBECODEBANC"
-t = "ABC"
+Input: `intervals = [[1,3],[2,6],[8,10],[15,18]]`
+Output: `[[1,6],[8,10],[15,18]]`
+Explanation: Since intervals `[1,3]` and `[2,6]` overlap, merge them into `[1,6]`.
 
-Output: "BANC"
-```
+**Example 2:**
+
+Input: `intervals = [[1,4],[4,5]]`
+Output: `[[1,5]]`
+Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
+
+**Constraints:**
+
+*   `1 <= intervals.length <= 10^4`
+*   `intervals[i].length == 2`
+*   `0 <= intervals[i][0] <= intervals[i][1] <= 10^4`
 
 **Explanation:**
 
-The minimum window substring "BANC" contains 'A', 'B', and 'C' from string `t`.
+The core idea is:
 
-**Python Code Solution:**
+1.  **Sort:** Sort the intervals based on their starting points.  This makes it easy to process them sequentially.
+
+2.  **Iterate and Merge:**  Iterate through the sorted intervals.  Keep track of the `merged` intervals.  For each interval:
+
+    *   If the current interval overlaps with the last interval in `merged`, merge them by updating the end of the last interval in `merged` to be the maximum of the two interval ends.
+    *   If they don't overlap, simply append the current interval to `merged`.
+
+**Python Code:**
 
 ```python
-from collections import defaultdict
-
-def min_window(s, t):
+def merge_intervals(intervals):
     """
-    Finds the minimum window substring in s that contains all characters in t.
+    Merges overlapping intervals.
 
     Args:
-        s: The string to search in.
-        t: The string containing the characters to find.
+        intervals: A list of intervals, where each interval is a list of two integers [start, end].
 
     Returns:
-        The minimum window substring, or "" if no such window exists.
+        A list of merged intervals.
     """
 
-    if not s or not t:
-        return ""
+    # Sort the intervals by their starting points
+    intervals.sort(key=lambda x: x[0])
 
-    need = defaultdict(int)  # Frequency of chars needed from t
-    for char in t:
-        need[char] += 1
+    merged = []
+    for interval in intervals:
+        # If the list of merged intervals is empty or if the current
+        # interval does not overlap with the last interval, simply append it.
+        if not merged or merged[-1][1] < interval[0]:
+            merged.append(interval)
+        else:
+            # Otherwise, there is overlap, so we merge the current and last intervals.
+            merged[-1][1] = max(merged[-1][1], interval[1])
 
-    window = defaultdict(int) # Frequency of chars in the current window
-    have = 0 # Number of characters in window that satisfy t
-    required = len(need) # number of unique characters in t
-
-    l = 0  # Left pointer of the window
-    min_len = float('inf')
-    start = 0  # Starting index of the minimum window
-
-    for r in range(len(s)): # right pointer
-        char = s[r]
-        window[char] += 1 # add the character to window
-
-        if char in need and window[char] == need[char]: # character needed and sufficient amount
-            have += 1
-
-        while have == required: # can have all the characters of target
-            # update result
-            if (r - l + 1) < min_len:
-                min_len = (r - l + 1)
-                start = l
-
-            # contract from the left
-            char_left = s[l]
-            window[char_left] -= 1
-            if char_left in need and window[char_left] < need[char_left]:
-                have -= 1 # no longer have all chars
-
-            l += 1
-
-    if min_len == float('inf'):
-        return ""
-    else:
-        return s[start : start + min_len]
-
+    return merged
 
 # Example usage:
-s = "ADOBECODEBANC"
-t = "ABC"
-result = min_window(s, t)
-print(f"Minimum window substring: {result}")  # Output: BANC
+intervals1 = [[1,3],[2,6],[8,10],[15,18]]
+print(f"Merged intervals for {intervals1}: {merge_intervals(intervals1)}")  # Output: [[1, 6], [8, 10], [15, 18]]
 
-s = "a"
-t = "aa"
-result = min_window(s, t)
-print(f"Minimum window substring: {result}") # Output: ""
+intervals2 = [[1,4],[4,5]]
+print(f"Merged intervals for {intervals2}: {merge_intervals(intervals2)}")  # Output: [[1, 5]]
 
-s = "abcabcbb"
-t = "abc"
-result = min_window(s, t)
-print(f"Minimum window substring: {result}") # Output: abc
+intervals3 = [[1,4],[0,4]]
+print(f"Merged intervals for {intervals3}: {merge_intervals(intervals3)}") # Output: [[0, 4]]
 
-s = "bbaac"
-t = "aba"
-result = min_window(s, t)
-print(f"Minimum window substring: {result}") # Output: baac
+intervals4 = [[1,4],[0,0]]
+print(f"Merged intervals for {intervals4}: {merge_intervals(intervals4)}") # Output: [[0, 0], [1, 4]]
+
+intervals5 = [[1,4],[0,2],[3,5]]
+print(f"Merged intervals for {intervals5}: {merge_intervals(intervals5)}") # Output: [[0, 5]]
 ```
 
-**Explanation:**
+**Explanation of the Code:**
 
-1. **`min_window(s, t)` Function:**
-   - Takes two strings, `s` (the string to search within) and `t` (the string containing the characters we need to find).
-   - Handles edge cases: If either `s` or `t` is empty, it returns an empty string.
+1.  **`merge_intervals(intervals)` function:**
+    *   Takes a list of `intervals` as input.
+    *   Sorts the intervals using `intervals.sort(key=lambda x: x[0])`. The `key=lambda x: x[0]` part specifies that the sorting should be based on the first element (the start time) of each interval.
+    *   Initializes an empty list called `merged` to store the merged intervals.
+    *   Iterates through the sorted `intervals`.
+    *   **Overlap Check:**
+        *   `if not merged or merged[-1][1] < interval[0]:`  This checks if either the `merged` list is empty (meaning we're processing the first interval) or if the end time of the last interval in `merged` is less than the start time of the current interval. If either of these is true, it means there's no overlap.
+        *   `merged[-1][1] < interval[0]` : `merged[-1]` accesses the last interval added to the `merged` list. `merged[-1][1]` accesses the *end* of that last interval. `interval[0]` accesses the *start* of the current interval being considered. If the end of the last merged interval is before the start of the current interval, they don't overlap.
+    *   **No Overlap:** If there's no overlap, `merged.append(interval)` simply adds the current interval to the `merged` list.
+    *   **Overlap:**
+        *   `else:`  If the `if` condition is false, it means there's overlap.
+        *   `merged[-1][1] = max(merged[-1][1], interval[1])` This line updates the end time of the last interval in `merged`. It takes the maximum of the current end time of the last merged interval and the end time of the current interval.  This ensures the merged interval covers the entire range of both original intervals.
+    *   Finally, `return merged` returns the list of merged intervals.
 
-2. **`need` Dictionary:**
-   - `need = defaultdict(int)`: Creates a dictionary called `need` to store the frequency of each character that appears in `t`.  `defaultdict(int)` is used so that if a key is not present, it defaults to a value of 0 when accessed.  This avoids `KeyError` exceptions.
+**Time and Space Complexity:**
 
-3.  **`window` Dictionary:**
-   - `window = defaultdict(int)`:  This dictionary is similar to `need`. This stores the frequency of the character in the current window, `s[left: right]`
-
-4. **`have` and `required` variables**
-   - `have`: A counter of the number of required characters that you have in the current sliding window.  When this equals the total number of unique required characters, you can start shrinking the window from the left.
-   - `required`: The total number of unique characters in the `need` map.
-
-5. **Sliding Window Technique:**
-   - `l = 0`: Initializes the left pointer of the sliding window.
-   - `min_len = float('inf')`: Initializes the minimum window length to infinity. This allows us to track a very large length until we find the smallest possible length.
-   - `start = 0`: Keeps track of the starting index of the minimum window.
-   - **Outer Loop (Expanding the Window):** `for r in range(len(s))`: The right pointer `r` iterates through the string `s`.
-     - `char = s[r]`: Gets the character at the current right pointer position.
-     - `window[char] += 1`: Increases the frequency of the current character in the `window` dictionary.
-     - `if char in need and window[char] == need[char]:`: Checks if the current character is one of the characters we need (present in `t`) and if the window now has the required number of that character.  If this is true, increment have.
-   - **Inner Loop (Contracting the Window):** `while have == required:`
-     - This loop shrinks the window from the left (`l`) as long as the window still contains all the characters in `t`.
-     - `if (r - l + 1) < min_len:`: Checks if the current window's length is less than the current minimum length. If it is, update `min_len` and `start`.
-     - `char_left = s[l]`: Gets the character at the left pointer.
-     - `window[char_left] -= 1`: Decreases the frequency of the character at the left pointer in the `window` dictionary.
-     - `if char_left in need and window[char_left] < need[char_left]:`: Checks if the character we just removed from the left is one of the characters we need and if removing it has made the window short one of the character required.
-     - `l += 1`: Moves the left pointer to the right, shrinking the window.
-6. **Result:**
-   - `if min_len == float('inf'):`: If `min_len` is still infinity, it means no valid window was found, so return `""`.
-   - `else:`: Otherwise, return the minimum window substring using `s[start : start + min_len]`.
-
-**Key Concepts Used:**
-
-*   **Sliding Window:**  The core technique. You maintain a "window" (a sub-string) within `s` and expand or contract it based on whether it satisfies the required condition (containing all characters from `t`).
-*   **Hash Maps (Dictionaries):**  Used to efficiently track the frequency of characters in both `t` (to know what we need) and the current window (to see if we have what we need). `defaultdict(int)` simplifies handling character counts.
-*   **Two Pointers:** The left (`l`) and right (`r`) pointers define the boundaries of the sliding window.
-
-This solution has a time complexity of O(n) where n is the length of the string `s` because in the worst case, we iterate over s at most twice. The first for expanding the right window and second while moving left pointer.  The space complexity is O(m), where m is the length of the string `t`.
+*   **Time Complexity:** O(n log n) due to the sorting step. The iteration and merging are O(n), but the sorting dominates.
+*   **Space Complexity:** O(n) in the worst case if there are no overlapping intervals, as we would store all `n` intervals in the `merged` list.  In the best case (all intervals overlap and are merged into a single interval), the space complexity would be O(1).  The sorting algorithm may also require additional space depending on the implementation.
