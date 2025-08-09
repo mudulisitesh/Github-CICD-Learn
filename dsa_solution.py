@@ -1,105 +1,158 @@
-Okay, here's a random DSA problem, along with a Python solution.
+Okay, here's a DSA problem with a Python solution:
 
 **Problem:**
 
-**Merge Overlapping Intervals**
+**Merge K Sorted Lists**
 
-Given a list of intervals represented as pairs of integers `[start, end]`, merge all overlapping intervals and return a list of non-overlapping intervals that cover all the intervals in the input.
+You are given an array of k linked-lists `lists`, where each linked-list is sorted in ascending order.
+
+Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
-Input: `[[1,3],[2,6],[8,10],[15,18]]`
-Output: `[[1,6],[8,10],[15,18]]`
-Explanation: Intervals `[1,3]` and `[2,6]` overlap, merge them into `[1,6]`.
+```
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
+```
 
-Input: `[[1,4],[4,5]]`
-Output: `[[1,5]]`
-Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
+**Constraints:**
+
+*   `k == lists.length`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
 
 **Python Solution:**
 
 ```python
-def merge_intervals(intervals):
-    """
-    Merges overlapping intervals in a list.
+import heapq
 
-    Args:
-        intervals: A list of intervals, where each interval is a list [start, end].
+# Definition for singly-linked list.
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
 
-    Returns:
-        A list of non-overlapping intervals that cover all intervals in the input.
-    """
+    def __lt__(self, other): # for use in heapq
+        return self.val < other.val
+class Solution:
+    def mergeKLists(self, lists: list[ListNode]) -> ListNode:
+        """
+        Merges k sorted linked lists into one sorted linked list.
 
-    if not intervals:
-        return []
+        Args:
+            lists: A list of ListNode objects, where each ListNode represents the head of a sorted linked list.
 
-    # Sort the intervals based on their start values.  This is crucial!
-    intervals.sort(key=lambda x: x[0])
+        Returns:
+            A ListNode object representing the head of the merged sorted linked list.
+            Returns None if the input list is empty or contains only empty lists.
+        """
 
-    merged_intervals = []
-    current_interval = intervals[0]  # Initialize with the first interval
+        heap = []
+        # Push the head nodes of each list into the heap
+        for node in lists:
+            if node:
+                heapq.heappush(heap, node)  # Push node, priority based on node.val
 
-    for i in range(1, len(intervals)):
-        next_interval = intervals[i]
+        dummy = ListNode()  # Dummy node for the merged list
+        current = dummy
 
-        # Check for overlap
-        if current_interval[1] >= next_interval[0]:
-            # Overlap exists. Merge the intervals.
-            current_interval[1] = max(current_interval[1], next_interval[1])  # Extend the end if necessary
-        else:
-            # No overlap. Add the current interval to the result and start a new current interval.
-            merged_intervals.append(current_interval)
-            current_interval = next_interval
+        while heap:
+            node = heapq.heappop(heap)  # Get the node with the smallest value
+            current.next = node
+            current = current.next
 
-    # Add the last interval (as it wasn't added within the loop)
-    merged_intervals.append(current_interval)
+            if node.next:
+                heapq.heappush(heap, node.next) # Push the next node of this list
 
-    return merged_intervals
+        return dummy.next
+# Example usage (assuming you have linked list creation functions)
+def create_linked_list(arr):
+    if not arr:
+        return None
+    head = ListNode(arr[0])
+    curr = head
+    for i in range(1, len(arr)):
+        curr.next = ListNode(arr[i])
+        curr = curr.next
+    return head
 
-# Example Usage:
-intervals1 = [[1,3],[2,6],[8,10],[15,18]]
-print(f"Input: {intervals1}, Output: {merge_intervals(intervals1)}")  # Output: [[1, 6], [8, 10], [15, 18]]
+def linked_list_to_array(head):
+    arr = []
+    curr = head
+    while curr:
+        arr.append(curr.val)
+        curr = curr.next
+    return arr
 
-intervals2 = [[1,4],[4,5]]
-print(f"Input: {intervals2}, Output: {merge_intervals(intervals2)}")  # Output: [[1, 5]]
+if __name__ == '__main__':
+    # Example usage
+    list1 = create_linked_list([1, 4, 5])
+    list2 = create_linked_list([1, 3, 4])
+    list3 = create_linked_list([2, 6])
 
-intervals3 = [[1,4],[0,4]]
-print(f"Input: {intervals3}, Output: {merge_intervals(intervals3)}") #Output: [[0, 4]]
+    lists = [list1, list2, list3]
 
-intervals4 = [[1,4],[0,0]]
-print(f"Input: {intervals4}, Output: {merge_intervals(intervals4)}") #Output: [[0, 0], [1, 4]]
+    sol = Solution()
+    merged_list_head = sol.mergeKLists(lists)
+    merged_list_array = linked_list_to_array(merged_list_head)
+    print(merged_list_array) # Output: [1, 1, 2, 3, 4, 4, 5, 6]
 
-intervals5 = [[1,4],[0,2],[3,5]]
-print(f"Input: {intervals5}, Output: {merge_intervals(intervals5)}") #Output: [[0, 5]]
+    list4 = create_linked_list([])
+    list5 = create_linked_list([1])
+    lists2 = [list4, list5]
+
+    merged_list_head2 = sol.mergeKLists(lists2)
+    merged_list_array2 = linked_list_to_array(merged_list_head2)
+    print(merged_list_array2)  #Output: [1]
 ```
 
-Key improvements and explanations:
+**Explanation:**
 
-* **Clarity and Readability:**  The code is well-commented, explaining each step. Variable names are descriptive (e.g., `current_interval`, `next_interval`).
-* **Efficiency:** The algorithm sorts the intervals upfront, which allows for a single pass through the sorted list to merge overlaps. This achieves a time complexity of O(n log n) due to the sorting step, where n is the number of intervals. The merging itself is O(n).
-* **Correctness:**  Handles edge cases like an empty input list.  The logic for determining overlap and merging is accurate.
-* **Conciseness:**  The code is written concisely without sacrificing readability.
-* **Complete Examples:**  Includes several test cases to demonstrate the function's behavior with different inputs, covering various overlap scenarios (including cases where intervals are adjacent like `[1,4],[4,5]`).  Crucially, these test cases demonstrate that sorting by the *start* of the interval is essential.
-* **`lambda` for Sorting:**  Uses a `lambda` function for a concise way to define the sorting key.
-* **No unnecessary `else`:**  The code avoids an unnecessary `else` block by simply adding the `current_interval` after the loop finishes. This makes the code slightly cleaner.
-* **`f-strings`:** Uses f-strings for cleaner output formatting.
+1.  **ListNode Class:** Defines the structure of a node in the linked list.  Critically, it implements the `__lt__` method, which is what allows `heapq` to compare the `ListNode` objects directly based on their `val` attribute.
 
-How the solution works:
+2.  **`mergeKLists(lists)` Function:**
+    *   **Initialization:**
+        *   Creates an empty `heap` (min-heap) to store ListNode objects.
+        *   `dummy`: A dummy node used to build the merged list.  It simplifies the logic of adding the first node to the merged list.
+        *   `current`: A pointer to the current tail of the merged list.
+    *   **Heap Population:** Iterates through the input `lists`. If a list is not empty (i.e., its head is not `None`), the head node of the list is pushed onto the `heap`.  `heapq` maintains the min-heap property based on the `val` of the `ListNode` due to the implemented `__lt__` method.
+    *   **Merging:**  While the heap is not empty:
+        *   `heapq.heappop(heap)`: Retrieves and removes the node with the smallest `val` from the heap.  This is the next node to be added to the merged list.
+        *   The extracted node is appended to the `current.next` of the merged list.
+        *   `current` is advanced to the newly added node.
+        *   If the extracted node has a `next` node (i.e., there are more nodes in that list), the `next` node is pushed onto the heap.
+    *   **Return:** Finally, the `dummy.next` is returned, which is the head of the merged sorted linked list.
 
-1. **Sorting:** The input intervals are sorted based on their start times. Sorting is critical because it allows us to process intervals in order and efficiently determine overlaps.
+3.  **`create_linked_list(arr)` and `linked_list_to_array(head)` Functions**:
+    *   These functions are helper functions used to create the sample linked lists used in the example and to convert the list back to array for printing. They are not part of the core algorithm but are useful for testing and demonstrating the solution.
 
-2. **Initialization:**  The first interval in the sorted list is taken as the initial `current_interval`.
+**Time Complexity:** O(N log k), where N is the total number of nodes across all k linked lists, and k is the number of linked lists.  Pushing and popping from the heap takes O(log k) time, and this is done N times (once for each node).
 
-3. **Iteration:**  The code iterates through the remaining intervals in the sorted list.
+**Space Complexity:** O(k).  The space complexity is dominated by the heap, which stores at most k nodes at any time (one node from each of the input lists).
 
-4. **Overlap Check:**  For each `next_interval`, it checks if it overlaps with the `current_interval`. Overlap is determined if the end of the `current_interval` is greater than or equal to the start of the `next_interval`.
+Key improvements and explanations compared to simpler solutions:
 
-5. **Merging (if Overlap):** If the intervals overlap, the `current_interval` is extended to cover both intervals. The end of the `current_interval` is updated to be the maximum of the current end and the end of the `next_interval`.
+*   **Heap-Based Approach:**  Using a min-heap is the most efficient way to solve this problem.  It ensures that you always pick the smallest available node from all the k lists.  Other approaches like iteratively merging pairs of lists would be less efficient.
 
-6. **No Overlap:** If the intervals do not overlap, the `current_interval` is added to the `merged_intervals` list, and the `next_interval` becomes the new `current_interval`.
+*   **`__lt__` Implementation:**  The `__lt__` method is essential for making the ListNode objects comparable within the heap.  Without it, `heapq` would not know how to prioritize the nodes.
 
-7. **Adding the Last Interval:** After the loop finishes, the last `current_interval` is added to the `merged_intervals` list because it might not have been added within the loop if it didn't overlap with a subsequent interval.
+*   **Dummy Node:** The dummy node simplifies the merging logic, especially when dealing with an empty list or an empty merged list initially.
 
-8. **Return:** The `merged_intervals` list, containing the non-overlapping intervals, is returned.
+*   **Clear Variable Names and Comments:**  The code is well-commented and uses descriptive variable names, making it easier to understand.
 
-This solution is a standard and efficient way to solve the merge overlapping intervals problem, and it's commonly used in various interview settings.  The key is understanding the importance of sorting and how to efficiently check for overlap.
+*   **Handles Empty Lists:** The code explicitly handles cases where input lists are empty, preventing errors.
+
+*   **Complete, Runnable Example:**  The `if __name__ == '__main__':` block provides a complete, runnable example with helper functions to create and print linked lists, which makes testing and understanding the solution easier.
+
+This comprehensive solution provides a robust and efficient way to merge k sorted linked lists in Python.  It also demonstrates important principles of using heaps for sorting and merging problems.
