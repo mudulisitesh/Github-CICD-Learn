@@ -1,83 +1,120 @@
-Okay, here's a random DSA problem and a Python solution:
+Okay, here's a DSA problem and a Python solution.
 
-**Problem:  First Unique Character in a String**
+**Problem:**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
+**Valid Parentheses with Wildcards**
+
+You are given a string `s` consisting of the characters '(', ')', and '*'. The '*' character can be treated as a single '(', a single ')', or an empty string.
+
+Determine if the string `s` is valid based on the following rules:
+
+1.  Every left parenthesis '(' must have a corresponding right parenthesis ')'.
+2.  Every right parenthesis ')' must have a corresponding left parenthesis '('.
+3.  Left parentheses '(' must go before the corresponding right parentheses ')'.
+4.  '*' can act as a single '(' or a single ')' or an empty string.
+5.  An empty string is also valid.
 
 **Example 1:**
 
 ```
-Input: s = "leetcode"
-Output: 0
+Input: s = "()"
+Output: true
 ```
 
 **Example 2:**
 
 ```
-Input: s = "loveleetcode"
-Output: 2
+Input: s = "(*)"
+Output: true
 ```
 
 **Example 3:**
 
 ```
-Input: s = "aabb"
-Output: -1
+Input: s = "(*))"
+Output: true
 ```
 
-**Python Code Solution:**
+**Example 4:**
+
+```
+Input: s = "(("
+Output: false
+```
+
+**Example 5:**
+
+```
+Input: s = "))(("
+Output: false
+```
+
+**Python Solution:**
 
 ```python
-def firstUniqChar(s: str) -> int:
+def checkValidString(s: str) -> bool:
     """
-    Finds the index of the first non-repeating character in a string.
-
-    Args:
-        s: The input string.
-
-    Returns:
-        The index of the first non-repeating character, or -1 if none exists.
+    Checks if a string containing '(', ')', and '*' is valid, where '*'
+    can be treated as '(', ')', or an empty string.
     """
 
-    char_counts = {}  # Dictionary to store character counts
+    low = 0  # Minimum possible open parentheses
+    high = 0 # Maximum possible open parentheses
+
     for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+        if char == '(':
+            low += 1
+            high += 1
+        elif char == ')':
+            low -= 1
+            high -= 1
+        else:  # char == '*'
+            low -= 1  # Treat as ')' to minimize open
+            high += 1 # Treat as '(' to maximize open
 
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+        low = max(low, 0)  # Open parentheses cannot be negative
 
-    return -1
+        if high < 0:
+            return False # Too many closing parentheses at this point
+
+    return low == 0  # If low is 0, it means all open parentheses are closed
 
 # Example Usage:
-print(firstUniqChar("leetcode"))
-print(firstUniqChar("loveleetcode"))
-print(firstUniqChar("aabb"))
+print(checkValidString("()"))   # True
+print(checkValidString("(*)"))  # True
+print(checkValidString("(*))")) # True
+print(checkValidString("(("))    # False
+print(checkValidString("))(("))  # False
+print(checkValidString("****)")) #True
+print(checkValidString("(()")) #False
+print(checkValidString("(*)))")) # True
+
 ```
 
 **Explanation:**
 
-1. **Character Counting:**
-   - We use a dictionary `char_counts` to store the frequency of each character in the string. We iterate through the string `s`.
-   - For each character, we increment its count in the `char_counts` dictionary.  The `char_counts.get(char, 0)` part elegantly handles characters not yet encountered. If `char` is not in the dictionary, `get()` returns 0, otherwise it returns the current count.
+1.  **`low` and `high` variables:**  We use two variables, `low` and `high`, to keep track of the *range* of possible open parentheses at any given point in the string.
 
-2. **Finding the First Unique Character:**
-   - After counting the characters, we iterate through the string `s` *again* using `enumerate` to get both the index (`i`) and the character (`char`).
-   - For each character, we check its count in the `char_counts` dictionary.
-   - If the count is equal to 1, it means the character appears only once in the string.  We immediately return the index `i`.
+    *   `low`: Represents the minimum number of open parentheses we *must* have at that point. It assumes each `*` is a ')', minimizing the open count.
+    *   `high`: Represents the maximum number of open parentheses we *could* have at that point. It assumes each `*` is a '(', maximizing the open count.
 
-3. **Handling No Unique Characters:**
-   - If the loop completes without finding any character with a count of 1, it means there are no unique characters in the string.  In this case, we return -1.
+2.  **Iteration:** We iterate through the string `s` character by character.
+
+3.  **Character Handling:**
+
+    *   **`(`:** Both `low` and `high` are incremented because we definitely have one more open parenthesis.
+    *   **`)`:** Both `low` and `high` are decremented because we definitely have one less open parenthesis.
+    *   **`*`:** This is where the magic happens:
+        *   `low -= 1`: We try to minimize the number of open parentheses. If `*` acts as ')', we decrease `low`.
+        *   `high += 1`: We try to maximize the number of open parentheses. If `*` acts as '(', we increase `high`.
+
+4.  **`low = max(low, 0)`:** The number of open parentheses cannot be negative. We reset `low` to 0 if it becomes negative.  This means we've used more closing parentheses (either explicit or from `*`) than there are open parentheses so far.  This is fine because a `*` can also be an empty string, essentially canceling out an extra `)` that might appear before a corresponding `(`.
+
+5.  **`if high < 0: return False`:**  If `high` becomes negative at any point, it means we have too many closing parentheses even if we treat all `*` as opening parentheses. This makes the string invalid, and we can immediately return `False`.
+
+6.  **`return low == 0`:** After processing the entire string, if `low` is 0, it means we can balance the string.  All open parentheses (either explicit or from `*`) can be closed by either explicit closing parentheses or `*`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string twice (once for counting and once for finding the unique character).
-*   **Space Complexity:** O(1). In the worst case, the dictionary `char_counts` could store the counts of all unique characters in the string. But since there are a limited number of characters (e.g., ASCII characters), the space used by the dictionary is effectively constant.  For a string using only lowercase English letters, the maximum size of `char_counts` is 26.
-
-**Why this is a good DSA problem:**
-
-*   **Common Task:** Finding unique elements is a frequently encountered sub-problem in various coding scenarios.
-*   **Data Structures:** It effectively utilizes a dictionary (hash map) for efficient counting and lookup.  Dictionaries are a fundamental data structure.
-*   **Algorithm:** It showcases a two-pass approach, which is a common algorithmic pattern.  The first pass prepares data (character counts), and the second pass uses that data to find the desired result.
-*   **Clear Requirements:** The problem statement is concise and unambiguous.
-*   **Scalability:** The solution has a linear time complexity, making it suitable for moderately large input strings.
+*   **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string once.
+*   **Space Complexity:** O(1). We use only a constant amount of extra space for the `low` and `high` variables.
