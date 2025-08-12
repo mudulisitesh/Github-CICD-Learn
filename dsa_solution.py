@@ -1,120 +1,124 @@
-Okay, here's a DSA problem and a Python solution.
+Okay, here's a DSA problem and a working Python solution, designed to be a reasonably common and useful type:
 
 **Problem:**
 
-**Valid Parentheses with Wildcards**
+**Merge K Sorted Lists**
 
-You are given a string `s` consisting of the characters '(', ')', and '*'. The '*' character can be treated as a single '(', a single ')', or an empty string.
+You are given an array of `k` linked-lists, each linked-list is sorted in ascending order.
 
-Determine if the string `s` is valid based on the following rules:
+Merge all the linked-lists into one sorted linked-list and return it.
 
-1.  Every left parenthesis '(' must have a corresponding right parenthesis ')'.
-2.  Every right parenthesis ')' must have a corresponding left parenthesis '('.
-3.  Left parentheses '(' must go before the corresponding right parentheses ')'.
-4.  '*' can act as a single '(' or a single ')' or an empty string.
-5.  An empty string is also valid.
-
-**Example 1:**
+**Example:**
 
 ```
-Input: s = "()"
-Output: true
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-**Example 2:**
+**Constraints:**
 
-```
-Input: s = "(*)"
-Output: true
-```
+*   `k == len(lists)`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
 
-**Example 3:**
-
-```
-Input: s = "(*))"
-Output: true
-```
-
-**Example 4:**
-
-```
-Input: s = "(("
-Output: false
-```
-
-**Example 5:**
-
-```
-Input: s = "))(("
-Output: false
-```
-
-**Python Solution:**
+**Python Solution (using a Heap/Priority Queue):**
 
 ```python
-def checkValidString(s: str) -> bool:
+import heapq
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
     """
-    Checks if a string containing '(', ')', and '*' is valid, where '*'
-    can be treated as '(', ')', or an empty string.
+    Merges k sorted linked lists into one sorted linked list.
+
+    Args:
+        lists: A list of ListNode objects, where each ListNode represents the head
+               of a sorted linked list.
+
+    Returns:
+        A ListNode object representing the head of the merged sorted linked list.
     """
 
-    low = 0  # Minimum possible open parentheses
-    high = 0 # Maximum possible open parentheses
+    heap = []  # Priority queue (min-heap) to store the heads of the lists.
+    # Initialize the heap with the heads of the non-empty lists.
+    for i in range(len(lists)):
+        if lists[i]:
+            heapq.heappush(heap, (lists[i].val, i, lists[i])) # (val, index, node) to handle equal vals
 
-    for char in s:
-        if char == '(':
-            low += 1
-            high += 1
-        elif char == ')':
-            low -= 1
-            high -= 1
-        else:  # char == '*'
-            low -= 1  # Treat as ')' to minimize open
-            high += 1 # Treat as '(' to maximize open
+    # Create a dummy node to start the merged list.
+    dummy = ListNode()
+    tail = dummy
 
-        low = max(low, 0)  # Open parentheses cannot be negative
+    while heap:
+        val, index, node = heapq.heappop(heap)
 
-        if high < 0:
-            return False # Too many closing parentheses at this point
+        tail.next = node
+        tail = tail.next
 
-    return low == 0  # If low is 0, it means all open parentheses are closed
+        if node.next:
+            heapq.heappush(heap, (node.next.val, index, node.next))
 
-# Example Usage:
-print(checkValidString("()"))   # True
-print(checkValidString("(*)"))  # True
-print(checkValidString("(*))")) # True
-print(checkValidString("(("))    # False
-print(checkValidString("))(("))  # False
-print(checkValidString("****)")) #True
-print(checkValidString("(()")) #False
-print(checkValidString("(*)))")) # True
+    return dummy.next
 
+# Example Usage (with example input as linked lists):
+def create_linked_list(arr):
+    """Helper function to create a linked list from a list."""
+    dummy = ListNode()
+    tail = dummy
+    for val in arr:
+        tail.next = ListNode(val)
+        tail = tail.next
+    return dummy.next
+
+# Example usage:
+lists = [create_linked_list([1,4,5]), create_linked_list([1,3,4]), create_linked_list([2,6])]
+
+merged_list = mergeKLists(lists)
+
+# Function to print a linked list for verification:
+def print_linked_list(head):
+    """Helper function to print a linked list."""
+    result = []
+    while head:
+        result.append(head.val)
+        head = head.next
+    print(result)
+
+print_linked_list(merged_list)  # Output: [1, 1, 2, 3, 4, 4, 5, 6]
 ```
 
 **Explanation:**
 
-1.  **`low` and `high` variables:**  We use two variables, `low` and `high`, to keep track of the *range* of possible open parentheses at any given point in the string.
+1.  **ListNode Class:** Defines a simple linked list node structure.
 
-    *   `low`: Represents the minimum number of open parentheses we *must* have at that point. It assumes each `*` is a ')', minimizing the open count.
-    *   `high`: Represents the maximum number of open parentheses we *could* have at that point. It assumes each `*` is a '(', maximizing the open count.
+2.  **`mergeKLists(lists)` Function:**
+    *   **Heap Initialization:**  A `heap` (implemented using Python's `heapq`) is used as a priority queue.  We store tuples of `(value, index, node)` in the heap. `value` is used for sorting by value in the heap. `index` is used to distinguish between different nodes that have the same value.  `node` is the actual `ListNode` object. This ensures we can push linked list heads into the heap based on their values. We only push non-empty linked lists.
+    *   **Dummy Node:** A `dummy` node is created to simplify the construction of the merged list.  `tail` points to the last node added to the merged list so far.
+    *   **Heap Processing:**  The `while heap` loop continues as long as there are nodes in the heap.
+        *   `heapq.heappop(heap)`: Removes the node with the smallest value from the heap.
+        *   The extracted node is appended to the merged list (via `tail.next`).
+        *   If the extracted node has a `next` node, that `next` node is added to the heap.
+    *   **Return:** Returns `dummy.next`, which is the head of the merged sorted list.
 
-2.  **Iteration:** We iterate through the string `s` character by character.
+3.  **Helper Functions:**
+    *   `create_linked_list(arr)`:  A helper function to create a linked list from a Python list, useful for creating the example input.
+    *   `print_linked_list(head)`: A helper function to print the content of a linked list so you can verify the output.
 
-3.  **Character Handling:**
+**Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists, and k is the number of linked lists.  Each node is added to and removed from the heap once. The heap operations (push and pop) take O(log k) time.
 
-    *   **`(`:** Both `low` and `high` are incremented because we definitely have one more open parenthesis.
-    *   **`)`:** Both `low` and `high` are decremented because we definitely have one less open parenthesis.
-    *   **`*`:** This is where the magic happens:
-        *   `low -= 1`: We try to minimize the number of open parentheses. If `*` acts as ')', we decrease `low`.
-        *   `high += 1`: We try to maximize the number of open parentheses. If `*` acts as '(', we increase `high`.
-
-4.  **`low = max(low, 0)`:** The number of open parentheses cannot be negative. We reset `low` to 0 if it becomes negative.  This means we've used more closing parentheses (either explicit or from `*`) than there are open parentheses so far.  This is fine because a `*` can also be an empty string, essentially canceling out an extra `)` that might appear before a corresponding `(`.
-
-5.  **`if high < 0: return False`:**  If `high` becomes negative at any point, it means we have too many closing parentheses even if we treat all `*` as opening parentheses. This makes the string invalid, and we can immediately return `False`.
-
-6.  **`return low == 0`:** After processing the entire string, if `low` is 0, it means we can balance the string.  All open parentheses (either explicit or from `*`) can be closed by either explicit closing parentheses or `*`.
-
-**Time and Space Complexity:**
-
-*   **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string once.
-*   **Space Complexity:** O(1). We use only a constant amount of extra space for the `low` and `high` variables.
+**Space Complexity:** O(k), where k is the number of linked lists.  This is the space used by the heap to store the heads of the linked lists.  The merged linked list itself takes O(N) space. In the worst case, if all lists have elements, the space complexity of the heap will be O(k).
