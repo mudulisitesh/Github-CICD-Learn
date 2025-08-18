@@ -1,161 +1,121 @@
-Okay, here's a random DSA problem and a Python solution:
+Okay, here's a DSA problem with a Python solution:
 
-**Problem:**
+**Problem:  Minimum Window Substring**
 
-**K-th Largest Element in an Array**
+Given two strings `s` and `t`, find the minimum window substring in `s` which has all the characters of `t` in complexity O(n).
 
-Given an unsorted array of integers `nums` and an integer `k`, find the k-th largest element in the array.  Note that it is the k-th largest element in sorted order, not the k-th distinct element.
+**Example:**
 
-For example:
+```
+s = "ADOBECODEBANC"
+t = "ABC"
 
-*   `nums = [3, 2, 1, 5, 6, 4], k = 2`  Output: `5`
-*   `nums = [3, 2, 3, 1, 2, 4, 5, 5, 6], k = 4` Output: `4`
-
-**Constraints:**
-
-*   `1 <= k <= nums.length <= 10^5`
-*   `-10^4 <= nums[i] <= 10^4`
-
-**Python Solution (using Heap / Priority Queue):**
-
-```python
-import heapq
-
-def find_kth_largest(nums, k):
-    """
-    Finds the k-th largest element in an array.
-
-    Args:
-        nums: A list of integers.
-        k: An integer representing the k-th largest element to find.
-
-    Returns:
-        The k-th largest element in the array.
-    """
-
-    return heapq.nlargest(k, nums)[-1]
-
-# Example Usage
-nums1 = [3, 2, 1, 5, 6, 4]
-k1 = 2
-print(f"The {k1}-th largest element in {nums1} is: {find_kth_largest(nums1, k1)}")  # Output: 5
-
-nums2 = [3, 2, 3, 1, 2, 4, 5, 5, 6]
-k2 = 4
-print(f"The {k2}-th largest element in {nums2} is: {find_kth_largest(nums2, k2)}")  # Output: 4
-
-nums3 = [7,6,5,4,3,2,1]
-k3 = 2
-print(f"The {k3}-th largest element in {nums3} is: {find_kth_largest(nums3, k3)}")  #Output: 6
+Output: "BANC"
 ```
 
 **Explanation:**
 
-1.  **`heapq.nlargest(k, nums)`:**  The `heapq.nlargest()` function efficiently finds the `k` largest elements in the `nums` list.  It uses a heap data structure internally to achieve this. It constructs a min-heap of size `k` and keeps only the `k` largest elements seen so far in the array.  Elements smaller than the smallest element in the heap are ignored.
+The minimum window substring "BANC" includes 'A', 'B', and 'C' from string `t`.
 
-2.  **`[-1]`:** After obtaining the `k` largest elements (in descending order within that list), we access the last element (index -1) of the returned list from `heapq.nlargest(k, nums)`.  This last element is the k-th largest element in the original array.
-
-**Time Complexity:** O(N log k), where N is the length of the `nums` array. This is because `heapq.nlargest` uses a heap of size `k`.
-
-**Space Complexity:** O(k), as we're storing at most `k` elements in the heap.
-
-**Alternative Solution (using Quickselect):**
-
-While the heap-based solution is generally efficient, the quickselect algorithm (based on the partitioning step of quicksort) can potentially achieve O(N) average time complexity. Here's an implementation:
+**Python Solution:**
 
 ```python
-import random
+from collections import defaultdict
 
-def quickselect(nums, k):
+def min_window_substring(s, t):
     """
-    Finds the k-th largest element using the Quickselect algorithm.
+    Finds the minimum window substring in s containing all characters of t.
 
     Args:
-        nums: A list of integers.
-        k: The k-th largest element to find.
+        s: The string to search within.
+        t: The string containing the characters to find.
 
     Returns:
-        The k-th largest element in the array.
+        The minimum window substring, or an empty string if no such substring exists.
     """
-    def partition(left, right, pivot_index):
-        pivot = nums[pivot_index]
-        # 1. move pivot to end
-        nums[pivot_index], nums[right] = nums[right], nums[pivot_index]
 
-        # 2. move all smaller elements to the left
-        store_index = left
-        for i in range(left, right):
-            if nums[i] < pivot:
-                nums[store_index], nums[i] = nums[i], nums[store_index]
-                store_index += 1
+    if not s or not t:
+        return ""
 
-        # 3. move pivot to its final place
-        nums[right], nums[store_index] = nums[store_index], nums[right]
+    need = defaultdict(int)  # Characters we need to find and their counts
+    for char in t:
+        need[char] += 1
 
-        return store_index
+    window = defaultdict(int)  # Characters in the current window and their counts
 
-    def select(left, right, k_smallest):
-        """
-        Performs recursive quickselect.
+    have = 0  # Number of required characters found in the window
+    required = len(need)  # Number of distinct characters we need
 
-        Args:
-            left: The left index of the subarray.
-            right: The right index of the subarray.
-            k_smallest: The index (starting from 0) of the k-th smallest element in the subarray.
-        """
-        if left == right:  # If the list contains only one element:
-            return nums[left]
+    left = 0
+    min_len = float('inf')
+    start = 0  # Start index of the minimum window
 
-        # select a random pivot_index
-        pivot_index = random.randint(left, right)
+    for right in range(len(s)):
+        char = s[right]
+        window[char] += 1
 
-        # find the pivot position in a sorted list
-        pivot_index = partition(left, right, pivot_index)
+        if char in need and window[char] == need[char]:
+            have += 1
 
-        # the pivot is in its final sorted position
-        if k_smallest == pivot_index:
-            return nums[k_smallest]
-        elif k_smallest < pivot_index:
-            return select(left, pivot_index - 1, k_smallest)
-        else:
-            return select(pivot_index + 1, right, k_smallest)
+        while have == required:
+            # Shrink the window from the left
+            if (right - left + 1) < min_len:
+                min_len = (right - left + 1)
+                start = left
 
-    n = len(nums)
-    return select(0, n - 1, n - k)  # Find the (n-k)-th smallest element.  (n-k) indexes the k-th largest.
+            left_char = s[left]
+            window[left_char] -= 1
 
+            if left_char in need and window[left_char] < need[left_char]:
+                have -= 1
 
-# Example usage:
-nums1 = [3, 2, 1, 5, 6, 4]
-k1 = 2
-print(f"The {k1}-th largest element (Quickselect) in {nums1} is: {quickselect(nums1, k1)}")  # Output: 5
+            left += 1
 
-nums2 = [3, 2, 3, 1, 2, 4, 5, 5, 6]
-k2 = 4
-print(f"The {k2}-th largest element (Quickselect) in {nums2} is: {quickselect(nums2, k2)}")  # Output: 4
+    if min_len == float('inf'):
+        return ""  # No valid window found
+    else:
+        return s[start : start + min_len]
 
-nums3 = [7,6,5,4,3,2,1]
-k3 = 2
-print(f"The {k3}-th largest element (Quickselect) in {nums3} is: {quickselect(nums3, k3)}")  #Output: 6
+# Example Usage:
+s = "ADOBECODEBANC"
+t = "ABC"
+result = min_window_substring(s, t)
+print(f"Minimum window substring: {result}") # Output: BANC
+
+s = "a"
+t = "aa"
+result = min_window_substring(s, t)
+print(f"Minimum window substring: {result}") # Output: ""
+
+s = "a"
+t = "a"
+result = min_window_substring(s, t)
+print(f"Minimum window substring: {result}") # Output: a
+
+s = "ADOBECODEBANC"
+t = "ABCC"  # Requires two Cs
+result = min_window_substring(s, t)
+print(f"Minimum window substring: {result}")  # Output: CODEBANC
 ```
 
-**Explanation of Quickselect:**
+**Explanation:**
 
-1.  **`partition(left, right, pivot_index)`:** This function is similar to the partition step in quicksort.  It chooses a pivot element, moves it to its correct sorted position in the subarray `nums[left:right+1]`, and returns the index of the pivot.
+1. **`need` Dictionary:** Stores the characters in `t` and their required counts.  For example, if `t = "ABCC"`, `need` will be `{'A': 1, 'B': 1, 'C': 2}`.
 
-2.  **`select(left, right, k_smallest)`:** This is a recursive function.
-    *   It picks a random pivot.  Randomization helps to avoid worst-case scenarios (O(N^2) time complexity).
-    *   It partitions the array around the pivot.
-    *   It checks if the pivot's index is equal to the desired `k_smallest` index.  If so, the pivot is the k-th smallest element (and therefore the (n-k)-th largest).
-    *   If `k_smallest` is less than the pivot's index, it recursively calls `select` on the left subarray.
-    *   If `k_smallest` is greater than the pivot's index, it recursively calls `select` on the right subarray.
+2. **`window` Dictionary:**  Keeps track of the characters in the current window (substring) and their counts.
 
-3.  In the main `quickselect` function, we call `select` with `k_smallest = n - k` because finding the k-th *largest* element is equivalent to finding the (n-k)-th *smallest* element in a 0-indexed array.
+3. **`have` and `required`:**
+   - `have`: Counts how many of the *distinct* characters in `t` have met their required counts in the current window.
+   - `required`: The number of *distinct* characters in `t`.
 
-**Time Complexity (Quickselect):**
+4. **Sliding Window:**
+   - The `right` pointer expands the window.  For each character added to the window, its count is updated in the `window` dictionary.
+   - If adding a character satisfies the required count for that character (`window[char] == need[char]`), we increment `have`.
+   - The `while have == required` loop shrinks the window from the left (`left` pointer).  While all the required characters are in the window, we try to minimize the window size.  We update `min_len` and `start` if a smaller window is found.
+   - Before moving `left`, we decrement the count of the character `s[left]` in the `window` dictionary.  If, after decrementing, the count of that character falls below its required count in `need`, we decrement `have`.
 
-*   **Average case:** O(N)
-*   **Worst case:** O(N^2)  (Can occur if the pivot is consistently a bad choice, like always the smallest or largest element). Randomization mitigates this risk.
+5. **Return Value:** If `min_len` remains `float('inf')`, it means no valid window was found, so we return an empty string. Otherwise, we return the substring `s[start : start + min_len]`.
 
-**Space Complexity (Quickselect):**
+**Time Complexity:** O(n), where n is the length of the string `s`.  Each pointer (`left` and `right`) moves through the string at most once.  The dictionary operations take O(1) on average.
 
-*   O(1) in-place (excluding the recursion stack, which can be O(log N) on average or O(N) in the worst case).
+**Space Complexity:** O(m), where m is the number of distinct characters in `t`. In the worst case (all characters in `t` are distinct), the space complexity can be O(1) since character sets are generally limited in size (e.g., ASCII).
