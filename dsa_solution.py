@@ -1,121 +1,79 @@
-Okay, here's a DSA problem with a Python solution:
+Okay, here's a DSA problem, along with a Python solution and explanation:
 
-**Problem:  Minimum Window Substring**
+**Problem: First Unique Character in a String**
 
-Given two strings `s` and `t`, find the minimum window substring in `s` which has all the characters of `t` in complexity O(n).
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
-**Example:**
+**Example 1:**
 
 ```
-s = "ADOBECODEBANC"
-t = "ABC"
-
-Output: "BANC"
+Input: s = "leetcode"
+Output: 0
 ```
 
-**Explanation:**
+**Example 2:**
 
-The minimum window substring "BANC" includes 'A', 'B', and 'C' from string `t`.
+```
+Input: s = "loveleetcode"
+Output: 2
+```
 
-**Python Solution:**
+**Example 3:**
+
+```
+Input: s = "aabb"
+Output: -1
+```
+
+**Python Code Solution:**
 
 ```python
-from collections import defaultdict
-
-def min_window_substring(s, t):
+def first_unique_char(s: str) -> int:
     """
-    Finds the minimum window substring in s containing all characters of t.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        s: The string to search within.
-        t: The string containing the characters to find.
+        s: The input string.
 
     Returns:
-        The minimum window substring, or an empty string if no such substring exists.
+        The index of the first non-repeating character, or -1 if none exists.
     """
 
-    if not s or not t:
-        return ""
+    char_counts = {}  # Dictionary to store character counts
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    need = defaultdict(int)  # Characters we need to find and their counts
-    for char in t:
-        need[char] += 1
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-    window = defaultdict(int)  # Characters in the current window and their counts
+    return -1
 
-    have = 0  # Number of required characters found in the window
-    required = len(need)  # Number of distinct characters we need
-
-    left = 0
-    min_len = float('inf')
-    start = 0  # Start index of the minimum window
-
-    for right in range(len(s)):
-        char = s[right]
-        window[char] += 1
-
-        if char in need and window[char] == need[char]:
-            have += 1
-
-        while have == required:
-            # Shrink the window from the left
-            if (right - left + 1) < min_len:
-                min_len = (right - left + 1)
-                start = left
-
-            left_char = s[left]
-            window[left_char] -= 1
-
-            if left_char in need and window[left_char] < need[left_char]:
-                have -= 1
-
-            left += 1
-
-    if min_len == float('inf'):
-        return ""  # No valid window found
-    else:
-        return s[start : start + min_len]
-
-# Example Usage:
-s = "ADOBECODEBANC"
-t = "ABC"
-result = min_window_substring(s, t)
-print(f"Minimum window substring: {result}") # Output: BANC
-
-s = "a"
-t = "aa"
-result = min_window_substring(s, t)
-print(f"Minimum window substring: {result}") # Output: ""
-
-s = "a"
-t = "a"
-result = min_window_substring(s, t)
-print(f"Minimum window substring: {result}") # Output: a
-
-s = "ADOBECODEBANC"
-t = "ABCC"  # Requires two Cs
-result = min_window_substring(s, t)
-print(f"Minimum window substring: {result}")  # Output: CODEBANC
+# Example usage:
+print(first_unique_char("leetcode"))      # Output: 0
+print(first_unique_char("loveleetcode"))  # Output: 2
+print(first_unique_char("aabb"))          # Output: -1
 ```
 
 **Explanation:**
 
-1. **`need` Dictionary:** Stores the characters in `t` and their required counts.  For example, if `t = "ABCC"`, `need` will be `{'A': 1, 'B': 1, 'C': 2}`.
+1. **Character Counting:**
+   - We create a dictionary called `char_counts` to store the frequency of each character in the string.
+   - We iterate through the string `s`.
+   - For each character `char`, we use `char_counts.get(char, 0) + 1` to increment its count in the dictionary.  `char_counts.get(char, 0)` returns the current count of `char` (or 0 if `char` is not yet in the dictionary), and then we add 1 to it.
 
-2. **`window` Dictionary:**  Keeps track of the characters in the current window (substring) and their counts.
+2. **Finding the First Unique Character:**
+   - We iterate through the string `s` again, this time keeping track of the index `i` using `enumerate()`.
+   - For each character `char` at index `i`, we check its count in the `char_counts` dictionary.
+   - If `char_counts[char] == 1`, it means this character appears only once in the string.  We immediately return its index `i`.
 
-3. **`have` and `required`:**
-   - `have`: Counts how many of the *distinct* characters in `t` have met their required counts in the current window.
-   - `required`: The number of *distinct* characters in `t`.
+3. **Handling No Unique Character:**
+   - If we iterate through the entire string without finding a unique character (i.e., no character has a count of 1), we return -1.
 
-4. **Sliding Window:**
-   - The `right` pointer expands the window.  For each character added to the window, its count is updated in the `window` dictionary.
-   - If adding a character satisfies the required count for that character (`window[char] == need[char]`), we increment `have`.
-   - The `while have == required` loop shrinks the window from the left (`left` pointer).  While all the required characters are in the window, we try to minimize the window size.  We update `min_len` and `start` if a smaller window is found.
-   - Before moving `left`, we decrement the count of the character `s[left]` in the `window` dictionary.  If, after decrementing, the count of that character falls below its required count in `need`, we decrement `have`.
+**Time and Space Complexity:**
 
-5. **Return Value:** If `min_len` remains `float('inf')`, it means no valid window was found, so we return an empty string. Otherwise, we return the substring `s[start : start + min_len]`.
+*   **Time Complexity:** O(N), where N is the length of the string `s`. We iterate through the string twice.
+*   **Space Complexity:** O(1). The `char_counts` dictionary can store at most the number of unique characters in the string. In the worst case (all characters are unique), the space is proportional to the size of the character set, which is constant (e.g., 26 for lowercase English letters, or 128 for ASCII). Thus, space complexity is considered O(1). Technically O(K) where K is the number of unique characters, but K is often fixed.
+**How it solves the problem:**
 
-**Time Complexity:** O(n), where n is the length of the string `s`.  Each pointer (`left` and `right`) moves through the string at most once.  The dictionary operations take O(1) on average.
-
-**Space Complexity:** O(m), where m is the number of distinct characters in `t`. In the worst case (all characters in `t` are distinct), the space complexity can be O(1) since character sets are generally limited in size (e.g., ASCII).
+The core idea is to first count the frequency of each character.  Then, we iterate through the string a second time. The first character we encounter that has a count of 1 must be the first non-repeating character, so we return its index. If we get through the entire string without finding such a character, it means there are no unique characters.
