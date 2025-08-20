@@ -1,79 +1,126 @@
-Okay, here's a DSA problem, along with a Python solution and explanation:
+Okay, here's a DSA problem and a Python solution:
 
-**Problem: First Unique Character in a String**
+**Problem:**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+**Course Schedule II**
+
+There are a total of `numCourses` courses you have to take, labeled from `0` to `numCourses-1`. Some courses may have prerequisites, for example to take course `0` you have to first take course `1`, which is expressed as a pair: `[0,1]`.  Given the total number of courses and a list of prerequisite *pairs*, return the ordering of courses you should take to finish all courses.
+
+The return value should be a list representing the order of courses to take. If it's impossible to finish all courses (due to a cycle), return an empty list.
 
 **Example 1:**
 
 ```
-Input: s = "leetcode"
-Output: 0
+Input: numCourses = 2, prerequisites = [[1,0]]
+Output: [0,1]
+Explanation: There are a total of 2 courses to take. To take course 1 you should have finished course 0. So the correct course order is [0,1].
 ```
 
 **Example 2:**
 
 ```
-Input: s = "loveleetcode"
-Output: 2
+Input: numCourses = 4, prerequisites = [[1,0],[2,0],[3,1],[3,2]]
+Output: [0,2,1,3]
+Explanation: There are a total of 4 courses to take. To take course 3 you should have finished both courses 1 and 2. Both courses 1 and 2 should be taken after you finished course 0. So one correct course order is [0,1,2,3]. Another correct ordering is [0,2,1,3].
 ```
 
 **Example 3:**
 
 ```
-Input: s = "aabb"
-Output: -1
+Input: numCourses = 1, prerequisites = []
+Output: [0]
 ```
 
-**Python Code Solution:**
+**Python Solution:**
 
 ```python
-def first_unique_char(s: str) -> int:
+from collections import defaultdict, deque
+
+def find_order(numCourses, prerequisites):
     """
-    Finds the index of the first non-repeating character in a string.
+    Finds a valid order to take courses given prerequisites.
 
     Args:
-        s: The input string.
+        numCourses: The total number of courses.
+        prerequisites: A list of prerequisite pairs (course, prerequisite).
 
     Returns:
-        The index of the first non-repeating character, or -1 if none exists.
+        A list representing a valid course order, or an empty list if no such order exists.
     """
 
-    char_counts = {}  # Dictionary to store character counts
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+    # 1. Build the adjacency list (graph) and in-degree counts
+    adj_list = defaultdict(list)
+    in_degree = [0] * numCourses
 
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+    for course, pre in prerequisites:
+        adj_list[pre].append(course)
+        in_degree[course] += 1
 
-    return -1
+    # 2. Initialize a queue with courses that have no prerequisites (in-degree 0)
+    queue = deque()
+    for i in range(numCourses):
+        if in_degree[i] == 0:
+            queue.append(i)
+
+    # 3. Perform topological sort using Kahn's Algorithm
+    result = []
+    count = 0  # Count of visited nodes
+
+    while queue:
+        course = queue.popleft()
+        result.append(course)
+        count += 1
+
+        for neighbor in adj_list[course]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
+
+    # 4. Check for cycle. If a cycle exists, it's impossible to finish all courses.
+    if count == numCourses:
+        return result
+    else:
+        return []  # Cycle detected
 
 # Example usage:
-print(first_unique_char("leetcode"))      # Output: 0
-print(first_unique_char("loveleetcode"))  # Output: 2
-print(first_unique_char("aabb"))          # Output: -1
+num_courses = 4
+prerequisites = [[1, 0], [2, 0], [3, 1], [3, 2]]
+order = find_order(num_courses, prerequisites)
+print(order)  # Output: [0, 1, 2, 3]  or [0, 2, 1, 3]
+
+num_courses = 2
+prerequisites = [[1,0]]
+order = find_order(num_courses, prerequisites)
+print(order) # Output: [0, 1]
+
+num_courses = 2
+prerequisites = [[0,1],[1,0]]
+order = find_order(num_courses, prerequisites)
+print(order) # Output: []
 ```
 
 **Explanation:**
 
-1. **Character Counting:**
-   - We create a dictionary called `char_counts` to store the frequency of each character in the string.
-   - We iterate through the string `s`.
-   - For each character `char`, we use `char_counts.get(char, 0) + 1` to increment its count in the dictionary.  `char_counts.get(char, 0)` returns the current count of `char` (or 0 if `char` is not yet in the dictionary), and then we add 1 to it.
+1. **Build the Graph (Adjacency List) and In-Degree Counts:**
+   - `adj_list`: Represents the graph as an adjacency list. `adj_list[i]` contains a list of courses that depend on course `i`.
+   - `in_degree`: Stores the in-degree of each course, which is the number of prerequisites a course has.
 
-2. **Finding the First Unique Character:**
-   - We iterate through the string `s` again, this time keeping track of the index `i` using `enumerate()`.
-   - For each character `char` at index `i`, we check its count in the `char_counts` dictionary.
-   - If `char_counts[char] == 1`, it means this character appears only once in the string.  We immediately return its index `i`.
+2. **Initialize the Queue:**
+   - Add all courses with an in-degree of 0 (no prerequisites) to the `queue`. These are the courses we can start with.
 
-3. **Handling No Unique Character:**
-   - If we iterate through the entire string without finding a unique character (i.e., no character has a count of 1), we return -1.
+3. **Topological Sort (Kahn's Algorithm):**
+   - While the `queue` is not empty:
+     - Dequeue a course `course`.
+     - Add `course` to the `result` list (the order of courses).
+     - Iterate through the neighbors of `course` (courses that depend on `course`):
+       - Decrement the in-degree of the neighbor.
+       - If the neighbor's in-degree becomes 0, it means all its prerequisites have been met, so add it to the `queue`.
+     - Increment `count` which tracks how many nodes (courses) we have visited.
 
-**Time and Space Complexity:**
+4. **Cycle Detection:**
+   - After the topological sort, if `count` is not equal to `numCourses`, it means there's a cycle in the graph. A cycle indicates that it's impossible to finish all courses because there's a circular dependency.  In this case, return an empty list.
+   - Otherwise, return the `result` list, which contains the valid course order.
 
-*   **Time Complexity:** O(N), where N is the length of the string `s`. We iterate through the string twice.
-*   **Space Complexity:** O(1). The `char_counts` dictionary can store at most the number of unique characters in the string. In the worst case (all characters are unique), the space is proportional to the size of the character set, which is constant (e.g., 26 for lowercase English letters, or 128 for ASCII). Thus, space complexity is considered O(1). Technically O(K) where K is the number of unique characters, but K is often fixed.
-**How it solves the problem:**
+**Time Complexity:** O(V + E), where V is the number of courses (vertices) and E is the number of prerequisites (edges).
 
-The core idea is to first count the frequency of each character.  Then, we iterate through the string a second time. The first character we encounter that has a count of 1 must be the first non-repeating character, so we return its index. If we get through the entire string without finding such a character, it means there are no unique characters.
+**Space Complexity:** O(V + E), due to the adjacency list and the queue.  The `in_degree` array takes O(V) space.
