@@ -1,95 +1,131 @@
-Okay, here's a DSA problem along with a Python solution:
+Okay, here's a random DSA problem, along with a Python solution:
 
 **Problem:**
 
-**Maximum Subarray Sum with at Most K Elements**
+**Minimum Window Substring**
 
-Given an array of integers `nums` and an integer `k`, find the maximum sum of a contiguous subarray of `nums` that has at most `k` elements.
+Given two strings `s` and `t`, find the minimum window substring of `s` such that every character in `t` (including duplicates) is present in the window.
+
+If there is no such window in `s` that covers all characters in `t`, return an empty string "".
+
+If there are multiple minimum window substrings, return the one with the leftmost starting position.
 
 **Example:**
 
-```
-nums = [1, 3, -2, 5, -4, 2]
-k = 3
-```
+*   `s` = "ADOBECODEBANC", `t` = "ABC"
+*   Output: "BANC"
 
-The maximum subarray sum with at most 3 elements would be `1 + 3 + (-2) + 5 = 7` (Subarray: `[1, 3, -2, 5]` is incorrect because the problem specifies at MOST k elements).  `3 + (-2) + 5 = 6` is valid and is also not the maximum (or 1 + 3 = 4, 5 + (-4) + 2 = 3, etc). `[3, -2, 5]` sums to 6. The subarray `[5, -4, 2]` sums to 3.  `[1, 3]` sums to 4. `[3, -2]` sums to 1. `[1]` sums to 1. `[3]` sums to 3. `[-2]` sums to -2. `[5]` sums to 5. `[-4]` sums to -4. `[2]` sums to 2.  `[1, 3, -2]` sums to 2. The maximum sum is 6.
+**Explanation:**
 
-```
-nums = [-1, -2, -3]
-k = 2
-```
-
-The maximum subarray sum with at most 2 elements is -1.
-
-**Constraints:**
-
-*   `1 <= len(nums) <= 10^5`
-*   `-10^4 <= nums[i] <= 10^4`
-*   `1 <= k <= len(nums)`
+The minimum window in `s` which has `A`, `B`, and `C` is "BANC".
 
 **Python Solution:**
 
 ```python
-def max_subarray_sum_k(nums, k):
+from collections import defaultdict
+
+def min_window_substring(s: str, t: str) -> str:
     """
-    Finds the maximum sum of a contiguous subarray of nums with at most k elements.
+    Finds the minimum window substring of s containing all characters in t.
 
     Args:
-        nums: A list of integers.
-        k: An integer representing the maximum number of elements allowed in the subarray.
+        s: The string to search in.
+        t: The string containing the characters to find.
 
     Returns:
-        The maximum subarray sum.
+        The minimum window substring of s containing all characters in t,
+        or an empty string if no such window exists.
     """
 
-    max_sum = float('-inf')  # Initialize max_sum to negative infinity
+    if not s or not t:
+        return ""
 
-    for i in range(len(nums)):  # Start index of the subarray
-        current_sum = 0
-        for j in range(i, min(i + k, len(nums))):  # End index of the subarray, ensuring it's at most k elements long
-            current_sum += nums[j]
-            max_sum = max(max_sum, current_sum) # Update max_sum if current_sum is larger
+    need = defaultdict(int)
+    for char in t:
+        need[char] += 1
 
-    return max_sum
+    window = defaultdict(int)
+    have = 0  # Count of chars in 't' that are satisfied in the window
+    required = len(need) # Count of unique chars in 't'
+
+    left = 0
+    min_len = float('inf')
+    start_index = 0
+
+    for right in range(len(s)):
+        char = s[right]
+        window[char] += 1
+
+        if char in need and window[char] == need[char]:
+            have += 1
+
+        while have == required: # Window contains all chars from t
+
+            # Update minimum window size
+            if (right - left + 1) < min_len:
+                min_len = (right - left + 1)
+                start_index = left
+
+            # Shrink the window from the left
+            left_char = s[left]
+            window[left_char] -= 1
+            if left_char in need and window[left_char] < need[left_char]:
+                have -= 1
+
+            left += 1
+
+    if min_len == float('inf'):
+        return ""  # No window found
+
+    return s[start_index : start_index + min_len]
 
 
-# Example usage:
-nums1 = [1, 3, -2, 5, -4, 2]
-k1 = 3
-print(f"Max subarray sum for nums = {nums1}, k = {k1}: {max_subarray_sum_k(nums1, k1)}")  # Output: 6
+# Example usage
+s = "ADOBECODEBANC"
+t = "ABC"
+result = min_window_substring(s, t)
+print(f"Minimum window substring: {result}") # Output: BANC
 
-nums2 = [-1, -2, -3]
-k2 = 2
-print(f"Max subarray sum for nums = {nums2}, k = {k2}: {max_subarray_sum_k(nums2, k2)}")  # Output: -1
+s = "a"
+t = "aa"
+result = min_window_substring(s, t)
+print(f"Minimum window substring: {result}") # Output: ""
 
-nums3 = [5, -4, 2]
-k3 = 2
-print(f"Max subarray sum for nums = {nums3}, k = {k3}: {max_subarray_sum_k(nums3, k3)}") # Output 5
-
-nums4 = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
-k4 = 3
-print(f"Max subarray sum for nums = {nums4}, k = {k4}: {max_subarray_sum_k(nums4, k4)}") # Output: 6
+s = "aa"
+t = "aa"
+result = min_window_substring(s, t)
+print(f"Minimum window substring: {result}") # Output: aa
 ```
 
-**Explanation:**
+**Explanation of the Code:**
 
-1.  **Initialization:**
-    *   `max_sum = float('-inf')`: We initialize `max_sum` to negative infinity to ensure that any valid subarray sum will be greater than the initial value.
+1.  **`min_window_substring(s, t)` Function:**
+    *   Takes the input strings `s` and `t` as arguments.
+    *   Handles the base case of empty strings `s` or `t`.
+    *   Initializes `need` to store the frequency of each character in `t`.
+    *   Initializes `window` to store the frequency of each character in the current window of `s`.
+    *   `have` counts the number of characters in `t` that are satisfied in `window`.  `required` is the number of unique characters in `t`.
+    *   `left` is the left boundary of the sliding window.
+    *   `min_len` stores the length of the minimum window found so far, initialized to infinity.
+    *   `start_index` stores the starting index of the minimum window.
+    *   Iterates through the string `s` using `right` as the right boundary of the sliding window:
+        *   Expands the window by adding `s[right]` to the `window`.
+        *   If `s[right]` is in `t` and its count in `window` meets or exceeds the count in `need`, increment `have`.
+        *   **`while have == required:`**: This is the core of the sliding window. It means the current window contains all characters in `t` with the required frequencies.
+            *   Updates `min_len` and `start_index` if the current window is smaller than the previously found minimum window.
+            *   Contracts the window from the left:
+                *   Removes the leftmost character (`s[left]`) from the `window`.
+                *   If `s[left]` is in `t` and removing it makes the frequency in `window` less than required in `need`, decrement `have`.
+                *   Moves the `left` pointer to the right.
+    *   If `min_len` remains infinity, it means no valid window was found, so returns "".
+    *   Otherwise, returns the minimum window substring from `s[start_index : start_index + min_len]`.
 
-2.  **Outer Loop (Start Index):**
-    *   `for i in range(len(nums))`: This loop iterates through each element of the `nums` array, considering each element as a potential starting point for a subarray.
+2.  **`defaultdict(int)`:**  This is used for both `need` and `window`. `defaultdict(int)` is a dictionary-like structure where, if you try to access a key that doesn't exist, it automatically creates the key with a default value of 0 (an integer in this case).  This makes the code cleaner because you don't have to check if a character exists in the dictionary before incrementing its count.
 
-3.  **Inner Loop (End Index):**
-    *   `for j in range(i, min(i + k, len(nums)))`: This loop iterates from the starting index `i` up to `i + k - 1` (inclusive), but it stops at `len(nums) - 1` if `i + k` exceeds the bounds of the array. This ensures that the subarray has at most `k` elements.  `min(i+k, len(nums))` makes sure we don't go out of bounds.  For instance, if `i` is `len(nums) - 1`, the inner loop will only execute once (j == i), giving us a subarray of length 1 (the last element of the array).
+**How the Sliding Window Works:**
 
-4.  **Calculating and Updating Sum:**
-    *   `current_sum += nums[j]`: In each iteration of the inner loop, we add the current element `nums[j]` to the `current_sum`.
-    *   `max_sum = max(max_sum, current_sum)`: We update `max_sum` to be the maximum between the current `max_sum` and the `current_sum`.  This ensures that `max_sum` always holds the largest subarray sum encountered so far.
+The algorithm uses a sliding window technique.  The window expands to the right until it finds a window that contains all the characters of string `t`. Then, the window contracts from the left while still maintaining the condition that it contains all characters of string `t`. It keeps track of the minimum window seen so far.
 
-5.  **Return Value:**
-    *   `return max_sum`: Finally, we return the `max_sum`, which represents the maximum sum of any contiguous subarray with at most `k` elements.
+**Time Complexity:** O(n), where n is the length of the string `s`. Each character is visited at most twice (once by the right pointer and once by the left pointer).
 
-**Time Complexity:** O(n\*k), where n is the length of `nums`.  In the worst case, the inner loop iterates up to `k` times for each element in the outer loop.
-
-**Space Complexity:** O(1), because we are using only a constant amount of extra space.
+**Space Complexity:** O(m), where m is the number of unique characters in string `t`.  The space used by `need` and `window` is proportional to the number of unique characters in `t`.
