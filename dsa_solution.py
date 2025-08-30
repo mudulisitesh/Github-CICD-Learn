@@ -1,77 +1,85 @@
-Okay, here's a DSA problem and a Python solution:
+Okay, here's a random DSA problem with a Python solution:
 
-**Problem:  Meeting Room Scheduling**
+**Problem: Merge Intervals**
 
-You are given a list of meeting time intervals where each interval consists of a start time and an end time `intervals[i] = [start_i, end_i]`. Determine if a person could attend all meetings.  That is, check if any meetings overlap.
+Given a collection of intervals, merge all overlapping intervals.
 
 **Example:**
 
-```
-Input: intervals = [[0,30],[5,10],[15,20]]
-Output: false
-```
+*   **Input:** `intervals = [[1,3],[2,6],[8,10],[15,18]]`
+*   **Output:** `[[1,6],[8,10],[15,18]]`
+    *   Explanation: Intervals `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
 
-```
-Input: intervals = [[7,10],[2,4]]
-Output: true
+**Another Example:**
+
+*   **Input:** `intervals = [[1,4],[4,5]]`
+*   **Output:** `[[1,5]]`
+    *   Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
+
+**Python Code Solution:**
+
+```python
+def merge_intervals(intervals):
+    """
+    Merges overlapping intervals in a list.
+
+    Args:
+        intervals: A list of intervals, where each interval is a list of two integers [start, end].
+
+    Returns:
+        A list of merged intervals.
+    """
+
+    if not intervals:
+        return []
+
+    # Sort the intervals based on the start time.  Important for efficient merging!
+    intervals.sort(key=lambda x: x[0])  # Sort by start time
+
+    merged = []
+    for interval in intervals:
+        # If the current interval does not overlap with the previous one,
+        # append it.
+        if not merged or interval[0] > merged[-1][1]:
+            merged.append(interval)
+        else:
+            # Otherwise, there is overlap, so we merge the current and previous
+            # intervals.  Take the maximum of the end times.
+            merged[-1][1] = max(merged[-1][1], interval[1])
+
+    return merged
+
+# Example Usage:
+intervals1 = [[1,3],[2,6],[8,10],[15,18]]
+result1 = merge_intervals(intervals1)
+print(f"Merged intervals for {intervals1}: {result1}")  # Output: [[1, 6], [8, 10], [15, 18]]
+
+intervals2 = [[1,4],[4,5]]
+result2 = merge_intervals(intervals2)
+print(f"Merged intervals for {intervals2}: {result2}") # Output: [[1, 5]]
+
+intervals3 = [[1, 4], [0, 4]]
+result3 = merge_intervals(intervals3)
+print(f"Merged intervals for {intervals3}: {result3}") # Output: [[0, 4]]
+
+intervals4 = [[1,4],[0,0]]
+result4 = merge_intervals(intervals4)
+print(f"Merged intervals for {intervals4}: {result4}") # Output: [[0, 0], [1, 4]]
 ```
 
 **Explanation:**
 
-The problem is asking us to check if any meeting intervals overlap.  If any interval's start time falls within the time range of another interval, then they overlap, and the person cannot attend all meetings.
+1.  **Sort Intervals:** The key to solving this efficiently is to sort the intervals by their start times. This allows us to iterate through the intervals in order and easily check for overlaps.
 
-**Python Solution:**
+2.  **Iterate and Merge:** We iterate through the sorted intervals, maintaining a `merged` list of intervals.
 
-```python
-def can_attend_all_meetings(intervals):
-    """
-    Checks if a person can attend all meetings given a list of meeting time intervals.
+    *   If the current interval does not overlap with the last interval in `merged` (i.e., the current interval's start time is greater than the last interval's end time), we simply append the current interval to `merged`.
 
-    Args:
-      intervals: A list of meeting time intervals, where each interval is a list [start, end].
+    *   If the current interval *does* overlap, we update the end time of the last interval in `merged` to be the maximum of its current end time and the current interval's end time. This effectively merges the intervals.
 
-    Returns:
-      True if the person can attend all meetings, False otherwise.
-    """
+3.  **Return Merged Intervals:** Finally, we return the `merged` list, which contains the merged intervals.
 
-    # Sort the intervals by start time. This makes checking for overlaps easier.
-    intervals.sort(key=lambda x: x[0])  # Sort by start time
+**Time and Space Complexity:**
 
-    for i in range(1, len(intervals)):
-        # If the current meeting starts before the previous meeting ends, then there is an overlap.
-        if intervals[i][0] < intervals[i-1][1]:
-            return False
-
-    return True
-
-# Example usage:
-intervals1 = [[0, 30], [5, 10], [15, 20]]
-print(f"Can attend meetings {intervals1}? {can_attend_all_meetings(intervals1)}")  # Output: False
-
-intervals2 = [[7, 10], [2, 4]]
-print(f"Can attend meetings {intervals2}? {can_attend_all_meetings(intervals2)}")  # Output: True
-
-intervals3 = [[1, 5], [5, 8]]
-print(f"Can attend meetings {intervals3}? {can_attend_all_meetings(intervals3)}")  # Output: True
-```
-
-**Explanation of the Code:**
-
-1. **Sorting:** The `intervals.sort(key=lambda x: x[0])` line sorts the meeting intervals based on their start times in ascending order.  This is crucial for efficiently checking for overlaps. Sorting by start time means that if we encounter an overlap, it *must* be with a meeting that came *before* the current one in the sorted order.
-
-2. **Iteration and Overlap Check:**  The code then iterates through the sorted intervals, starting from the second interval (index 1).  For each interval, it compares its start time `intervals[i][0]` with the end time of the *previous* interval `intervals[i-1][1]`.
-
-3. **Overlap Condition:**  If `intervals[i][0] < intervals[i-1][1]`, it means the current meeting starts *before* the previous meeting has ended, which indicates an overlap.  In this case, the function immediately returns `False`.
-
-4. **No Overlap:** If the loop completes without finding any overlaps, it means the person can attend all meetings, and the function returns `True`.
-
-**Time Complexity:**
-
-* **Sorting:** O(n log n), where n is the number of intervals.  Most sorting algorithms (like the one used by Python's `sort()`) have a time complexity of O(n log n).
-* **Iteration:** O(n), as we iterate through the intervals once.
-
-Therefore, the overall time complexity is **O(n log n)**, dominated by the sorting step.
-
-**Space Complexity:**
-
-* **O(1)** - In-place sorting is used which doesn't require significant extra space. Note that some sorting algorithms can take O(n) space in worst-case scenarios, but in-place sorting is commonly used.  The rest of the code uses a constant amount of extra space.
+*   **Time Complexity:** O(n log n), where n is the number of intervals.  This is primarily due to the sorting step.  The iteration to merge the intervals takes O(n) time, but sorting dominates.
+*   **Space Complexity:** O(n) in the worst case, where `n` is the number of intervals. This is because in the worst case (no overlaps), the `merged` list will contain all the input intervals.  In some cases, sorting might also take O(n) space if not done in-place.
