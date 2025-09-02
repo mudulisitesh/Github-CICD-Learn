@@ -1,63 +1,84 @@
-Okay, here's a DSA problem and a Python solution with explanations:
+Okay, here's a DSA problem and its solution in Python.
 
-**Problem:**
+**Problem:  "Meeting Rooms"**
 
-**Group Anagrams**
-
-Given an array of strings `strs`, group the anagrams together. You can return the answer in any order.
-
-An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
+Given an array of meeting time intervals where `intervals[i] = [starti, endi]`, determine if a person could attend all meetings.
 
 **Example:**
 
 ```
-Input: strs = ["eat","tea","tan","ate","nat","bat"]
-Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
+intervals = [[0, 30],[5, 10],[15, 20]]
+Output: false
 ```
 
-**Python Solution:**
-
-```python
-from collections import defaultdict
-
-def groupAnagrams(strs):
-    """
-    Groups anagrams in a list of strings.
-
-    Args:
-    strs: A list of strings.
-
-    Returns:
-    A list of lists, where each inner list contains anagrams.
-    """
-
-    anagram_groups = defaultdict(list)  # Dictionary to store anagrams, key is the sorted string
-
-    for s in strs:
-        sorted_s = "".join(sorted(s))  # Sort the string to use as the key
-        anagram_groups[sorted_s].append(s)  # Add the original string to the corresponding group
-
-    return list(anagram_groups.values())  # Return the values (lists of anagrams)
-# Example usage:
-strs = ["eat","tea","tan","ate","nat","bat"]
-result = groupAnagrams(strs)
-print(result) # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]
+```
+intervals = [[7,10],[2,4]]
+Output: true
 ```
 
 **Explanation:**
 
-1.  **`defaultdict(list)`:**  We use `defaultdict(list)` from the `collections` module.  A `defaultdict` is like a regular dictionary, but if you try to access a key that doesn't exist, it automatically creates that key with a default value (in this case, an empty list).  This is perfect for our use case, as we don't need to check if a sorted string (the key) exists before appending to its anagram list.
+The first example shows overlapping meeting times.  The second shows meetings that don't overlap.
 
-2.  **Iteration:** The code iterates through each string `s` in the input list `strs`.
+**Python Solution:**
 
-3.  **Sorting:** Inside the loop, `sorted(s)` sorts the characters of the string `s` alphabetically.  The `"".join()` then converts the sorted list of characters back into a string. This sorted string becomes the unique key for all anagrams of `s`.
+```python
+def can_attend_all_meetings(intervals):
+    """
+    Determines if a person can attend all meetings given a list of meeting intervals.
 
-4.  **Grouping:**  `anagram_groups[sorted_s].append(s)` appends the *original* string `s` to the list associated with the `sorted_s` key in the `anagram_groups` dictionary. Because anagrams will have the same sorted string, they'll be grouped together in the same list.
+    Args:
+        intervals: A list of lists, where each inner list represents a meeting interval [start, end].
 
-5.  **Returning the Result:** Finally, `list(anagram_groups.values())` retrieves all the values from the `anagram_groups` dictionary (which are the lists of anagrams) and converts them into a list of lists, which is the desired output format.
+    Returns:
+        True if the person can attend all meetings, False otherwise.
+    """
+
+    # Sort the intervals by their start times. This is crucial for the algorithm.
+    intervals.sort(key=lambda x: x[0])  # Use a lambda function to sort by the first element (start time)
+
+    # Iterate through the sorted intervals and check for overlaps.
+    for i in range(1, len(intervals)):
+        # If the current meeting starts before the previous meeting ends, there's an overlap.
+        if intervals[i][0] < intervals[i - 1][1]:
+            return False  # Overlap found, can't attend all meetings
+
+    # If we reach here without finding any overlaps, the person can attend all meetings.
+    return True
+
+
+# Example Usage:
+intervals1 = [[0, 30],[5, 10],[15, 20]]
+intervals2 = [[7,10],[2,4]]
+intervals3 = [[13,15],[1,13]]
+intervals4 = []  # Empty list - should return True (no meetings)
+intervals5 = [[9,10],[4,9],[4,17]]
+
+
+print(f"Intervals: {intervals1}, Can attend all meetings: {can_attend_all_meetings(intervals1)}")  # Output: False
+print(f"Intervals: {intervals2}, Can attend all meetings: {can_attend_all_meetings(intervals2)}")  # Output: True
+print(f"Intervals: {intervals3}, Can attend all meetings: {can_attend_all_meetings(intervals3)}")  # Output: True
+print(f"Intervals: {intervals4}, Can attend all meetings: {can_attend_all_meetings(intervals4)}")  # Output: True
+print(f"Intervals: {intervals5}, Can attend all meetings: {can_attend_all_meetings(intervals5)}") # Output: False
+```
+
+**Explanation of the Code:**
+
+1. **Sorting:** The `intervals.sort(key=lambda x: x[0])` line is the most important part. We sort the intervals based on their starting times. This allows us to easily check for overlaps by comparing adjacent intervals.  Sorting is done in place.  The `key` argument specifies a function to be called on each list element prior to making comparisons. Here, it tells the sort to use the first element of each sublist for comparison.
+
+2. **Overlap Detection:** The code then iterates through the sorted intervals, starting from the second interval (index 1). For each interval, it checks if its start time (`intervals[i][0]`) is less than the end time of the previous interval (`intervals[i - 1][1]`). If this condition is true, it means the current meeting overlaps with the previous meeting, and the function immediately returns `False`.
+
+3. **No Overlaps:** If the loop completes without finding any overlaps, it means the person can attend all meetings, and the function returns `True`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(N * K * log K), where N is the number of strings in the input list `strs`, and K is the maximum length of a string in `strs`.  The K * log K part comes from sorting each string.
+*   **Time Complexity:** O(n log n), where n is the number of intervals.  The sorting step dominates the time complexity. The rest of the algorithm is O(n).
 
-*   **Space Complexity:** O(N * K) in the worst case, where N is the number of strings and K is the maximum length of a string. This is because, in the worst case (e.g., all strings are unique), the `anagram_groups` dictionary will store all N strings. Each string can have length at most K.
+*   **Space Complexity:** O(1)  (in-place sorting).  If the sorting algorithm used by `intervals.sort()` in Python has O(n) space complexity (e.g., merge sort), the space complexity would become O(n) in the worst case.
+
+**How to Run the Code:**
+
+1.  Save the code as a Python file (e.g., `meeting_rooms.py`).
+2.  Run the file from your terminal using `python meeting_rooms.py`.  The output will show the results for the example intervals.
+
+This is a classic interval-related problem and a good example of how sorting can simplify the solution. Remember to understand the problem thoroughly and consider edge cases (like an empty list of intervals) when writing your code.
