@@ -1,84 +1,124 @@
-Okay, here's a DSA problem and its solution in Python.
+Okay, here's a DSA problem and a Python solution:
 
-**Problem:  "Meeting Rooms"**
+**Problem:**
 
-Given an array of meeting time intervals where `intervals[i] = [starti, endi]`, determine if a person could attend all meetings.
+**Merge K Sorted Lists**
+
+You are given an array of `k` linked-lists, each linked-list is sorted in ascending order.
+
+Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-intervals = [[0, 30],[5, 10],[15, 20]]
-Output: false
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-```
-intervals = [[7,10],[2,4]]
-Output: true
-```
+**Constraints:**
 
-**Explanation:**
-
-The first example shows overlapping meeting times.  The second shows meetings that don't overlap.
+*   `k == lists.length`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
 
 **Python Solution:**
 
 ```python
-def can_attend_all_meetings(intervals):
+import heapq
+
+# Definition for singly-linked list.
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+    def __lt__(self, other):  # Needed for heapq to compare ListNode objects
+        return self.val < other.val
+
+def mergeKLists(lists):
     """
-    Determines if a person can attend all meetings given a list of meeting intervals.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-        intervals: A list of lists, where each inner list represents a meeting interval [start, end].
+        lists: A list of linked lists, where each linked list is sorted in ascending order.
 
     Returns:
-        True if the person can attend all meetings, False otherwise.
+        The head of the merged sorted linked list.
     """
 
-    # Sort the intervals by their start times. This is crucial for the algorithm.
-    intervals.sort(key=lambda x: x[0])  # Use a lambda function to sort by the first element (start time)
+    heap = []
 
-    # Iterate through the sorted intervals and check for overlaps.
-    for i in range(1, len(intervals)):
-        # If the current meeting starts before the previous meeting ends, there's an overlap.
-        if intervals[i][0] < intervals[i - 1][1]:
-            return False  # Overlap found, can't attend all meetings
+    # Push the head of each linked list into the heap
+    for i in range(len(lists)):
+      if lists[i]:
+        heapq.heappush(heap, lists[i])
 
-    # If we reach here without finding any overlaps, the person can attend all meetings.
-    return True
+    dummy = ListNode()  # Dummy node for the merged list
+    tail = dummy
+
+    while heap:
+        node = heapq.heappop(heap)
+        tail.next = node
+        tail = tail.next
+
+        if node.next:
+            heapq.heappush(heap, node.next)
+
+    return dummy.next
 
 
 # Example Usage:
-intervals1 = [[0, 30],[5, 10],[15, 20]]
-intervals2 = [[7,10],[2,4]]
-intervals3 = [[13,15],[1,13]]
-intervals4 = []  # Empty list - should return True (no meetings)
-intervals5 = [[9,10],[4,9],[4,17]]
+# Create the linked lists for the example input
+list1 = ListNode(1, ListNode(4, ListNode(5)))
+list2 = ListNode(1, ListNode(3, ListNode(4)))
+list3 = ListNode(2, ListNode(6))
 
+lists = [list1, list2, list3]
 
-print(f"Intervals: {intervals1}, Can attend all meetings: {can_attend_all_meetings(intervals1)}")  # Output: False
-print(f"Intervals: {intervals2}, Can attend all meetings: {can_attend_all_meetings(intervals2)}")  # Output: True
-print(f"Intervals: {intervals3}, Can attend all meetings: {can_attend_all_meetings(intervals3)}")  # Output: True
-print(f"Intervals: {intervals4}, Can attend all meetings: {can_attend_all_meetings(intervals4)}")  # Output: True
-print(f"Intervals: {intervals5}, Can attend all meetings: {can_attend_all_meetings(intervals5)}") # Output: False
+# Merge the lists
+merged_list = mergeKLists(lists)
+
+# Print the merged list (for verification)
+while merged_list:
+    print(merged_list.val, end=" -> ")
+    merged_list = merged_list.next
+print("None")  # Output: 1 -> 1 -> 2 -> 3 -> 4 -> 4 -> 5 -> 6 -> None
 ```
 
-**Explanation of the Code:**
+**Explanation:**
 
-1. **Sorting:** The `intervals.sort(key=lambda x: x[0])` line is the most important part. We sort the intervals based on their starting times. This allows us to easily check for overlaps by comparing adjacent intervals.  Sorting is done in place.  The `key` argument specifies a function to be called on each list element prior to making comparisons. Here, it tells the sort to use the first element of each sublist for comparison.
+1.  **`ListNode` Class:** Defines the structure of a node in the linked list, including a value (`val`) and a pointer to the next node (`next`). The `__lt__` method is important; it allows the `heapq` module to directly compare `ListNode` objects based on their `val` attribute.  Without it, the heap wouldn't know how to prioritize the nodes.
 
-2. **Overlap Detection:** The code then iterates through the sorted intervals, starting from the second interval (index 1). For each interval, it checks if its start time (`intervals[i][0]`) is less than the end time of the previous interval (`intervals[i - 1][1]`). If this condition is true, it means the current meeting overlaps with the previous meeting, and the function immediately returns `False`.
+2.  **`mergeKLists(lists)` Function:**
+    *   **Initialization:**
+        *   `heap`: A min-heap (priority queue) is used to efficiently find the smallest element among all the lists' heads.  It stores `ListNode` objects.
+        *   `dummy`: A dummy node is created as the starting point of the merged list.  This simplifies the logic for adding the first node to the merged list.
+        *   `tail`:  A pointer to the last node in the merged list, initialized to the dummy node.
+    *   **Adding Initial Heads to Heap:** The code iterates through the input `lists` and pushes the head node of each non-empty list onto the min-heap. The `heapq.heappush` function maintains the heap property, ensuring that the smallest element is always at the top.
+    *   **Merging Process:**
+        *   The `while heap:` loop continues as long as the heap is not empty.
+        *   `heapq.heappop(heap)`: The smallest node (head node) is extracted from the heap. This node is the next element to be added to the merged list.
+        *   `tail.next = node`:  The extracted node is appended to the end of the merged list.  `tail` is updated to point to the newly added node.
+        *   `if node.next:`: If the extracted node has a `next` node in its original list, that `next` node is pushed onto the heap, so it can be considered for merging in the future.
+    *   **Return Result:** Finally, the function returns `dummy.next`, which is the head of the merged sorted linked list (skipping the dummy node).
 
-3. **No Overlaps:** If the loop completes without finding any overlaps, it means the person can attend all meetings, and the function returns `True`.
+**Why use a Heap?**
 
-**Time and Space Complexity:**
+The key to solving this problem efficiently is using a min-heap (priority queue). Here's why:
 
-*   **Time Complexity:** O(n log n), where n is the number of intervals.  The sorting step dominates the time complexity. The rest of the algorithm is O(n).
+*   **Finding the Minimum:**  You need to repeatedly find the smallest element among the heads of the `k` lists. A min-heap allows you to find the minimum element in O(1) time (it's always at the top of the heap) and extract it in O(log k) time (because the heap needs to be re-organized after extraction).
+*   **Efficiency:**  A naive approach of repeatedly scanning the `k` lists to find the minimum would take O(k) time for each element, leading to a much slower overall time complexity.
+*   **Time Complexity:**  The time complexity of the heap-based solution is O(N log k), where N is the total number of nodes in all the linked lists and k is the number of linked lists. This is because each of the N nodes is inserted into and extracted from the heap once, and each heap operation takes O(log k) time.
 
-*   **Space Complexity:** O(1)  (in-place sorting).  If the sorting algorithm used by `intervals.sort()` in Python has O(n) space complexity (e.g., merge sort), the space complexity would become O(n) in the worst case.
-
-**How to Run the Code:**
-
-1.  Save the code as a Python file (e.g., `meeting_rooms.py`).
-2.  Run the file from your terminal using `python meeting_rooms.py`.  The output will show the results for the example intervals.
-
-This is a classic interval-related problem and a good example of how sorting can simplify the solution. Remember to understand the problem thoroughly and consider edge cases (like an empty list of intervals) when writing your code.
+This solution is generally considered the most efficient way to solve the "Merge K Sorted Lists" problem.
