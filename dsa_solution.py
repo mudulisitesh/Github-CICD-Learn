@@ -1,103 +1,85 @@
-Okay, here's a random DSA problem along with a Python solution.
+Okay, here's a DSA problem, along with a Python solution:
 
-**Problem:**
+**Problem: First Unique Character in a String**
 
-**Merge Intervals**
-
-Given a collection of intervals, merge all overlapping intervals.
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
 **Example:**
 
-*   **Input:** `intervals = [[1,3],[2,6],[8,10],[15,18]]`
-*   **Output:** `[[1,6],[8,10],[15,18]]`
+```
+s = "leetcode"
+Output: 0  (because 'l' is the first unique character)
 
-**Explanation:**
+s = "loveleetcode"
+Output: 2  (because 'v' is the first unique character)
 
-Intervals `[1,3]` and `[2,6]` overlap, merge them into `[1,6]`.
+s = "aabb"
+Output: -1  (no unique character exists)
+```
 
-**Constraints:**
-
-*   `1 <= intervals.length <= 10^4`
-*   `intervals[i].length == 2`
-*   `0 <= intervals[i][0] <= intervals[i][1] <= 10^4`
-
-**Python Solution:**
+**Solution in Python:**
 
 ```python
-def merge_intervals(intervals):
+def first_unique_character(s: str) -> int:
     """
-    Merges overlapping intervals in a list of intervals.
+    Finds the index of the first unique character in a string.
 
     Args:
-        intervals: A list of intervals, where each interval is a list of two integers
-                   representing the start and end points.
+        s: The input string.
 
     Returns:
-        A list of merged intervals.
+        The index of the first unique character, or -1 if none exists.
     """
 
-    if not intervals:
-        return []
+    char_counts = {}  # Dictionary to store character counts
 
-    # Sort the intervals based on their start times.  Crucial step!
-    intervals.sort(key=lambda x: x[0])
+    # Count character frequencies
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    merged = []
-    for interval in intervals:
-        # If the list of merged intervals is empty or if the current
-        # interval does not overlap with the last interval, simply append it.
-        if not merged or interval[0] > merged[-1][1]:
-            merged.append(interval)
-        else:
-            # Otherwise, there is overlap, so we merge the current interval
-            # with the last interval.
-            merged[-1][1] = max(merged[-1][1], interval[1])
+    # Find the first character with a count of 1
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-    return merged
+    return -1  # No unique character found
 
-# Example Usage:
-intervals = [[1,3],[2,6],[8,10],[15,18]]
-merged_intervals = merge_intervals(intervals)
-print(f"Original Intervals: {intervals}")
-print(f"Merged Intervals: {merged_intervals}")
 
-intervals = [[1,4],[4,5]]
-merged_intervals = merge_intervals(intervals)
-print(f"Original Intervals: {intervals}")
-print(f"Merged Intervals: {merged_intervals}")
+# Example usage:
+s1 = "leetcode"
+print(f"First unique character in '{s1}': {first_unique_character(s1)}")  # Output: 0
 
-intervals = [[1,4],[0,4]]
-merged_intervals = merge_intervals(intervals)
-print(f"Original Intervals: {intervals}")
-print(f"Merged Intervals: {merged_intervals}")
+s2 = "loveleetcode"
+print(f"First unique character in '{s2}': {first_unique_character(s2)}")  # Output: 2
 
-intervals = [[1,4],[0,0]]
-merged_intervals = merge_intervals(intervals)
-print(f"Original Intervals: {intervals}")
-print(f"Merged Intervals: {merged_intervals}")
+s3 = "aabb"
+print(f"First unique character in '{s3}': {first_unique_character(s3)}")  # Output: -1
+
+s4 = "dddccdbba"
+print(f"First unique character in '{s4}': {first_unique_character(s4)}") # Output: 8
 ```
 
 **Explanation:**
 
-1.  **Handle Empty Input:** The code first checks if the input list `intervals` is empty. If it is, an empty list is returned.
+1. **Character Counting:**
+   - We use a dictionary `char_counts` to store the frequency of each character in the input string `s`.
+   - We iterate through the string, updating the count for each character.  `char_counts.get(char, 0) + 1` elegantly handles the case where a character is seen for the first time (the default value `0` is returned by `get` in that case).
 
-2.  **Sort Intervals:** The crucial step is to sort the intervals based on their start times using `intervals.sort(key=lambda x: x[0])`. This sorting ensures that we can iterate through the intervals in ascending order of their start times, making it easier to identify and merge overlapping intervals.
+2. **Finding the First Unique Character:**
+   - We iterate through the string `s` *again*, this time also keeping track of the index `i` using `enumerate`.
+   - For each character `char`, we check its count in the `char_counts` dictionary.
+   - If the count is 1 (meaning it's a unique character), we immediately return its index `i`.
 
-3.  **Iterate and Merge:** The code iterates through the sorted intervals. For each interval, it checks if it overlaps with the last interval added to the `merged` list.
-
-    *   **No Overlap:** If the `merged` list is empty or if the current interval's start time is greater than the end time of the last interval in `merged`, it means there's no overlap.  In this case, the current interval is simply appended to the `merged` list.
-
-    *   **Overlap:** If there's overlap (i.e., `interval[0] <= merged[-1][1]`), the end time of the last interval in `merged` is updated to be the maximum of its current end time and the end time of the current interval.  This effectively merges the two overlapping intervals.
-
-4.  **Return Merged Intervals:** Finally, the `merged` list, containing the merged intervals, is returned.
+3. **No Unique Character:**
+   - If the loop completes without finding a character with a count of 1, it means there are no unique characters in the string. In this case, we return -1.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n log n) due to the sorting step. The rest of the algorithm takes O(n) time.
-*   **Space Complexity:** O(n) in the worst case, where no intervals overlap, and the `merged` list contains all the original intervals. In the best case (all intervals merge into one), the space complexity is O(1).
+*   **Time Complexity:** O(N), where N is the length of the string `s`. We iterate through the string twice (once to count characters, and once to find the first unique one).
+*   **Space Complexity:** O(1) in the sense that it is bounded by a constant number of possible ASCII characters (128) or extended ASCII characters (256).  In practice, it could be considered O(N) in the worst case if the string contains N unique characters. The dictionary stores at most the count of each unique character.  So it scales with the number of unique characters, not necessarily the total length of the string.
 
 **Key Concepts Used:**
 
-*   **Sorting:** Sorting the intervals by start time is essential for efficiently identifying overlaps.
-*   **Greedy Approach:** The algorithm makes locally optimal choices (merging intervals whenever possible) to arrive at the globally optimal solution.
-*   **List Manipulation:** The code uses list operations like `append()` and indexing (`merged[-1]`) to build and update the merged intervals.
+*   **Dictionaries (Hash Maps):**  Dictionaries are essential for efficiently storing and retrieving the counts of characters.
+*   **Iteration:**  Iterating through the string using a `for` loop and `enumerate` is crucial for accessing both the characters and their indices.
+*   **Frequency Counting:** This is a common pattern in many string problems, where you need to analyze the frequencies of characters or elements.
