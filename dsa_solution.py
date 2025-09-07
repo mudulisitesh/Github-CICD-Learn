@@ -1,85 +1,76 @@
-Okay, here's a DSA problem, along with a Python solution:
+Okay, here's a DSA problem, along with a Python solution, including explanations:
 
-**Problem: First Unique Character in a String**
+**Problem: Find the Missing Number**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+**Problem Statement:**
+
+Given an array `nums` containing `n` distinct numbers in the range `[0, n]`, return the only number in the range that is missing from the array.
 
 **Example:**
 
-```
-s = "leetcode"
-Output: 0  (because 'l' is the first unique character)
+*   `nums = [3, 0, 1]`
+*   Output: `2`
+*   Explanation: `n = 3` since there are 3 numbers. All numbers are in the range `[0, 3]`. `2` is the missing number in the range since it does not appear in `nums`.
 
-s = "loveleetcode"
-Output: 2  (because 'v' is the first unique character)
+*   `nums = [0, 1]`
+*   Output: `2`
+*   Explanation: `n = 2` since there are 2 numbers. All numbers are in the range `[0, 2]`. `2` is the missing number in the range since it does not appear in `nums`.
 
-s = "aabb"
-Output: -1  (no unique character exists)
-```
+*   `nums = [9,6,4,2,3,5,7,0,1]`
+*   Output: `8`
+*   Explanation: `n = 9` since there are 9 numbers. All numbers are in the range `[0, 9]`. `8` is the missing number in the range since it does not appear in `nums`.
 
-**Solution in Python:**
+**Constraints:**
+
+*   `n == nums.length`
+*   `1 <= n <= 104`
+*   `0 <= nums[i] <= n`
+*   All the numbers of `nums` are unique.
+
+**Python Solution:**
 
 ```python
-def first_unique_character(s: str) -> int:
+def missingNumber(nums):
     """
-    Finds the index of the first unique character in a string.
+    Finds the missing number in a sequence of numbers from 0 to n.
 
     Args:
-        s: The input string.
+        nums: A list of integers in the range [0, n].
 
     Returns:
-        The index of the first unique character, or -1 if none exists.
+        The missing number in the range [0, n].
     """
-
-    char_counts = {}  # Dictionary to store character counts
-
-    # Count character frequencies
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
-
-    # Find the first character with a count of 1
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
-
-    return -1  # No unique character found
-
+    n = len(nums)
+    expected_sum = n * (n + 1) // 2  # Sum of numbers from 0 to n
+    actual_sum = sum(nums)
+    return expected_sum - actual_sum
 
 # Example usage:
-s1 = "leetcode"
-print(f"First unique character in '{s1}': {first_unique_character(s1)}")  # Output: 0
+nums1 = [3, 0, 1]
+print(f"Missing number in {nums1}: {missingNumber(nums1)}")  # Output: 2
 
-s2 = "loveleetcode"
-print(f"First unique character in '{s2}': {first_unique_character(s2)}")  # Output: 2
+nums2 = [0, 1]
+print(f"Missing number in {nums2}: {missingNumber(nums2)}")  # Output: 2
 
-s3 = "aabb"
-print(f"First unique character in '{s3}': {first_unique_character(s3)}")  # Output: -1
-
-s4 = "dddccdbba"
-print(f"First unique character in '{s4}': {first_unique_character(s4)}") # Output: 8
+nums3 = [9,6,4,2,3,5,7,0,1]
+print(f"Missing number in {nums3}: {missingNumber(nums3)}")  # Output: 8
 ```
 
 **Explanation:**
 
-1. **Character Counting:**
-   - We use a dictionary `char_counts` to store the frequency of each character in the input string `s`.
-   - We iterate through the string, updating the count for each character.  `char_counts.get(char, 0) + 1` elegantly handles the case where a character is seen for the first time (the default value `0` is returned by `get` in that case).
+1.  **Calculate Expected Sum:** The sum of numbers from 0 to `n` (inclusive) can be efficiently calculated using the formula `n * (n + 1) // 2`. This is based on the arithmetic series sum formula.
 
-2. **Finding the First Unique Character:**
-   - We iterate through the string `s` *again*, this time also keeping track of the index `i` using `enumerate`.
-   - For each character `char`, we check its count in the `char_counts` dictionary.
-   - If the count is 1 (meaning it's a unique character), we immediately return its index `i`.
+2.  **Calculate Actual Sum:**  Calculate the sum of the numbers present in the input array `nums`.
 
-3. **No Unique Character:**
-   - If the loop completes without finding a character with a count of 1, it means there are no unique characters in the string. In this case, we return -1.
+3.  **Find the Difference:** The difference between the `expected_sum` and the `actual_sum` is the missing number. This is because the `expected_sum` represents the sum if all numbers from 0 to `n` were present, and `actual_sum` only contains the sum of numbers that *are* present.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(N), where N is the length of the string `s`. We iterate through the string twice (once to count characters, and once to find the first unique one).
-*   **Space Complexity:** O(1) in the sense that it is bounded by a constant number of possible ASCII characters (128) or extended ASCII characters (256).  In practice, it could be considered O(N) in the worst case if the string contains N unique characters. The dictionary stores at most the count of each unique character.  So it scales with the number of unique characters, not necessarily the total length of the string.
+*   **Time Complexity:** O(n), where n is the number of elements in the `nums` array. We iterate through the array once to calculate the sum.
+*   **Space Complexity:** O(1), constant extra space. We are only using a few variables to store sums and the length of the array.  We don't use any additional data structures that scale with the input size.
 
-**Key Concepts Used:**
+**Why this is a good approach:**
 
-*   **Dictionaries (Hash Maps):**  Dictionaries are essential for efficiently storing and retrieving the counts of characters.
-*   **Iteration:**  Iterating through the string using a `for` loop and `enumerate` is crucial for accessing both the characters and their indices.
-*   **Frequency Counting:** This is a common pattern in many string problems, where you need to analyze the frequencies of characters or elements.
+*   **Efficient:**  It avoids sorting or using sets, which would have a higher time complexity in general.  The arithmetic sum formula allows us to calculate the expected sum in O(1) time.
+*   **Concise:** The code is relatively short and easy to understand.
+*   **Correct:** It handles all valid input cases according to the problem statement.
