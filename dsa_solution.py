@@ -1,76 +1,91 @@
-Okay, here's a DSA problem, along with a Python solution, including explanations:
+Okay, here's a problem related to linked lists, a fairly common DSA topic:
 
-**Problem: Find the Missing Number**
+**Problem:**
 
-**Problem Statement:**
+**Reverse Linked List (In-Place)**
 
-Given an array `nums` containing `n` distinct numbers in the range `[0, n]`, return the only number in the range that is missing from the array.
+Given the head of a singly linked list, reverse the list in-place (without using extra space proportional to the length of the list) and return the new head.
 
 **Example:**
 
-*   `nums = [3, 0, 1]`
-*   Output: `2`
-*   Explanation: `n = 3` since there are 3 numbers. All numbers are in the range `[0, 3]`. `2` is the missing number in the range since it does not appear in `nums`.
-
-*   `nums = [0, 1]`
-*   Output: `2`
-*   Explanation: `n = 2` since there are 2 numbers. All numbers are in the range `[0, 2]`. `2` is the missing number in the range since it does not appear in `nums`.
-
-*   `nums = [9,6,4,2,3,5,7,0,1]`
-*   Output: `8`
-*   Explanation: `n = 9` since there are 9 numbers. All numbers are in the range `[0, 9]`. `8` is the missing number in the range since it does not appear in `nums`.
+Input: `1 -> 2 -> 3 -> 4 -> 5 -> NULL`
+Output: `5 -> 4 -> 3 -> 2 -> 1 -> NULL`
 
 **Constraints:**
 
-*   `n == nums.length`
-*   `1 <= n <= 104`
-*   `0 <= nums[i] <= n`
-*   All the numbers of `nums` are unique.
+*   The number of nodes in the list is in the range `[0, 5000]`.
+*   `-5000 <= Node.val <= 5000`
 
-**Python Solution:**
+**Python Code Solution:**
 
 ```python
-def missingNumber(nums):
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def reverseList(head: ListNode) -> ListNode:
     """
-    Finds the missing number in a sequence of numbers from 0 to n.
+    Reverses a singly linked list in-place.
 
     Args:
-        nums: A list of integers in the range [0, n].
+        head: The head of the linked list.
 
     Returns:
-        The missing number in the range [0, n].
+        The head of the reversed linked list.
     """
-    n = len(nums)
-    expected_sum = n * (n + 1) // 2  # Sum of numbers from 0 to n
-    actual_sum = sum(nums)
-    return expected_sum - actual_sum
 
-# Example usage:
-nums1 = [3, 0, 1]
-print(f"Missing number in {nums1}: {missingNumber(nums1)}")  # Output: 2
+    prev = None
+    curr = head
 
-nums2 = [0, 1]
-print(f"Missing number in {nums2}: {missingNumber(nums2)}")  # Output: 2
+    while curr:
+        next_node = curr.next  # Store the next node
+        curr.next = prev      # Reverse the pointer
+        prev = curr           # Move prev to the current node
+        curr = next_node      # Move curr to the next node
 
-nums3 = [9,6,4,2,3,5,7,0,1]
-print(f"Missing number in {nums3}: {missingNumber(nums3)}")  # Output: 8
+    return prev  # prev is now the new head
+# Example Usage:
+# Create a linked list: 1 -> 2 -> 3 -> 4 -> 5
+head = ListNode(1)
+head.next = ListNode(2)
+head.next.next = ListNode(3)
+head.next.next.next = ListNode(4)
+head.next.next.next.next = ListNode(5)
+
+# Reverse the list
+reversed_head = reverseList(head)
+
+# Print the reversed list (for verification)
+current = reversed_head
+while current:
+    print(current.val, end=" -> ")
+    current = current.next
+print("None")  # Output: 5 -> 4 -> 3 -> 2 -> 1 -> None
+
 ```
 
 **Explanation:**
 
-1.  **Calculate Expected Sum:** The sum of numbers from 0 to `n` (inclusive) can be efficiently calculated using the formula `n * (n + 1) // 2`. This is based on the arithmetic series sum formula.
+1.  **`ListNode` Class:**  A simple class to represent a node in the linked list.  It has a `val` (the data) and a `next` pointer to the next node.
 
-2.  **Calculate Actual Sum:**  Calculate the sum of the numbers present in the input array `nums`.
+2.  **`reverseList(head)` function:**
+    *   `prev`:  Keeps track of the previous node in the reversed list.  Initially `None`.
+    *   `curr`:  The current node we're processing.  Starts at the head.
+    *   `next_node`:  A temporary variable to store the next node in the original list *before* we change the `curr.next` pointer.  This is crucial to not lose the rest of the list.
 
-3.  **Find the Difference:** The difference between the `expected_sum` and the `actual_sum` is the missing number. This is because the `expected_sum` represents the sum if all numbers from 0 to `n` were present, and `actual_sum` only contains the sum of numbers that *are* present.
+3.  **`while curr:` loop:**  Iterates through the linked list.
+    *   `next_node = curr.next`:  Saves the next node.
+    *   `curr.next = prev`:  Reverses the pointer:  The current node's `next` pointer now points to the previous node.
+    *   `prev = curr`:  Moves `prev` forward to the current node (which is now part of the reversed portion).
+    *   `curr = next_node`:  Moves `curr` to the next node (that we saved earlier).
 
-**Time and Space Complexity:**
+4.  **`return prev`:**  After the loop finishes, `prev` will be pointing to the new head of the reversed list.
 
-*   **Time Complexity:** O(n), where n is the number of elements in the `nums` array. We iterate through the array once to calculate the sum.
-*   **Space Complexity:** O(1), constant extra space. We are only using a few variables to store sums and the length of the array.  We don't use any additional data structures that scale with the input size.
+**In-Place:**
 
-**Why this is a good approach:**
+The solution is "in-place" because we're only modifying the pointers of the existing nodes. We don't create a new linked list or use extra storage proportional to the size of the input list.  We use a fixed number of extra variables (`prev`, `curr`, `next_node`), so the space complexity is O(1) (constant).
 
-*   **Efficient:**  It avoids sorting or using sets, which would have a higher time complexity in general.  The arithmetic sum formula allows us to calculate the expected sum in O(1) time.
-*   **Concise:** The code is relatively short and easy to understand.
-*   **Correct:** It handles all valid input cases according to the problem statement.
+**Time Complexity:**
+
+The algorithm iterates through the linked list once, so the time complexity is O(n), where n is the number of nodes in the list.
