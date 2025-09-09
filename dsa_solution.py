@@ -1,91 +1,81 @@
-Okay, here's a problem related to linked lists, a fairly common DSA topic:
+Okay, here's a DSA problem and a Python solution:
 
-**Problem:**
+**Problem:  First Unique Character in a String**
 
-**Reverse Linked List (In-Place)**
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
-Given the head of a singly linked list, reverse the list in-place (without using extra space proportional to the length of the list) and return the new head.
+**Example 1:**
 
-**Example:**
+```
+Input: s = "leetcode"
+Output: 0
+```
 
-Input: `1 -> 2 -> 3 -> 4 -> 5 -> NULL`
-Output: `5 -> 4 -> 3 -> 2 -> 1 -> NULL`
+**Example 2:**
 
-**Constraints:**
+```
+Input: s = "loveleetcode"
+Output: 2
+```
 
-*   The number of nodes in the list is in the range `[0, 5000]`.
-*   `-5000 <= Node.val <= 5000`
+**Example 3:**
 
-**Python Code Solution:**
+```
+Input: s = "aabb"
+Output: -1
+```
+
+**Python Solution:**
 
 ```python
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def reverseList(head: ListNode) -> ListNode:
+def first_unique_char(s: str) -> int:
     """
-    Reverses a singly linked list in-place.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        head: The head of the linked list.
+        s: The input string.
 
     Returns:
-        The head of the reversed linked list.
+        The index of the first unique character, or -1 if none exists.
     """
 
-    prev = None
-    curr = head
+    char_counts = {}  # Dictionary to store character counts
 
-    while curr:
-        next_node = curr.next  # Store the next node
-        curr.next = prev      # Reverse the pointer
-        prev = curr           # Move prev to the current node
-        curr = next_node      # Move curr to the next node
+    # Count the occurrences of each character
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    return prev  # prev is now the new head
-# Example Usage:
-# Create a linked list: 1 -> 2 -> 3 -> 4 -> 5
-head = ListNode(1)
-head.next = ListNode(2)
-head.next.next = ListNode(3)
-head.next.next.next = ListNode(4)
-head.next.next.next.next = ListNode(5)
+    # Iterate through the string again and check for the first unique character
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-# Reverse the list
-reversed_head = reverseList(head)
+    return -1  # No unique character found
 
-# Print the reversed list (for verification)
-current = reversed_head
-while current:
-    print(current.val, end=" -> ")
-    current = current.next
-print("None")  # Output: 5 -> 4 -> 3 -> 2 -> 1 -> None
+
+# Example usage
+print(first_unique_char("leetcode"))
+print(first_unique_char("loveleetcode"))
+print(first_unique_char("aabb"))
 
 ```
 
 **Explanation:**
 
-1.  **`ListNode` Class:**  A simple class to represent a node in the linked list.  It has a `val` (the data) and a `next` pointer to the next node.
+1. **`char_counts = {}`**:  A dictionary `char_counts` is initialized to store the frequency of each character in the string.
 
-2.  **`reverseList(head)` function:**
-    *   `prev`:  Keeps track of the previous node in the reversed list.  Initially `None`.
-    *   `curr`:  The current node we're processing.  Starts at the head.
-    *   `next_node`:  A temporary variable to store the next node in the original list *before* we change the `curr.next` pointer.  This is crucial to not lose the rest of the list.
+2. **Counting Character Frequencies:** The first `for` loop iterates through the input string `s`.  For each character `char`:
+   - `char_counts.get(char, 0)`:  This attempts to retrieve the current count for the character `char` from the `char_counts` dictionary. If the character is not already a key in the dictionary, `get()` returns the default value of 0.
+   - `+ 1`: The count is incremented by 1.
+   - `char_counts[char] = ...`: The updated count is stored back into the `char_counts` dictionary with the character as the key.
 
-3.  **`while curr:` loop:**  Iterates through the linked list.
-    *   `next_node = curr.next`:  Saves the next node.
-    *   `curr.next = prev`:  Reverses the pointer:  The current node's `next` pointer now points to the previous node.
-    *   `prev = curr`:  Moves `prev` forward to the current node (which is now part of the reversed portion).
-    *   `curr = next_node`:  Moves `curr` to the next node (that we saved earlier).
+3. **Finding the First Unique Character:** The second `for` loop iterates through the string `s` along with its indices using `enumerate(s)`.
+   - `if char_counts[char] == 1:`:  For each character, it checks if its count in the `char_counts` dictionary is equal to 1.  If it is, this means the character appears only once in the string.
+   - `return i`: If a unique character is found, its index `i` is immediately returned.
 
-4.  **`return prev`:**  After the loop finishes, `prev` will be pointing to the new head of the reversed list.
+4. **No Unique Character Found:** If the loop completes without finding any character with a count of 1, the function returns -1.
 
-**In-Place:**
+**Time and Space Complexity:**
 
-The solution is "in-place" because we're only modifying the pointers of the existing nodes. We don't create a new linked list or use extra storage proportional to the size of the input list.  We use a fixed number of extra variables (`prev`, `curr`, `next_node`), so the space complexity is O(1) (constant).
-
-**Time Complexity:**
-
-The algorithm iterates through the linked list once, so the time complexity is O(n), where n is the number of nodes in the list.
+* **Time Complexity:** O(n), where n is the length of the string.  We iterate through the string twice in the worst case.
+* **Space Complexity:** O(1) in the best case (e.g., string consisting of unique characters), O(n) in the worst case (e.g., all characters in string are unique).   In practice, the space used by `char_counts` is bounded by the size of the character set (e.g., 26 for lowercase English letters, or a larger number for Unicode characters). Thus it's typically O(1), treated as constant.
