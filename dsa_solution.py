@@ -1,121 +1,93 @@
-Okay, here's a randomly generated DSA problem and a Python solution:
+Okay, here's a random DSA problem and a Python solution:
 
 **Problem:**
 
-**Title:** K-Frequent Elements
+**Subarray with Given Sum**
 
-**Description:**
-
-Given an array of integers `nums` and an integer `k`, return the `k` most frequent elements. You may return the answer in any order.
+Given an array of non-negative integers `arr` and a target sum `target`, find a contiguous subarray in `arr` whose elements sum up to `target`. If such a subarray exists, return the starting and ending indices (0-based) of the subarray. If no such subarray exists, return `[-1]`.
 
 **Example:**
 
 ```
-nums = [1,1,1,2,2,3], k = 2
-Output: [1, 2]
+arr = [1, 4, 20, 3, 10, 5]
+target = 33
+Output: [2, 4]  (The subarray [20, 3, 10] sums up to 33)
 ```
-
-**Constraints:**
-
-*   `1 <= nums.length <= 105`
-*   `k` is in the range `[1, the number of unique elements in the array]`
-*   It is guaranteed that the answer is unique.
 
 **Python Solution:**
 
 ```python
-from collections import Counter
-import heapq
+def subarray_sum(arr, target):
+    """
+    Finds a contiguous subarray with the given sum.
 
-def topKFrequent(nums, k):
-  """
-  Finds the k most frequent elements in a list of numbers.
+    Args:
+        arr: A list of non-negative integers.
+        target: The target sum.
 
-  Args:
-    nums: A list of integers.
-    k: The number of most frequent elements to return.
+    Returns:
+        A list containing the start and end indices of the subarray (0-based)
+        or [-1] if no such subarray exists.
+    """
 
-  Returns:
-    A list containing the k most frequent elements.
-  """
+    current_sum = 0
+    start = 0
 
-  # 1. Count the frequency of each element
-  counts = Counter(nums)
+    for i in range(len(arr)):
+        current_sum += arr[i]
 
-  # 2. Use a min-heap to keep track of the k most frequent elements
-  #    (frequency, element) tuples
-  heap = []
-  for element, frequency in counts.items():
-    heapq.heappush(heap, (frequency, element))
-    if len(heap) > k:
-      heapq.heappop(heap)  # Remove the least frequent
+        while current_sum > target:
+            current_sum -= arr[start]
+            start += 1
 
-  # 3. Extract the k most frequent elements from the heap
-  result = []
-  while heap:
-    result.append(heapq.heappop(heap)[1])  # Get the element (not the frequency)
+        if current_sum == target:
+            return [start, i]
 
-  return result
+    return [-1]
 
-# Example Usage
-nums = [1,1,1,2,2,3]
-k = 2
-result = topKFrequent(nums, k)
-print(result) # Output: [2, 1] (or [1, 2] - order doesn't matter)
+# Example Usage:
+arr = [1, 4, 20, 3, 10, 5]
+target = 33
+result = subarray_sum(arr, target)
+print(result)  # Output: [2, 4]
 
-nums = [1]
-k = 1
-result = topKFrequent(nums, k)
-print(result) # Output: [1]
+arr = [1, 4, 0, 0, 3, 10, 5]
+target = 7
+result = subarray_sum(arr, target)
+print(result) #output: [1, 4]
 
-nums = [1,2]
-k = 2
-result = topKFrequent(nums, k)
-print(result) # Output: [2, 1] (or [1, 2] - order doesn't matter)
+arr = [1, 4, 20, 3, 10, 5]
+target = 3
+result = subarray_sum(arr, target)
+print(result) #Output: [3, 3]
+
+arr = [1, 4, 20, 3, 10, 5]
+target = 50
+result = subarray_sum(arr, target)
+print(result) #Output: [-1]
 ```
 
 **Explanation:**
 
-1.  **Count Frequencies:**
-    *   The `Counter` class from the `collections` module efficiently counts the occurrences of each element in the `nums` list.  It creates a dictionary-like object where keys are elements and values are their frequencies.
+1. **`subarray_sum(arr, target)` function:**
+   - `current_sum`:  Keeps track of the sum of the current subarray being considered.
+   - `start`: Keeps track of the starting index of the current subarray.
 
-2.  **Min-Heap (Priority Queue):**
-    *   A min-heap is used to maintain the `k` most frequent elements seen so far. A min-heap is a binary tree based data structure where the value of the root node is always the smallest (or largest, in a max-heap) amongst the values of all the nodes present in the tree.
-    *   For each element and its frequency from the `counts` dictionary:
-        *   The `heapq.heappush(heap, (frequency, element))` adds a tuple `(frequency, element)` to the heap.  The heap is ordered based on the frequency (first element of the tuple).  Since it's a min-heap, elements with lower frequencies will be prioritized for removal.
-        *   `if len(heap) > k:`: If the heap size exceeds `k`, we remove the element with the *smallest* frequency using `heapq.heappop(heap)`.  This ensures that at any point, the heap only contains the `k` most frequent elements encountered so far.
+2. **Sliding Window Approach:**
+   - The outer `for` loop iterates through the array, expanding the window by including the current element `arr[i]` in the `current_sum`.
+   - The `while` loop checks if `current_sum` exceeds the `target`. If it does, it shrinks the window from the left by removing elements (incrementing `start`) until `current_sum` is less than or equal to `target`.  This is the "sliding" part.
+   - After adjusting the window, it checks if `current_sum` is equal to `target`. If it is, the function returns the `start` and `i` (end) indices of the subarray.
 
-3.  **Extract Result:**
-    *   Finally, the elements are extracted from the heap.  Since the heap is a min-heap, we pop elements one by one, which will be in increasing order of frequency. However, the problem doesn't require a specific order, so we can just return the elements in any order.  We extract the *element* from the `(frequency, element)` tuple using `heapq.heappop(heap)[1]`.
+3. **No Subarray Found:**
+   - If the loop completes without finding a subarray that sums to `target`, the function returns `[-1]`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(N log k), where N is the length of the input array `nums`.  `Counter` takes O(N) time. Iterating through the counted items and pushing/popping from the heap takes O(N log k) time in the worst case. Building the result array takes O(k) time. So, the overall time complexity is dominated by O(N log k).
-*   **Space Complexity:** O(N) in the worst case, for the `Counter` object. The heap will store at most `k` elements, so it contributes O(k) space. Therefore, the total space complexity is O(N + k), and since `k <= N`, we can simplify this to O(N).
+- **Time Complexity:** O(n), where n is the length of the array. The `for` loop iterates through the array once, and the `while` loop within the `for` loop processes each element at most once.
+- **Space Complexity:** O(1).  The solution uses only a few extra variables (`current_sum`, `start`, `i`), so the space complexity is constant.
 
-**Alternative Solution (Bucket Sort):**
+**Key Concepts Used:**
 
-For this specific problem, if `k` is relatively close to the number of unique elements, bucket sort can be even faster (O(N) on average). However, the min-heap solution is more generally applicable and easier to implement for cases where you might not know the range of frequencies in advance.
-
-```python
-def topKFrequentBucketSort(nums, k):
-    """
-    Finds the k most frequent elements using bucket sort.
-    """
-    counts = Counter(nums)
-    buckets = [[] for _ in range(len(nums) + 1)]  # List of empty lists
-
-    for num, count in counts.items():
-        buckets[count].append(num)
-
-    result = []
-    for i in range(len(buckets) - 1, 0, -1): # Iterate from highest freq to lowest
-        for num in buckets[i]:
-            result.append(num)
-            if len(result) == k:
-                return result
-
-    return result
-```
-
-The bucket sort solution works by creating a "bucket" for each possible frequency. Then, it iterates through the `counts` (frequencies) and places the element in the corresponding bucket. Finally, it iterates through the buckets in reverse order (highest frequency to lowest) and adds the elements to the result list until `k` elements have been found. Bucket Sort has a time complexity of O(N) on average and a space complexity of O(N). Note, the worst case time complexity would be O(N^2) if all elements are the same, but that is less common.
+- **Sliding Window:**  This technique is effective for solving many array/string problems where you need to find a subarray or substring that satisfies a certain condition. The sliding window approach helps to avoid unnecessary recalculations by dynamically adjusting the window size.
+- **Contiguous Subarray:** A subarray consisting of consecutive elements from the original array.
+- **Non-negative Integers:**  The problem specifies that the input array contains non-negative integers.  This is important because it allows us to use the sliding window approach efficiently. If negative numbers were allowed, the sliding window technique would need to be modified to handle the possibility of `current_sum` decreasing when adding elements to the window, making the problem more complex (and potentially requiring a different approach like using a hash map to store prefix sums).
