@@ -1,91 +1,68 @@
 Okay, here's a random DSA problem and a Python solution:
 
-**Problem:**
+**Problem:  First Unique Character in a String**
 
-**"Merge Intervals"**
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
 
-Given a collection of intervals, merge all overlapping intervals.
+**Example:**
 
-**Example 1:**
+*   `s = "leetcode"`  Output: `0` (because 'l' is the first unique character and it's at index 0)
+*   `s = "loveleetcode"` Output: `2` (because 'v' is the first unique character and it's at index 2)
+*   `s = "aabb"` Output: `-1` (because there are no unique characters)
 
-Input: `intervals = [[1,3],[2,6],[8,10],[15,18]]`
-Output: `[[1,6],[8,10],[15,18]]`
-Explanation: Since intervals `[1,3]` and `[2,6]` overlap, merge them into `[1,6]`.
-
-**Example 2:**
-
-Input: `intervals = [[1,4],[4,5]]`
-Output: `[[1,5]]`
-Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
-
-**Constraints:**
-
-*   `1 <= intervals.length <= 104`
-*   `intervals[i].length == 2`
-*   `0 <= intervals[i][0] <= intervals[i][1] <= 104`
-
-**Python Solution:**
+**Solution (Python):**
 
 ```python
-def merge_intervals(intervals):
+def firstUniqChar(s):
     """
-    Merges overlapping intervals in a list of intervals.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        intervals: A list of intervals, where each interval is a list of two integers (start, end).
+        s: The input string.
 
     Returns:
-        A list of merged intervals.
+        The index of the first unique character, or -1 if none exists.
     """
 
-    if not intervals:
-        return []
+    # Use a dictionary to store character counts.
+    char_counts = {}
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1  # Increment count, default to 0 if not present
 
-    # Sort the intervals by start time. This is crucial for the algorithm's correctness.
-    intervals.sort(key=lambda x: x[0])
+    # Iterate through the string again to find the first character with a count of 1.
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-    merged = []
-    for interval in intervals:
-        # If the list of merged intervals is empty or if the current
-        # interval does not overlap with the last interval, simply append it.
-        if not merged or interval[0] > merged[-1][1]:
-            merged.append(interval)
-        else:
-            # Otherwise, there is overlap, so we merge the current interval
-            # with the last interval.
-            merged[-1][1] = max(merged[-1][1], interval[1])
+    # If no unique character is found, return -1.
+    return -1
 
-    return merged
 
-# Example Usage:
-intervals1 = [[1,3],[2,6],[8,10],[15,18]]
-print(f"Input: {intervals1}, Output: {merge_intervals(intervals1)}")  # Output: [[1, 6], [8, 10], [15, 18]]
+# Example Usage
+string1 = "leetcode"
+string2 = "loveleetcode"
+string3 = "aabb"
 
-intervals2 = [[1,4],[4,5]]
-print(f"Input: {intervals2}, Output: {merge_intervals(intervals2)}")  # Output: [[1, 5]]
-
-intervals3 = [[1,4],[0,4]]
-print(f"Input: {intervals3}, Output: {merge_intervals(intervals3)}") #Output [[0, 4]]
-
-intervals4 = [[1,4],[0,0]]
-print(f"Input: {intervals4}, Output: {merge_intervals(intervals4)}") # Output [[0, 0], [1, 4]]
-
-intervals5 = [[1,4],[0,2],[3,5]]
-print(f"Input: {intervals5}, Output: {merge_intervals(intervals5)}") # Output [[0, 5]]
+print(f"'{string1}': {firstUniqChar(string1)}")
+print(f"'{string2}': {firstUniqChar(string2)}")
+print(f"'{string3}': {firstUniqChar(string3)}")
 ```
 
 **Explanation:**
 
-1.  **Sort Intervals:** The core idea is to sort the intervals based on their starting times. This allows us to iterate through them sequentially and check for overlaps.
+1.  **Character Counting:**
+    *   A dictionary `char_counts` is used to store the frequency of each character in the string.
+    *   The code iterates through the string `s`. For each character:
+        *   `char_counts.get(char, 0) + 1`: This cleverly retrieves the current count of the character `char` from the dictionary. If the character is not yet in the dictionary, `get(char, 0)` returns 0 (the default value).  Then, it increments the count by 1.
 
-2.  **Iterate and Merge:**
-    *   Initialize an empty `merged` list to store the merged intervals.
-    *   For each interval:
-        *   If `merged` is empty or the current interval's start is greater than the end of the last interval in `merged`, it means there's no overlap. Add the current interval directly to `merged`.
-        *   Otherwise, there's an overlap.  Update the end of the last interval in `merged` to be the maximum of its current end and the current interval's end.  This effectively merges the intervals.
+2.  **Finding the First Unique Character:**
+    *   The code iterates through the string `s` *again*, this time keeping track of the index `i` using `enumerate`.
+    *   For each character `char` at index `i`, it checks if `char_counts[char]` is equal to 1.  If it is, that means the character appeared only once in the string.  The function immediately returns the index `i`.
 
-3.  **Return:**  Return the `merged` list.
+3.  **No Unique Character:**
+    *   If the loop completes without finding any character with a count of 1, it means there are no unique characters in the string.  In this case, the function returns `-1`.
 
-**Time Complexity:** O(n log n) due to the sorting step. The rest of the algorithm is O(n).
+**Time and Space Complexity:**
 
-**Space Complexity:** O(n) in the worst case (if no intervals overlap, the `merged` list will store all intervals). It could be considered O(1) extra space if you're allowed to modify the input array in place (in some scenarios, you might sort in-place and modify the original list). However, a new `merged` list is created here for clarity.
+*   **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string twice.
+*   **Space Complexity:** O(1).  While we use a dictionary, in the worst case, it will store all distinct characters of the string. In the worst case scenario all 26 lowercase English alphabet will be stored. Therefore we can consider it as O(1).
