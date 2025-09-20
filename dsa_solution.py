@@ -1,123 +1,82 @@
-Okay, here's a DSA problem along with a Python solution.
+Okay, here's a randomly generated DSA problem and its Python solution:
 
-**Problem:**
+**Problem:  First Unique Character in a String**
 
-**Merge K Sorted Lists**
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
-You are given an array of k linked-lists `lists`, each linked-list is sorted in ascending order.
-
-Merge all the linked-lists into one sorted linked-list and return it.
-
-**Example:**
+**Example 1:**
 
 ```
-Input: lists = [[1,4,5],[1,3,4],[2,6]]
-Output: [1,1,2,3,4,4,5,6]
-Explanation: The linked-lists are:
-[
-  1->4->5,
-  1->3->4,
-  2->6
-]
-merging them into one sorted list:
-1->1->2->3->4->4->5->6
+Input: s = "leetcode"
+Output: 0
 ```
 
-**Data Structures and Algorithm Considerations:**
+**Example 2:**
 
-*   **Linked Lists:**  The input is a list of linked lists. You'll need to work with linked list nodes.
-*   **Sorting:** The core is sorting elements from multiple lists efficiently.
-*   **Priority Queue (Heap):**  A min-heap (priority queue) is an excellent choice for this.  You can efficiently find the smallest element across all `k` lists at any given time.
-*   **Time Complexity:** Using a min-heap, you can achieve a time complexity of O(N log k), where N is the total number of nodes across all k lists.  This is because inserting and extracting from a heap of size k takes O(log k) time, and you perform these operations approximately N times.
+```
+Input: s = "loveleetcode"
+Output: 2
+```
 
-**Python Code (using `heapq`):**
+**Example 3:**
+
+```
+Input: s = "aabb"
+Output: -1
+```
+
+**Python Solution:**
 
 ```python
-import heapq
-
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def mergeKLists(lists):
+def firstUniqChar(s: str) -> int:
     """
-    Merges k sorted linked lists into one sorted linked list.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        lists: A list of linked list heads.
+        s: The input string.
 
     Returns:
-        The head of the merged sorted linked list.
+        The index of the first unique character, or -1 if none exists.
     """
 
-    heap = []
-    # Add the first node of each list to the heap.  Store the list index as well.
-    for i, head in enumerate(lists):
-        if head:
-            heapq.heappush(heap, (head.val, i, head)) # (value, list_index, node)
+    char_counts = {}  # Dictionary to store character counts
 
-    dummy = ListNode(0)  # Dummy node to simplify the merging process
-    current = dummy
+    # Count the occurrences of each character
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    while heap:
-        val, list_index, node = heapq.heappop(heap)
-        current.next = node  # Add the smallest node to the merged list
-        current = current.next
+    # Iterate through the string again to find the first unique character
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-        if node.next:
-            heapq.heappush(heap, (node.next.val, list_index, node.next))
+    return -1  # No unique character found
+# Example Usage:
+string1 = "leetcode"
+print(f"First unique character in '{string1}' is at index: {firstUniqChar(string1)}") # Output: 0
 
-    return dummy.next
+string2 = "loveleetcode"
+print(f"First unique character in '{string2}' is at index: {firstUniqChar(string2)}") # Output: 2
 
-# Example usage:
-# Create some sample linked lists
-list1 = ListNode(1, ListNode(4, ListNode(5)))
-list2 = ListNode(1, ListNode(3, ListNode(4)))
-list3 = ListNode(2, ListNode(6))
-
-lists = [list1, list2, list3]
-
-merged_list = mergeKLists(lists)
-
-# Print the merged list (for verification)
-while merged_list:
-    print(merged_list.val, end=" -> ")
-    merged_list = merged_list.next
-print("None")  # Output: 1 -> 1 -> 2 -> 3 -> 4 -> 4 -> 5 -> 6 -> None
+string3 = "aabb"
+print(f"First unique character in '{string3}' is at index: {firstUniqChar(string3)}") # Output: -1
 ```
 
 **Explanation:**
 
-1.  **`ListNode` Class:** A standard linked list node definition.
+1. **Character Counting:**
+   - We use a dictionary `char_counts` to store the frequency of each character in the string.
+   - We iterate through the string `s`, and for each character `char`, we increment its count in the `char_counts` dictionary.  The `.get(char, 0)` method handles the case where the character is encountered for the first time (it defaults the count to 0).
 
-2.  **`mergeKLists(lists)` Function:**
-    *   **Initialization:**
-        *   `heap = []`:  An empty list to be used as a min-heap. We'll use Python's `heapq` module to maintain the heap property.
-        *   The code iterates through the `lists` array and adds the *first* node of each non-empty list to the `heap`.  Crucially, it stores a tuple `(head.val, i, head)` in the heap.  This tuple contains:
-            *   `head.val`: The value of the node (used for heap ordering).
-            *   `i`: The index of the list the node came from (important for later retrieval).
-            *   `head`:  The actual `ListNode` object. Storing the node is essential for building the linked list.
-        *   `dummy = ListNode(0)`: A dummy node is used to simplify the merging process.  It acts as a temporary head, allowing us to easily add nodes to the beginning of the merged list without special-casing the first element.
-        *   `current = dummy`:  A pointer to track the current tail of the merged list.
+2. **Finding the First Unique:**
+   - We iterate through the string `s` again, this time along with its index `i`.
+   - For each character `char`, we check if its count in `char_counts` is equal to 1. If it is, it means the character is unique.
+   - If we find a unique character, we immediately return its index `i`.
 
-    *   **Main Loop:**
-        *   `while heap:`:  The loop continues as long as the heap is not empty.
-        *   `val, list_index, node = heapq.heappop(heap)`:  The `heapq.heappop(heap)` function removes the smallest element (based on `val`) from the heap. We unpack the tuple to get the value, list index, and the `ListNode` object.
-        *   `current.next = node`: The smallest node is appended to the end of the merged list (pointed to by `current`).
-        *   `current = current.next`:  The `current` pointer is advanced to the newly added node.
-        *   `if node.next:`: If the node we just added has a `next` node in its original list, we add that `next` node to the heap so that it can be considered in the next iteration.  We use the original list index `list_index` to keep track of which list it came from.
+3. **No Unique Character:**
+   - If we iterate through the entire string and don't find any unique characters, we return -1.
 
-    *   **Return:**
-        *   `return dummy.next`: The function returns the `next` of the dummy node, which is the head of the merged sorted linked list.
+**Time and Space Complexity:**
 
-**Key Improvements and Explanations:**
-
-*   **Heapq for Efficiency:**  `heapq` in Python provides an efficient implementation of a min-heap.  This is crucial for the time complexity.
-*   **Storing List Index:** The `list_index` is stored in the heap tuple so that when we pop a node, we know which list to fetch the next node from.
-*   **Dummy Node:** The `dummy` node simplifies the creation of the merged linked list. It avoids the need to handle the first node as a special case.
-*   **Clear Comments:**  The code includes comments to explain each step.
-*   **Example Usage:** The example usage shows how to create linked lists and call the `mergeKLists` function.
-*   **Correctness:** The code is tested and handles edge cases (e.g., empty lists).
-
-This solution provides a balance of clarity, efficiency, and practical usage.  It is a common and well-regarded approach for solving the "Merge K Sorted Lists" problem.
+- **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string twice.
+- **Space Complexity:** O(1). In the worst case, the `char_counts` dictionary will store the counts of all unique characters in the string.  The size of the dictionary is bounded by the size of the character set (e.g., 26 for lowercase English letters, 128 for ASCII). So, we can consider it as constant space.
