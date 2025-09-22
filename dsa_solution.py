@@ -1,148 +1,100 @@
-Okay, here's a DSA problem involving linked lists, along with a Python solution:
+Okay, here's a random DSA problem and a corresponding Python solution:
 
-**Problem:  Remove Nth Node From End of List**
+**Problem: First Unique Character in a String**
 
-Given the head of a singly linked list, remove the *n*th node from the *end* of the list and return the head.
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
 
-**Example:**
+**Example 1:**
 
 ```
-Input: head = [1,2,3,4,5], n = 2
-Output: [1,2,3,5]
-
-Input: head = [1], n = 1
-Output: []
-
-Input: head = [1,2], n = 1
-Output: [1]
+Input: s = "leetcode"
+Output: 0
 ```
 
-**Constraints:**
+**Example 2:**
 
-*   The number of nodes in the list is `sz`.
-*   `1 <= sz <= 30`
-*   `0 <= Node.val <= 100`
-*   `1 <= n <= sz`
+```
+Input: s = "loveleetcode"
+Output: 2
+```
 
-**Python Solution:**
+**Example 3:**
+
+```
+Input: s = "aabb"
+Output: -1
+```
+
+**Conceptual Explanation**
+
+The core idea is to:
+
+1.  **Count Character Frequencies:**  Go through the string and keep track of how many times each character appears.  A dictionary (hash map) is perfect for this.
+2.  **Find the First Unique:** Iterate through the string *again*.  This time, for each character, look up its frequency in the dictionary.  If the frequency is 1, that's your first unique character. Return its index.
+3.  **Handle No Unique Character:** If the loop finishes without finding any character with a frequency of 1, it means there's no unique character.  Return -1.
+
+**Python Code Solution**
 
 ```python
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def removeNthFromEnd(head, n):
+def first_unique_char(s):
     """
-    Removes the nth node from the end of a linked list.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        head: The head of the linked list.
-        n: The position of the node to remove from the end.
+        s: The input string.
 
     Returns:
-        The head of the modified linked list.
+        The index of the first non-repeating character, or -1 if none exists.
     """
 
-    # 1. Two Pointers (Fast and Slow)
-    fast = head
-    slow = head
+    char_counts = {}  # Dictionary to store character frequencies
 
-    # 2. Advance the Fast pointer n nodes ahead
-    for _ in range(n):
-        if not fast:
-            return head  # Handle case where n is larger than list size (technically violates contraint, but good to consider)
-        fast = fast.next
+    # First pass: Count character frequencies
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    # 3. Handle the case where we're removing the head (fast reaches the end before any movement)
-    if not fast:
-        return head.next
+    # Second pass: Find the first character with frequency 1
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-    # 4. Move both pointers until fast reaches the end
-    while fast.next:
-        fast = fast.next
-        slow = slow.next
+    return -1  # No unique character found
 
-    # 5. Remove the nth node from the end
-    slow.next = slow.next.next
-
-    return head
-
-# Example Usage (with helper function to create list and print it):
-def create_linked_list(arr):
-    """Creates a linked list from a python list."""
-    if not arr:
-        return None
-    head = ListNode(arr[0])
-    curr = head
-    for i in range(1, len(arr)):
-        curr.next = ListNode(arr[i])
-        curr = curr.next
-    return head
-
-def print_linked_list(head):
-    """Prints a linked list."""
-    curr = head
-    while curr:
-        print(curr.val, end=" -> ")
-        curr = curr.next
-    print("None")
-
-
-# Test Cases
-arr1 = [1,2,3,4,5]
-head1 = create_linked_list(arr1)
-print("Original list:")
-print_linked_list(head1)
-n1 = 2
-new_head1 = removeNthFromEnd(head1, n1)
-print(f"After removing {n1}th from end:")
-print_linked_list(new_head1)  # Expected: 1 -> 2 -> 3 -> 5 -> None
-
-arr2 = [1]
-head2 = create_linked_list(arr2)
-print("\nOriginal list:")
-print_linked_list(head2)
-n2 = 1
-new_head2 = removeNthFromEnd(head2, n2)
-print(f"After removing {n2}th from end:")
-print_linked_list(new_head2)  # Expected: None
-
-arr3 = [1,2]
-head3 = create_linked_list(arr3)
-print("\nOriginal list:")
-print_linked_list(head3)
-n3 = 1
-new_head3 = removeNthFromEnd(head3, n3)
-print(f"After removing {n3}th from end:")
-print_linked_list(new_head3)  # Expected: 1 -> None
-
-arr4 = [1,2]
-head4 = create_linked_list(arr4)
-print("\nOriginal list:")
-print_linked_list(head4)
-n4 = 2
-new_head4 = removeNthFromEnd(head4, n4)
-print(f"After removing {n4}th from end:")
-print_linked_list(new_head4)  # Expected: 2 -> None
+# Example Usage
+print(first_unique_char("leetcode"))    # Output: 0
+print(first_unique_char("loveleetcode")) # Output: 2
+print(first_unique_char("aabb"))         # Output: -1
 ```
 
-Key improvements and explanations:
+**Explanation of the Code:**
 
-*   **Clearer Comments:** Added more detailed comments to explain each step of the algorithm.
-*   **Edge Case Handling:** Handles the edge case where `n` is equal to the length of the list (removing the head node).  Specifically, the `if not fast:` block after advancing `fast` by `n` positions takes care of this.
-*   **Two-Pointer Technique:** This solution uses the efficient two-pointer technique (fast and slow pointers) to solve the problem in O(N) time with O(1) space complexity.  This avoids the need to traverse the list twice (once to get the length and once to find the node to remove).
-*   **`ListNode` Class:** Includes the `ListNode` class definition, making the code complete and runnable.
-*   **Helper Functions:**  The `create_linked_list` and `print_linked_list` functions make testing and visualizing the linked list much easier.  This is good practice for DSA problems.
-*   **Multiple Test Cases:**  The code now includes several test cases covering different scenarios, including removing the only node, removing the last node, and removing a node from the middle.  This is crucial for verifying the correctness of your solution.
-*   **Correctness:**  The code is now thoroughly tested and verified to produce the correct output for all the test cases, including edge cases.
-*   **Conciseness:** Code is written in a clean and concise manner.
-*   **Adherence to Constraints:** The code adheres to the given constraints.
-*   **Explanation of Two-Pointer Approach:**
+1.  **`first_unique_char(s)` Function:**
+    *   Takes the input string `s` as an argument.
+    *   Initializes an empty dictionary `char_counts` to store character frequencies.
 
-    1.  **Initialization:**  `fast` and `slow` pointers are both initialized to the `head` of the list.
-    2.  **Advance `fast`:** The `fast` pointer is moved `n` positions ahead in the list.  The crucial idea is that by the time the `fast` pointer reaches the end of the list, the `slow` pointer will be `n` nodes behind the end.  That means `slow` is *right before* the node we want to remove.
-    3.  **Move Both Pointers:** Both `fast` and `slow` pointers are advanced simultaneously until `fast` reaches the end of the list.
-    4.  **Remove the Node:**  The node after `slow` is the node to be removed.  We update `slow.next` to point to the node after the one we're removing.  This effectively removes the `n`th node from the end.
-* **Returns head**: returns the correct head of the list after removing the Nth node.  If the first node is the one to be removed, the next node becomes the head.
-This improved answer provides a complete, correct, and well-explained solution to the "Remove Nth Node From End of List" problem.  The code is well-documented, handles edge cases gracefully, and includes comprehensive test cases.
+2.  **First Pass (Frequency Counting):**
+    *   `for char in s:`: Iterates through each character in the string.
+    *   `char_counts[char] = char_counts.get(char, 0) + 1`: This line updates the frequency count for the current character `char`.
+        *   `char_counts.get(char, 0)`:  This tries to get the current count of `char` from the dictionary. If `char` is not yet in the dictionary (first time seeing it), it returns 0 as the default value.
+        *   `+ 1`: Increments the count.
+        *   `char_counts[char] = ...`:  Assigns the updated count back to the `char` key in the dictionary.
+
+3.  **Second Pass (Finding First Unique):**
+    *   `for i, char in enumerate(s):`: Iterates through the string *again*, this time using `enumerate` to get both the index `i` and the character `char` at each position.
+    *   `if char_counts[char] == 1:`:  Checks if the frequency of the current character (looked up in the `char_counts` dictionary) is equal to 1.  If it is, it means this is a unique character.
+    *   `return i`:  Immediately returns the index `i` of the first unique character.
+
+4.  **No Unique Character:**
+    *   `return -1`: If the loop completes without finding any character with a frequency of 1, it means there are no unique characters in the string.  The function returns -1 to indicate this.
+
+**Time and Space Complexity**
+
+*   **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string twice in the worst case.
+*   **Space Complexity:** O(1). In the worst case, the `char_counts` dictionary will store all the distinct characters in the string. However, the size of the dictionary is limited by the size of the character set (e.g., for ASCII characters, it's at most 128; for Unicode, it's larger, but still constant relative to the input string's arbitrary length).  Therefore, the space is considered O(1).
+
+**Key Improvements and Considerations**
+
+*   **Clarity:** The code is written to be readable and easy to understand.
+*   **Efficiency:** The use of a dictionary provides efficient lookups (average O(1) time).
+*   **Edge Cases:**  The code handles the case where there are no unique characters by returning -1.
+*   **Character Set:**  If you were dealing with a very large character set (e.g., extended Unicode), you might consider using a more space-efficient data structure if memory usage becomes a concern, but for common cases, the dictionary is the most practical and clear approach.
