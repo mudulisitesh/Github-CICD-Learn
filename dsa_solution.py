@@ -1,89 +1,95 @@
-Okay, here's a DSA problem with a Python solution:
+Okay, here's a DSA problem along with a Python solution.
 
-**Problem:**
+**Problem:  First Unique Character in a String**
 
-**Group Anagrams**
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
 
-Given an array of strings `strs`, group the anagrams together. You can return the answer in **any order**.
+**Example:**
 
-An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
+*   `s = "leetcode"`  Return `0`.
+*   `s = "loveleetcode"` Return `2`.
+*   `s = "aabb"` Return `-1`.
 
-**Example 1:**
+**Explanation:**
 
-```
-Input: strs = ["eat","tea","tan","ate","nat","bat"]
-Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
-```
-
-**Example 2:**
-
-```
-Input: strs = [""]
-Output: [[""]]
-```
-
-**Example 3:**
-
-```
-Input: strs = ["a"]
-Output: [["a"]]
-```
-
-**Constraints:**
-
-*   `1 <= strs.length <= 10^4`
-*   `0 <= strs[i].length <= 100`
-*   `strs[i]` consists of lowercase English letters.
+The goal is to efficiently find the first character that appears only once in the given string.  We need to track the frequency of each character and then find the first character with a frequency of 1.
 
 **Python Solution:**
 
 ```python
-from collections import defaultdict
-
-def groupAnagrams(strs):
+def first_unique_char(s):
     """
-    Groups anagrams from a list of strings.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        strs: A list of strings.
+        s: The input string.
 
     Returns:
-        A list of lists, where each inner list contains anagrams.
+        The index of the first unique character, or -1 if no such character exists.
     """
-    anagram_groups = defaultdict(list)  # Use defaultdict for convenient grouping
 
-    for s in strs:
-        # Create a sorted string as a key (anagram signature)
-        sorted_s = "".join(sorted(s))
+    # Use a dictionary to store the frequency of each character.
+    char_counts = {}
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-        # Add the original string to the corresponding group
-        anagram_groups[sorted_s].append(s)
+    # Iterate through the string again, checking for the first unique character.
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-    # Return the values (list of anagrams) of the dictionary
-    return list(anagram_groups.values())
+    # If no unique character is found, return -1.
+    return -1
 
 
-# Example Usage
-strs1 = ["eat", "tea", "tan", "ate", "nat", "bat"]
-print(groupAnagrams(strs1))  # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']] (order may vary)
+# Example usage:
+string1 = "leetcode"
+string2 = "loveleetcode"
+string3 = "aabb"
 
-strs2 = [""]
-print(groupAnagrams(strs2)) #Output: [['']]
-
-strs3 = ["a"]
-print(groupAnagrams(strs3)) # Output: [['a']]
+print(f"'{string1}': {first_unique_char(string1)}")  # Output: 'leetcode': 0
+print(f"'{string2}': {first_unique_char(string2)}")  # Output: 'loveleetcode': 2
+print(f"'{string3}': {first_unique_char(string3)}")  # Output: 'aabb': -1
 ```
 
-**Explanation:**
+**Explanation of the Code:**
 
-1.  **`defaultdict(list)`:**  We use `defaultdict(list)` from the `collections` module. This creates a dictionary where, if a key is not found, it automatically creates an empty list as the default value for that key.  This is perfect for grouping.
+1.  **Frequency Counting:**
+    *   A dictionary `char_counts` is used to store the frequency of each character in the string.  The keys of the dictionary are the characters, and the values are their counts.
+    *   The code iterates through the string `s`, and for each character:
+        *   `char_counts[char] = char_counts.get(char, 0) + 1` increments the count of the character in the dictionary. `char_counts.get(char, 0)` efficiently handles cases where the character is seen for the first time (if it's not in the dictionary, it defaults to 0).
 
-2.  **Anagram Signature (Key):** The core idea is to create a unique identifier for each anagram group. We achieve this by sorting the characters in each string `s`.  The sorted string will be the same for all anagrams.  For example, "eat", "tea", and "ate" all become "aet" when sorted.  This "aet" becomes the key in our `anagram_groups` dictionary.
+2.  **Finding the First Unique Character:**
+    *   The code iterates through the string `s` again, this time keeping track of the index `i` of each character.
+    *   For each character, it checks if its count in the `char_counts` dictionary is equal to 1.
+    *   If a character has a count of 1, it means it's unique, so the function immediately returns its index `i`.
 
-3.  **Grouping:** We iterate through the input `strs`. For each string `s`, we calculate its sorted form (`sorted_s`). We then use `anagram_groups[sorted_s].append(s)` to add the *original* string `s` to the list associated with its sorted form.
+3.  **Handling No Unique Character:**
+    *   If the loop completes without finding any unique characters (i.e., no character has a count of 1), the function returns -1.
 
-4.  **Returning the Result:** Finally, `list(anagram_groups.values())` returns a list of lists. Each inner list contains the anagrams that belong to the same group (i.e., have the same sorted form).
+**Time and Space Complexity:**
 
-**Time Complexity:** O(N * K log K), where N is the number of strings in the input list, and K is the maximum length of a string.  Sorting each string takes O(K log K) time, and we do this for each of the N strings.
+*   **Time Complexity:** O(n), where n is the length of the string.  The code iterates through the string twice in the worst case.
+*   **Space Complexity:** O(1), in the sense that it's bounded by the character set size. In the worst case, the dictionary `char_counts` might store counts for all the unique characters in the string.  If the character set is limited (e.g., ASCII, lowercase English letters), the space is considered constant.  If the string can contain any Unicode character, the space could technically be O(n) in the extremely unlikely worst case where every character is different.
 
-**Space Complexity:** O(N * K), where N is the number of strings, and K is the maximum length of a string. In the worst case, all strings are unique, and we need to store all of them in the `anagram_groups` dictionary.
+**Alternative using `collections.Counter`:**
+
+A slightly more concise version using `collections.Counter` is:
+
+```python
+from collections import Counter
+
+def first_unique_char_counter(s):
+    """
+    Finds the index of the first non-repeating character using Counter.
+    """
+    char_counts = Counter(s)
+
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
+
+    return -1
+```
+
+This version achieves the same functionality but leverages the `Counter` class for simpler frequency counting.  The time and space complexity remain the same.  `Counter` is generally a good choice when you need to count the frequency of elements in a sequence.
