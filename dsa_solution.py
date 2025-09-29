@@ -1,118 +1,73 @@
-Okay, here's a DSA problem and a Python solution:
+Okay, here's a DSA problem with a Python solution:
 
-**Problem:  First Missing Positive**
+**Problem: First Unique Character in a String**
 
-Given an unsorted integer array `nums`, find the smallest missing positive integer.  You must implement an algorithm that runs in `O(n)` time and uses constant extra space.
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
 **Example:**
 
-```
-Input: nums = [1,2,0]
-Output: 3
+*   **Input:** `s = "leetcode"`
+*   **Output:** `0`
 
-Input: nums = [3,4,-1,1]
-Output: 2
+*   **Input:** `s = "loveleetcode"`
+*   **Output:** `2`
 
-Input: nums = [7,8,9,11,12]
-Output: 1
-```
+*   **Input:** `s = "aabb"`
+*   **Output:** `-1`
 
 **Explanation:**
 
-The problem requires us to find the smallest positive integer that's *not* present in the array.  A naive approach might involve sorting, but sorting is typically O(n log n).  We need an O(n) solution.  The key is to use the array itself as a hash table.
+The first non-repeating character in "leetcode" is 'l' at index 0.
+The first non-repeating character in "loveleetcode" is 'v' at index 2.
+All characters in "aabb" repeat.
 
 **Python Solution:**
 
 ```python
-def first_missing_positive(nums):
+def first_unique_char(s: str) -> int:
     """
-    Finds the smallest missing positive integer in an array.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-      nums: A list of integers.
+        s: The input string.
 
     Returns:
-      The smallest missing positive integer.
+        The index of the first non-repeating character, or -1 if none exists.
     """
 
-    n = len(nums)
+    char_counts = {}  # Dictionary to store character counts
 
-    # 1. Check if 1 is present. If not, you're done and 1 is the answer.
-    if 1 not in nums:
-        return 1
+    # Count the occurrences of each character
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    # 2. Replace negative numbers, zeros, and numbers larger than n by 1.
-    # After this conversion, `nums` will contain only positive numbers.
-    for i in range(n):
-        if nums[i] <= 0 or nums[i] > n:
-            nums[i] = 1
-
-    # 3. Use the index as a hash key and number sign as a presence detector.
-    # For example, if nums[1] is negative, that means that the number `1`
-    # is present in the array.
-    # If nums[2] is positive, the number 2 is missing.
-    for i in range(n):
-        a = abs(nums[i])
-        # If you meet number a in the array, change the sign of a-th element.
-        # Be careful with duplicates: do it only once.
-        if a == n:  # Edge case:  n itself
-            nums[0] = - abs(nums[0]) #Use index 0 to mark n.
-        else:
-            nums[a] = - abs(nums[a])
-
-    # 4. Now the index of the first positive number will be equal to
-    # the first missing positive.
-    for i in range(1, n):
-        if nums[i] > 0:
+    # Find the first character with a count of 1
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
             return i
 
-    if nums[0] > 0: #Check if n is missing.
-        return n
+    # No unique character found
+    return -1
 
-    return n + 1  # If nums[0] is negative, then n+1 is missing.
-
-# Example Usage:
-nums1 = [1, 2, 0]
-print(f"Input: {nums1}, Output: {first_missing_positive(nums1)}")  # Output: 3
-
-nums2 = [3, 4, -1, 1]
-print(f"Input: {nums2}, Output: {first_missing_positive(nums2)}")  # Output: 2
-
-nums3 = [7, 8, 9, 11, 12]
-print(f"Input: {nums3}, Output: {first_missing_positive(nums3)}")  # Output: 1
-
-nums4 = [1]
-print(f"Input: {nums4}, Output: {first_missing_positive(nums4)}") #Output: 2
-
-nums5 = [2]
-print(f"Input: {nums5}, Output: {first_missing_positive(nums5)}") #Output: 1
-
-nums6 = [2,2]
-print(f"Input: {nums6}, Output: {first_missing_positive(nums6)}") #Output: 1
-
-nums7 = [1,1]
-print(f"Input: {nums7}, Output: {first_missing_positive(nums7)}") #Output: 2
+# Example usage
+print(first_unique_char("leetcode"))    # Output: 0
+print(first_unique_char("loveleetcode")) # Output: 2
+print(first_unique_char("aabb"))       # Output: -1
 ```
 
 **Explanation of the Code:**
 
-1. **Handle the Base Case (1):** The first thing we check is whether the number `1` is present in the array. If it's not, then `1` is the smallest missing positive, and we return it immediately.
+1.  **Character Counting:**
+    *   We use a dictionary `char_counts` to store the number of times each character appears in the string.  We iterate through the string and update the counts. `char_counts.get(char, 0)` is used to retrieve the current count of the character `char`. If `char` is not already in `char_counts`, it returns 0 as the default value.  We then add 1 to the count.
 
-2. **Clean Up the Array:** We iterate through the array and replace all negative numbers, zeros, and numbers greater than `n` (the array length) with `1`. This is crucial because we are going to use the array indices (1 to n) to represent the presence of numbers from 1 to n. Numbers outside this range are irrelevant.
+2.  **Finding the First Unique Character:**
+    *   We iterate through the string again, this time keeping track of the index `i` of each character.
+    *   For each character, we check if its count in `char_counts` is equal to 1. If it is, it means the character appears only once in the string, and we return its index `i`.
 
-3. **Using the Array as a Hash Table:** This is the core of the algorithm.  We iterate through the (modified) array.  For each number `a` in the array, we take its absolute value (`abs(nums[i])`).  We then treat `a` as an index into the array (`nums[a]`).  We change the sign of the element at that index to negative.  This "marks" the presence of the number `a` in the array.
-
-   - **Important Note:** We're using the array *itself* to track which numbers (1 to n) are present.  A negative sign at `nums[i]` means the number `i` is present.
-   - **Edge Case: n:** When `a` equals `n` (the length of the array), we have to use index 0 to mark the presence of n because index n doesn't exist. We use the sign of nums[0] for this.
-   - **`abs()`:** We use `abs()` because the element at `nums[a]` might have already been changed to negative during a previous iteration.
-
-4. **Finding the Missing Number:** After the previous step, the index of the first positive number in the array (starting from index 1) will be the smallest missing positive integer.  We iterate through the array (starting from index 1).  If we find a positive number `nums[i]`, it means that the number `i` is missing.
-
-5. **Handle Edge Cases (n and n+1):**
-   - If we make it through the loop from 1 to `n-1` and find no positive numbers, we check if `nums[0]` is positive. If it is, then `n` is missing.
-   - If `nums[0]` is negative, it means that `n` is present. In this case, `n + 1` is the smallest missing positive.
+3.  **Handling No Unique Characters:**
+    *   If the loop completes without finding any character with a count of 1, it means there are no unique characters in the string. In this case, we return -1.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n) - The algorithm iterates through the array a maximum of three times.
-*   **Space Complexity:** O(1) - The algorithm uses constant extra space. We're modifying the array in-place.
+*   **Time Complexity:** O(N), where N is the length of the string.  We iterate through the string twice in the worst case.
+*   **Space Complexity:** O(1). The `char_counts` dictionary can store at most 26 unique characters (for lowercase English alphabets), or a constant number of characters based on the character set of the input string. Hence the space complexity is considered constant.  In the worst case, all characters in the input string are unique, so the dictionary would store all those characters. But practically it's considered O(1) for typical character sets. If we considered all possible Unicode characters, then the space complexity could technically approach O(N), but for most practical cases (ASCII, common Unicode character sets), we can reasonably treat it as constant.
