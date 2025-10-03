@@ -1,96 +1,93 @@
-Okay, here's a DSA problem and its Python solution:
+Okay, here's a DSA problem and its solution in Python:
 
 **Problem:**
 
-**First Unique Character in a String**
+**Largest Subarray with Zero Sum**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+Given an array of integers `nums`, find the length of the largest contiguous subarray that sums to zero.
 
-**Example 1:**
-
-```
-Input: s = "leetcode"
-Output: 0
-```
-
-**Example 2:**
+**Example:**
 
 ```
-Input: s = "loveleetcode"
-Output: 2
+Input: nums = [15, -2, 2, -8, 1, 7, 10, 23]
+Output: 5
+Explanation: The longest subarray with elements summing up to 0 is [-2, 2, -8, 1, 7] and has length 5.
 ```
 
-**Example 3:**
-
-```
-Input: s = "aabb"
-Output: -1
-```
-
-**Constraints:**
-
-*   `1 <= s.length <= 10^5`
-*   `s` consists of lowercase English letters.
-
-**Solution (Python):**
+**Solution in Python:**
 
 ```python
-def firstUniqChar(s: str) -> int:
+def max_len_subarray_zero_sum(nums):
     """
-    Finds the index of the first unique character in a string.
+    Finds the length of the largest subarray with a zero sum.
 
     Args:
-        s: The input string.
+        nums: A list of integers.
 
     Returns:
-        The index of the first unique character, or -1 if none exists.
+        The length of the largest subarray with a zero sum.
     """
 
-    # Create a dictionary to store character counts.
-    char_counts = {}
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+    max_length = 0
+    sum_map = {0: -1}  # Store the first occurrence of each cumulative sum
+    current_sum = 0
 
-    # Iterate through the string and check the counts.
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+    for i, num in enumerate(nums):
+        current_sum += num
 
-    # If no unique character is found, return -1.
-    return -1
+        if current_sum in sum_map:
+            length = i - sum_map[current_sum]
+            max_length = max(max_length, length)
+        else:
+            sum_map[current_sum] = i
 
-# Example Usage:
-s1 = "leetcode"
-print(f"'{s1}': {firstUniqChar(s1)}")  # Output: 0
+    return max_length
 
-s2 = "loveleetcode"
-print(f"'{s2}': {firstUniqChar(s2)}")  # Output: 2
+# Example Usage
+nums = [15, -2, 2, -8, 1, 7, 10, 23]
+result = max_len_subarray_zero_sum(nums)
+print(f"The length of the largest subarray with zero sum is: {result}")  # Output: 5
 
-s3 = "aabb"
-print(f"'{s3}': {firstUniqChar(s3)}")  # Output: -1
+nums2 = [4, 2, -3, 1, 6]
+result2 = max_len_subarray_zero_sum(nums2)
+print(f"The length of the largest subarray with zero sum is: {result2}")  # Output: 0
 
-s4 = "dddccdbba"
-print(f"'{s4}': {firstUniqChar(s4)}") # Output: 8
+nums3 = [0, 0, 0, 0]
+result3 = max_len_subarray_zero_sum(nums3)
+print(f"The length of the largest subarray with zero sum is: {result3}")  # Output: 4
+
+nums4 = [ -1, 1, -1, 1]
+result4 = max_len_subarray_zero_sum(nums4)
+print(f"The length of the largest subarray with zero sum is: {result4}") #Output: 4
+
 ```
 
 **Explanation:**
 
-1.  **Character Counting (Hash Map):**
-    *   A dictionary `char_counts` is used to store the frequency of each character in the input string `s`.
-    *   The code iterates through the string and updates the count of each character in the dictionary. `char_counts.get(char, 0)` safely retrieves the current count of the character (or 0 if it's not yet in the dictionary) and then increments it by 1.
+1. **`max_len_subarray_zero_sum(nums)` function:**
+   - Takes a list of integers `nums` as input.
+   - Initializes `max_length` to 0 (to store the maximum length found so far).
+   - Initializes `sum_map` to `{0: -1}`. This dictionary will store the first occurrence of each cumulative sum encountered while iterating through the array.  The key is the cumulative sum, and the value is the index at which that sum was first encountered. The initial entry `0: -1` handles the case where a subarray starting from index 0 has a sum of 0.  This allows correctly calculating the length of that subarray.
+   - Initializes `current_sum` to 0. This variable will keep track of the cumulative sum as we iterate.
 
-2.  **Finding the First Unique Character:**
-    *   The code iterates through the string again, this time keeping track of the index `i` of each character.
-    *   For each character, it checks its count in the `char_counts` dictionary.
-    *   If the count is equal to 1, it means the character is unique. In this case, the function immediately returns the index `i`.
+2. **Iteration:**
+   - The code iterates through the `nums` array using a `for` loop with `enumerate` to get both the index `i` and the value `num`.
+   - `current_sum += num`: The cumulative sum is updated by adding the current element.
 
-3.  **Handling No Unique Character:**
-    *   If the loop completes without finding any character with a count of 1, it means there are no unique characters in the string. In this case, the function returns -1.
+3. **Checking for Zero Sum Subarrays:**
+   - `if current_sum in sum_map:`:  This is the core logic. If the `current_sum` is already present in the `sum_map`, it means that the subarray between the previous occurrence of this sum and the current index sums to zero.
+     - `length = i - sum_map[current_sum]`: Calculate the length of this zero-sum subarray. The length is the difference between the current index `i` and the index of the previous occurrence of the `current_sum` (stored in `sum_map[current_sum]`).
+     - `max_length = max(max_length, length)`: Update `max_length` if the current zero-sum subarray is longer than the previously found maximum length.
 
-**Time Complexity:**
+4. **Storing Cumulative Sums:**
+   - `else:`: If the `current_sum` is *not* in the `sum_map`, it means we haven't seen this cumulative sum before.
+     - `sum_map[current_sum] = i`: Store the `current_sum` and its corresponding index `i` in the `sum_map`.  This records the first time we encounter this sum.
 
-*   O(n), where n is the length of the string `s`.  The code iterates through the string twice.  The dictionary operations (get and set) take O(1) on average.
+5. **Return Value:**
+   - After iterating through the entire array, the function returns the `max_length`, which represents the length of the largest contiguous subarray with a zero sum.
 
-**Space Complexity:**
+**Time and Space Complexity:**
 
-*   O(1). Because the string contains only lowercase English letters, the dictionary `char_counts` can store at most 26 entries.  Therefore, the space used is constant.  We can say it's O(n) in the worst-case scenario that all n chars are unique. But in practice, if we know the character set is small, it's often regarded as O(1).
+- **Time Complexity:** O(n), where n is the length of the array. The algorithm iterates through the array once.  The dictionary operations (`in` and assignment) take, on average, O(1) time.
+
+- **Space Complexity:** O(n), where n is the length of the array.  In the worst case, `sum_map` might store all n cumulative sums if there are no repeating cumulative sums.  So, the space required by `sum_map` grows linearly with n.
