@@ -1,93 +1,143 @@
-Okay, here's a DSA problem and its solution in Python:
+Okay, here's a DSA problem and a Python solution.
 
 **Problem:**
 
-**Largest Subarray with Zero Sum**
+**Merge K Sorted Linked Lists**
 
-Given an array of integers `nums`, find the length of the largest contiguous subarray that sums to zero.
+You are given an array of k linked-lists `lists`, each linked-list is sorted in ascending order.
+
+Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-Input: nums = [15, -2, 2, -8, 1, 7, 10, 23]
-Output: 5
-Explanation: The longest subarray with elements summing up to 0 is [-2, 2, -8, 1, 7] and has length 5.
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-**Solution in Python:**
+**Solution (Python):**
 
 ```python
-def max_len_subarray_zero_sum(nums):
+import heapq
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
     """
-    Finds the length of the largest subarray with a zero sum.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-        nums: A list of integers.
+      lists: A list of ListNode objects, where each ListNode is the head of a sorted linked list.
 
     Returns:
-        The length of the largest subarray with a zero sum.
+      The head of the merged sorted linked list, or None if the input list is empty or contains only empty lists.
     """
 
-    max_length = 0
-    sum_map = {0: -1}  # Store the first occurrence of each cumulative sum
-    current_sum = 0
+    heap = []
 
-    for i, num in enumerate(nums):
-        current_sum += num
+    # Add the head of each linked list to the min-heap.  Use index for tiebreaking
+    for i, head in enumerate(lists):
+        if head:
+            heapq.heappush(heap, (head.val, i, head))
 
-        if current_sum in sum_map:
-            length = i - sum_map[current_sum]
-            max_length = max(max_length, length)
-        else:
-            sum_map[current_sum] = i
+    # Create a dummy node to simplify the merging process.
+    dummy = ListNode(0)
+    current = dummy
 
-    return max_length
+    while heap:
+        # Get the smallest node from the heap.
+        val, index, node = heapq.heappop(heap)
 
-# Example Usage
-nums = [15, -2, 2, -8, 1, 7, 10, 23]
-result = max_len_subarray_zero_sum(nums)
-print(f"The length of the largest subarray with zero sum is: {result}")  # Output: 5
+        # Append the node to the merged list.
+        current.next = node
+        current = current.next
 
-nums2 = [4, 2, -3, 1, 6]
-result2 = max_len_subarray_zero_sum(nums2)
-print(f"The length of the largest subarray with zero sum is: {result2}")  # Output: 0
+        # Add the next node from the same list to the heap (if it exists).
+        if node.next:
+            heapq.heappush(heap, (node.next.val, index, node.next))
 
-nums3 = [0, 0, 0, 0]
-result3 = max_len_subarray_zero_sum(nums3)
-print(f"The length of the largest subarray with zero sum is: {result3}")  # Output: 4
+    return dummy.next
 
-nums4 = [ -1, 1, -1, 1]
-result4 = max_len_subarray_zero_sum(nums4)
-print(f"The length of the largest subarray with zero sum is: {result4}") #Output: 4
 
+# Example Usage (create linked lists for testing)
+# Helper function to create a linked list from a list of values
+def create_linked_list(values):
+    if not values:
+        return None
+    head = ListNode(values[0])
+    current = head
+    for i in range(1, len(values)):
+        current.next = ListNode(values[i])
+        current = current.next
+    return head
+
+# Helper function to convert a linked list to a list of values for testing
+def linked_list_to_list(head):
+    result = []
+    current = head
+    while current:
+        result.append(current.val)
+        current = current.next
+    return result
+
+# Create sample linked lists
+list1 = create_linked_list([1, 4, 5])
+list2 = create_linked_list([1, 3, 4])
+list3 = create_linked_list([2, 6])
+
+lists = [list1, list2, list3]
+
+# Merge the linked lists
+merged_list = mergeKLists(lists)
+
+# Print the merged list
+print(linked_list_to_list(merged_list)) # Output: [1, 1, 2, 3, 4, 4, 5, 6]
+
+# Test case 2:  Empty list
+lists2 = []
+merged_list2 = mergeKLists(lists2)
+print(linked_list_to_list(merged_list2)) # Output: []
+
+# Test case 3:  List with empty lists
+list4 = create_linked_list([])
+list5 = create_linked_list([2,5,7])
+list6 = create_linked_list([])
+
+lists3 = [list4, list5, list6]
+
+merged_list3 = mergeKLists(lists3)
+print(linked_list_to_list(merged_list3)) #Output: [2, 5, 7]
 ```
 
 **Explanation:**
 
-1. **`max_len_subarray_zero_sum(nums)` function:**
-   - Takes a list of integers `nums` as input.
-   - Initializes `max_length` to 0 (to store the maximum length found so far).
-   - Initializes `sum_map` to `{0: -1}`. This dictionary will store the first occurrence of each cumulative sum encountered while iterating through the array.  The key is the cumulative sum, and the value is the index at which that sum was first encountered. The initial entry `0: -1` handles the case where a subarray starting from index 0 has a sum of 0.  This allows correctly calculating the length of that subarray.
-   - Initializes `current_sum` to 0. This variable will keep track of the cumulative sum as we iterate.
+1. **`ListNode` Class:**  A standard node class for a singly linked list.
 
-2. **Iteration:**
-   - The code iterates through the `nums` array using a `for` loop with `enumerate` to get both the index `i` and the value `num`.
-   - `current_sum += num`: The cumulative sum is updated by adding the current element.
+2. **`mergeKLists(lists)` function:**
+   - **Min-Heap:** The core idea is to use a min-heap to efficiently keep track of the smallest nodes among all the input linked lists.  A min-heap allows us to quickly retrieve the node with the smallest value.
+   - **Initialization:** We iterate through the input `lists`.  For each non-empty linked list, we add the head node to the min-heap. The min-heap stores tuples of the form `(node.val, index, node)`, where `node.val` is the value of the node, `index` is the index of the list the node came from (important for tiebreaking in heapq) and `node` is the actual ListNode object.  The index is crucial in Python's `heapq` implementation for handling cases where nodes have the same value, preventing errors.
+   - **Dummy Node:** A dummy node is used as a starting point for building the merged linked list.  This simplifies the code, avoiding special cases for handling the first node.
+   - **Merging Loop:**
+     - While the heap is not empty:
+       - `heapq.heappop(heap)`: We extract the node with the smallest value from the heap.
+       - `current.next = node`: We append this node to the merged list.
+       - `current = current.next`: We move the `current` pointer to the newly added node.
+       - `if node.next`: If the extracted node has a `next` node in its original list, we add that `next` node to the heap, ensuring that we continue to consider nodes from that list.
+   - **Return `dummy.next`:**  Finally, we return the `next` pointer of the dummy node, which points to the head of the merged sorted linked list.
 
-3. **Checking for Zero Sum Subarrays:**
-   - `if current_sum in sum_map:`:  This is the core logic. If the `current_sum` is already present in the `sum_map`, it means that the subarray between the previous occurrence of this sum and the current index sums to zero.
-     - `length = i - sum_map[current_sum]`: Calculate the length of this zero-sum subarray. The length is the difference between the current index `i` and the index of the previous occurrence of the `current_sum` (stored in `sum_map[current_sum]`).
-     - `max_length = max(max_length, length)`: Update `max_length` if the current zero-sum subarray is longer than the previously found maximum length.
+3. **Helper functions (`create_linked_list`, `linked_list_to_list`):**  These functions are included for creating linked lists from Python lists for testing and for converting the resulting linked list back to a list for easy verification.
 
-4. **Storing Cumulative Sums:**
-   - `else:`: If the `current_sum` is *not* in the `sum_map`, it means we haven't seen this cumulative sum before.
-     - `sum_map[current_sum] = i`: Store the `current_sum` and its corresponding index `i` in the `sum_map`.  This records the first time we encounter this sum.
+**Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists and k is the number of linked lists.  The `heapq` operations (push and pop) take O(log k) time, and we perform these operations N times.
 
-5. **Return Value:**
-   - After iterating through the entire array, the function returns the `max_length`, which represents the length of the largest contiguous subarray with a zero sum.
-
-**Time and Space Complexity:**
-
-- **Time Complexity:** O(n), where n is the length of the array. The algorithm iterates through the array once.  The dictionary operations (`in` and assignment) take, on average, O(1) time.
-
-- **Space Complexity:** O(n), where n is the length of the array.  In the worst case, `sum_map` might store all n cumulative sums if there are no repeating cumulative sums.  So, the space required by `sum_map` grows linearly with n.
+**Space Complexity:** O(k), where k is the number of linked lists. This is the space used by the min-heap.  In the worst case, the heap will contain one node from each of the k linked lists.
