@@ -1,143 +1,98 @@
-Okay, here's a DSA problem and a Python solution.
+Okay, here's a DSA problem (a classic, actually) and a Python solution:
 
 **Problem:**
 
-**Merge K Sorted Linked Lists**
+**Merge Intervals**
 
-You are given an array of k linked-lists `lists`, each linked-list is sorted in ascending order.
-
-Merge all the linked-lists into one sorted linked-list and return it.
+Given a collection of intervals, merge all overlapping intervals.
 
 **Example:**
 
-```
-Input: lists = [[1,4,5],[1,3,4],[2,6]]
-Output: [1,1,2,3,4,4,5,6]
-Explanation: The linked-lists are:
-[
-  1->4->5,
-  1->3->4,
-  2->6
-]
-merging them into one sorted list:
-1->1->2->3->4->4->5->6
-```
+Input: `[[1,3],[2,6],[8,10],[15,18]]`
+Output: `[[1,6],[8,10],[15,18]]`
 
-**Solution (Python):**
+Explanation: Intervals `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
+
+Input: `[[1,4],[4,5]]`
+Output: `[[1,5]]`
+
+Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
+
+**Python Solution:**
 
 ```python
-import heapq
-
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def mergeKLists(lists):
+def merge_intervals(intervals):
     """
-    Merges k sorted linked lists into one sorted linked list.
+    Merges overlapping intervals in a list of intervals.
 
     Args:
-      lists: A list of ListNode objects, where each ListNode is the head of a sorted linked list.
+        intervals: A list of intervals, where each interval is a list of two integers [start, end].
 
     Returns:
-      The head of the merged sorted linked list, or None if the input list is empty or contains only empty lists.
+        A list of merged intervals.
     """
 
-    heap = []
+    if not intervals:
+        return []
 
-    # Add the head of each linked list to the min-heap.  Use index for tiebreaking
-    for i, head in enumerate(lists):
-        if head:
-            heapq.heappush(heap, (head.val, i, head))
+    # Sort the intervals by their start times
+    intervals.sort(key=lambda x: x[0])
 
-    # Create a dummy node to simplify the merging process.
-    dummy = ListNode(0)
-    current = dummy
+    merged_intervals = []
+    current_interval = intervals[0]  # Initialize with the first interval
 
-    while heap:
-        # Get the smallest node from the heap.
-        val, index, node = heapq.heappop(heap)
+    for interval in intervals[1:]:
+        # Check for overlap
+        if interval[0] <= current_interval[1]:  # Overlap exists
+            # Update the end of the current interval if the new interval extends further
+            current_interval[1] = max(current_interval[1], interval[1])
+        else:
+            # No overlap, add the current interval to the result and start a new current interval
+            merged_intervals.append(current_interval)
+            current_interval = interval
 
-        # Append the node to the merged list.
-        current.next = node
-        current = current.next
+    # Add the last current interval to the result
+    merged_intervals.append(current_interval)
 
-        # Add the next node from the same list to the heap (if it exists).
-        if node.next:
-            heapq.heappush(heap, (node.next.val, index, node.next))
+    return merged_intervals
 
-    return dummy.next
+# Example Usage:
+intervals1 = [[1,3],[2,6],[8,10],[15,18]]
+result1 = merge_intervals(intervals1)
+print(f"Merged intervals for {intervals1}: {result1}")  # Output: [[1, 6], [8, 10], [15, 18]]
 
+intervals2 = [[1,4],[4,5]]
+result2 = merge_intervals(intervals2)
+print(f"Merged intervals for {intervals2}: {result2}")  # Output: [[1, 5]]
 
-# Example Usage (create linked lists for testing)
-# Helper function to create a linked list from a list of values
-def create_linked_list(values):
-    if not values:
-        return None
-    head = ListNode(values[0])
-    current = head
-    for i in range(1, len(values)):
-        current.next = ListNode(values[i])
-        current = current.next
-    return head
+intervals3 = [[1,4],[0,4]]
+result3 = merge_intervals(intervals3)
+print(f"Merged intervals for {intervals3}: {result3}")  # Output: [[0, 4]]
 
-# Helper function to convert a linked list to a list of values for testing
-def linked_list_to_list(head):
-    result = []
-    current = head
-    while current:
-        result.append(current.val)
-        current = current.next
-    return result
-
-# Create sample linked lists
-list1 = create_linked_list([1, 4, 5])
-list2 = create_linked_list([1, 3, 4])
-list3 = create_linked_list([2, 6])
-
-lists = [list1, list2, list3]
-
-# Merge the linked lists
-merged_list = mergeKLists(lists)
-
-# Print the merged list
-print(linked_list_to_list(merged_list)) # Output: [1, 1, 2, 3, 4, 4, 5, 6]
-
-# Test case 2:  Empty list
-lists2 = []
-merged_list2 = mergeKLists(lists2)
-print(linked_list_to_list(merged_list2)) # Output: []
-
-# Test case 3:  List with empty lists
-list4 = create_linked_list([])
-list5 = create_linked_list([2,5,7])
-list6 = create_linked_list([])
-
-lists3 = [list4, list5, list6]
-
-merged_list3 = mergeKLists(lists3)
-print(linked_list_to_list(merged_list3)) #Output: [2, 5, 7]
+intervals4 = [[1,4],[0,0]]
+result4 = merge_intervals(intervals4)
+print(f"Merged intervals for {intervals4}: {result4}") # Output: [[0, 0], [1, 4]]
 ```
 
 **Explanation:**
 
-1. **`ListNode` Class:**  A standard node class for a singly linked list.
+1. **Handle Empty Input:** The function first checks if the input list of intervals is empty. If it is, it returns an empty list.
 
-2. **`mergeKLists(lists)` function:**
-   - **Min-Heap:** The core idea is to use a min-heap to efficiently keep track of the smallest nodes among all the input linked lists.  A min-heap allows us to quickly retrieve the node with the smallest value.
-   - **Initialization:** We iterate through the input `lists`.  For each non-empty linked list, we add the head node to the min-heap. The min-heap stores tuples of the form `(node.val, index, node)`, where `node.val` is the value of the node, `index` is the index of the list the node came from (important for tiebreaking in heapq) and `node` is the actual ListNode object.  The index is crucial in Python's `heapq` implementation for handling cases where nodes have the same value, preventing errors.
-   - **Dummy Node:** A dummy node is used as a starting point for building the merged linked list.  This simplifies the code, avoiding special cases for handling the first node.
-   - **Merging Loop:**
-     - While the heap is not empty:
-       - `heapq.heappop(heap)`: We extract the node with the smallest value from the heap.
-       - `current.next = node`: We append this node to the merged list.
-       - `current = current.next`: We move the `current` pointer to the newly added node.
-       - `if node.next`: If the extracted node has a `next` node in its original list, we add that `next` node to the heap, ensuring that we continue to consider nodes from that list.
-   - **Return `dummy.next`:**  Finally, we return the `next` pointer of the dummy node, which points to the head of the merged sorted linked list.
+2. **Sort Intervals:** The intervals are sorted based on their starting times.  This is crucial for the algorithm's efficiency because it allows us to process intervals in a left-to-right manner, easily detecting overlaps.  The `sort()` method with a `lambda` function is used to define a custom sorting key based on the first element (start time) of each interval.
 
-3. **Helper functions (`create_linked_list`, `linked_list_to_list`):**  These functions are included for creating linked lists from Python lists for testing and for converting the resulting linked list back to a list for easy verification.
+3. **Iterate and Merge:**
+   - `merged_intervals`: This list stores the resulting merged intervals.
+   - `current_interval`: This variable keeps track of the interval we're currently building/merging.  It is initialized with the first interval after sorting.
+   - The code then iterates through the remaining intervals (starting from the second interval).  For each `interval`:
+     - **Overlap Check:** It checks if the current `interval` overlaps with the `current_interval`. Overlap occurs if the starting time of the `interval` is less than or equal to the ending time of the `current_interval`.
+     - **Merge (if overlap):** If there's overlap, the `current_interval`'s ending time is updated to be the maximum of its current ending time and the ending time of the overlapping `interval`. This ensures that the merged interval covers the entire range.
+     - **No Overlap:** If there's no overlap, the current `current_interval` is added to the `merged_intervals` list, and the `current_interval` is updated to the current `interval`.
 
-**Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists and k is the number of linked lists.  The `heapq` operations (push and pop) take O(log k) time, and we perform these operations N times.
+4. **Add the Last Interval:** After the loop finishes, the last `current_interval` (which might not have been added yet) is added to the `merged_intervals` list.
 
-**Space Complexity:** O(k), where k is the number of linked lists. This is the space used by the min-heap.  In the worst case, the heap will contain one node from each of the k linked lists.
+5. **Return:** The function returns the `merged_intervals` list, which contains the merged intervals.
+
+**Time and Space Complexity:**
+
+* **Time Complexity:** O(n log n), where n is the number of intervals. The dominant operation is the sorting of the intervals, which takes O(n log n) time. The iteration and merging process takes O(n) time, but it's overshadowed by the sorting.
+* **Space Complexity:** O(n) in the worst case, where n is the number of intervals. This is because, in the worst case (no overlapping intervals), the `merged_intervals` list will contain all the original intervals. In-place sorting is possible but depends on the sorting algorithm implementation. In general, we can assume O(n) due to the creation of the merged_intervals list.
