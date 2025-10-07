@@ -1,93 +1,132 @@
-Okay, here's a DSA problem and a Python solution:
+Okay, here's a DSA problem and its Python solution:
 
-**Problem:**
+**Problem:  Merge K Sorted Lists**
 
-**Subarray Sum Closest to Zero**
+You are given an array of `k` linked lists, each linked list is sorted in ascending order.
 
-Given an array of integers, find a subarray whose sum is closest to zero. Return the start and end indexes of the subarray.
+Merge all the linked lists into one sorted linked list and return it.
 
 **Example:**
 
 ```
-Input: [-3, 1, 1, -3, 5]
-Output: [0, 2]  (Explanation: The subarray [-3, 1, 1] has a sum of -1, which is closest to 0.)
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-**Solution (Python):**
+**Constraints:**
+
+*   `k == len(lists)`
+*   `0 <= k <= 10^4`
+*   `0 <= lists[i].length <= 500`
+*   `-10^4 <= lists[i][j] <= 10^4`
+*   `lists[i]` is sorted in ascending order.
+*   The sum of `lists[i].length` will not exceed `10^4`.
+
+**Python Solution (Using a Min-Heap):**
 
 ```python
-def subarray_sum_closest(nums):
+import heapq
+
+# Definition for singly-linked list.
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
     """
-    Finds the subarray with sum closest to zero.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-        nums: A list of integers.
+        lists: A list of k sorted linked lists.
 
     Returns:
-        A list of two integers representing the start and end indices of the subarray.
-        Returns an empty list if the input is empty.
+        The head of the merged sorted linked list.
     """
 
-    if not nums:
-        return []
+    heap = []  # Min-heap to store nodes from the linked lists
+    for i in range(len(lists)):
+        if lists[i]:  # Only add to heap if the list is not empty
+            heapq.heappush(heap, (lists[i].val, i, lists[i]))  # Tuple: (value, list_index, node)
 
-    n = len(nums)
-    prefix_sums = []
-    prefix_sums.append((0, -1))  # (sum, index before subarray)
+    dummy = ListNode(-1)  # Dummy node to simplify the merging process
+    tail = dummy
 
-    current_sum = 0
-    for i in range(n):
-        current_sum += nums[i]
-        prefix_sums.append((current_sum, i))
+    while heap:
+        val, list_index, node = heapq.heappop(heap)  # Get the node with the smallest value
 
-    prefix_sums.sort()  # Sort based on prefix sums
+        tail.next = node  # Add the node to the merged list
+        tail = tail.next
 
-    min_diff = float('inf')
-    start_index = -1
-    end_index = -1
+        if node.next:  # If the node has a next node in its list
+            heapq.heappush(heap, (node.next.val, list_index, node.next))  # Add the next node to the heap
 
-    for i in range(1, len(prefix_sums)):
-        diff = abs(prefix_sums[i][0] - prefix_sums[i - 1][0])
+    return dummy.next  # Return the head of the merged list (excluding the dummy node)
 
-        if diff < min_diff:
-            min_diff = diff
-            start_index = min(prefix_sums[i][1], prefix_sums[i-1][1]) + 1  #+1 because we need index of array, not the one before.
-            end_index = max(prefix_sums[i][1], prefix_sums[i-1][1])
 
-    return [start_index, end_index]
+# Example usage (create some dummy linked lists):
+# List 1: 1->4->5
+head1 = ListNode(1)
+head1.next = ListNode(4)
+head1.next.next = ListNode(5)
 
-# Example usage:
-nums = [-3, 1, 1, -3, 5]
-result = subarray_sum_closest(nums)
-print(result) # Output: [0, 2]
+# List 2: 1->3->4
+head2 = ListNode(1)
+head2.next = ListNode(3)
+head2.next.next = ListNode(4)
 
-nums2 = [2, -1, 3, -5, 4]
-result2 = subarray_sum_closest(nums2)
-print(result2) #Output: [0, 1] or [1, 1]
+# List 3: 2->6
+head3 = ListNode(2)
+head3.next = ListNode(6)
 
-nums3 = []
-result3 = subarray_sum_closest(nums3)
-print(result3) # Output: []
+lists = [head1, head2, head3]
 
-nums4 = [0,0,0]
-result4 = subarray_sum_closest(nums4)
-print(result4) #Output: [0, 0]
+merged_list = mergeKLists(lists)
+
+# Print the merged list
+while merged_list:
+    print(merged_list.val, end="->")
+    merged_list = merged_list.next
+print("None")
 ```
 
 **Explanation:**
 
-1.  **Prefix Sums:**  We calculate the prefix sums of the array.  A prefix sum at index `i` is the sum of all elements from index 0 up to index `i`.  We store these prefix sums along with their corresponding indices in a list called `prefix_sums`.  We also add a (0, -1) as the initial prefix to deal with subarrays starting at index 0.
+1.  **`ListNode` Class:** Defines the structure of a node in the linked list.
 
-2.  **Sorting:** We sort the `prefix_sums` list based on the prefix sum values.  This is the key step.  After sorting, prefix sums that are close to each other in value will be adjacent in the list. The difference between consecutive prefix sums represent the sum of the subarray in between them.
+2.  **`mergeKLists(lists)` Function:**
+    *   **Initialization:**
+        *   `heap`:  A min-heap (priority queue) is used to efficiently track the smallest node across all `k` lists. We store tuples of the form `(value, list_index, node)` in the heap. `list_index` is included to avoid issues when two nodes have the same value (otherwise, the heap might not know how to compare them reliably.)
+        *   `dummy`: A dummy node is used to simplify the merging process. It acts as a placeholder for the head of the merged list.  We start building the result list from `dummy.next`.
+        *   `tail`:  A pointer to the last node added to the merged list.
 
-3.  **Finding the Minimum Difference:** We iterate through the sorted `prefix_sums` list, comparing consecutive prefix sums.  The difference between two adjacent prefix sums represents the sum of a subarray.  We keep track of the minimum absolute difference and the corresponding start and end indices of the subarray.
+    *   **Building the Heap:**
+        *   Iterate through the `lists` array.
+        *   For each list, if it's not empty, push the first node (its value, its index in the `lists` array, and the node itself) onto the heap.
 
-4.  **Index Adjustment:** Note the `min(prefix_sums[i][1], prefix_sums[i-1][1]) + 1`: The index from the prefix sum is the index *before* the subarray.  The +1 makes it the start index in nums. We get the higher value as the end index.
+    *   **Merging:**
+        *   While the heap is not empty:
+            *   `heapq.heappop(heap)`:  Extract the node with the smallest value from the heap (along with its list index and the node object).
+            *   `tail.next = node`: Append the extracted node to the merged list.
+            *   `tail = tail.next`:  Move the `tail` pointer to the newly added node.
+            *   `if node.next`: If the extracted node has a `next` node in its original list, push that `next` node (along with its value and list index) onto the heap.
 
-**Time Complexity:** O(N log N) due to the sorting of the prefix sums.  The other parts of the algorithm take O(N) time.
+    *   **Return:**  Return `dummy.next`, which is the head of the merged sorted linked list.
 
-**Space Complexity:** O(N) to store the prefix sums.
+**Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists, and k is the number of linked lists.
 
-**Why this works:**
+**Space Complexity:** O(k) because the heap will hold at most `k` nodes at any time. (In the worst case, the first node from each of the `k` lists will be in the heap).  We do modify the original linked lists, so the space complexity might depend on the specific requirements of the problem.  If we weren't allowed to modify the original lists, we would need O(N) space to create a new linked list.
+**Why this is a good solution:**
 
-The core idea is that if two prefix sums `prefix_sum[i]` and `prefix_sum[j]` are close in value, then the sum of the subarray between indices `i` and `j` (in the original array) will be close to zero. Sorting the prefix sums allows us to efficiently find prefix sums that are close to each other.
+*   **Efficiency:**  Using a min-heap allows us to efficiently find the smallest node across all lists at each step.
+*   **Clarity:** The code is well-structured and easy to understand. The comments explain each step.
+*   **Correctness:** The code correctly merges the `k` sorted lists into a single sorted list.
+*   **Generalization:** This approach works well for a large number of lists and is the generally accepted optimal solution for this problem.
