@@ -1,86 +1,84 @@
-Okay, here's a randomly generated DSA problem and a corresponding Python solution:
+Okay, here's a DSA problem and a corresponding Python solution.
 
-**Problem:  Minimum Time to Visit All Points**
+**Problem:**
 
-You are given a list of points on a 2D plane, where `points[i] = [xi, yi]`. You need to visit all these points in the order they are given.  You can move in one of eight directions:
+**Merge Overlapping Intervals**
 
-*   **1 unit horizontally** (represented as `(1, 0)` or `(-1, 0)`)
-*   **1 unit vertically** (represented as `(0, 1)` or `(0, -1)`)
-*   **1 unit diagonally** (represented as `(1, 1)`, `(1, -1)`, `(-1, 1)`, or `(-1, -1)`)
-
-It takes 1 second to move one unit in any of the eight directions.
-
-Your task is to find the minimum time (in seconds) needed to visit all the points in the given order.
+Given a list of intervals, where each interval is represented as a pair of integers `[start, end]`, merge all overlapping intervals and return a list of non-overlapping intervals that cover the same range.
 
 **Example:**
 
-```
-Input: points = [[1,1],[3,4],[-1,0]]
-Output: 7
+Input: `intervals = [[1,3],[2,6],[8,10],[15,18]]`
+Output: `[[1,6],[8,10],[15,18]]`
+Explanation: Intervals `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
 
-Explanation:
-One optimal route is to:
-1. Start at (1,1)
-2. Go to (3,4) which takes 3 seconds (move 2 units right and 3 units up; diagonal covers the smaller of the two)
-3. Go to (-1,0) which takes 4 seconds (move 4 units left and 4 units down; diagonal covers the smaller of the two)
-Total time = 3 + 4 = 7
-```
+Input: `intervals = [[1,4],[4,5]]`
+Output: `[[1,5]]`
+Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
 
-**Python Code Solution:**
+**Python Solution:**
 
 ```python
-def minTimeToVisitAllPoints(points):
+def merge_intervals(intervals):
     """
-    Calculates the minimum time to visit all points in the given order.
+    Merges overlapping intervals in a list.
 
     Args:
-        points: A list of lists, where each inner list represents a point [x, y].
+        intervals: A list of intervals, where each interval is a list of two integers [start, end].
 
     Returns:
-        The minimum time (in seconds) needed to visit all points.
+        A list of non-overlapping intervals that cover the same range.
     """
-    total_time = 0
-    for i in range(len(points) - 1):
-        x1, y1 = points[i]
-        x2, y2 = points[i + 1]
 
-        dx = abs(x2 - x1)
-        dy = abs(y2 - y1)
+    if not intervals:
+        return []
 
-        total_time += max(dx, dy)  # The time is the maximum of the horizontal and vertical distances.
+    # Sort the intervals by the start time.  Crucial step.
+    intervals.sort(key=lambda x: x[0])  # Sort by the first element of each sublist
 
-    return total_time
+    merged = []
+    for interval in intervals:
+        # If the list of merged intervals is empty or if the current
+        # interval does not overlap with the last interval, simply append it.
+        if not merged or interval[0] > merged[-1][1]:
+            merged.append(interval)
+        else:
+            # Otherwise, there is overlap, so we merge the current interval
+            # with the last interval.
+            merged[-1][1] = max(merged[-1][1], interval[1])
 
+    return merged
 
 # Example Usage
-points1 = [[1, 1], [3, 4], [-1, 0]]
-print(f"Minimum time for points {points1}: {minTimeToVisitAllPoints(points1)}")  # Output: 7
+intervals1 = [[1,3],[2,6],[8,10],[15,18]]
+print(f"Input: {intervals1}, Output: {merge_intervals(intervals1)}")  # Output: [[1, 6], [8, 10], [15, 18]]
 
-points2 = [[3,2],[-2,2]]
-print(f"Minimum time for points {points2}: {minTimeToVisitAllPoints(points2)}") # Output: 5
+intervals2 = [[1,4],[4,5]]
+print(f"Input: {intervals2}, Output: {merge_intervals(intervals2)}")  # Output: [[1, 5]]
+
+intervals3 = [[1,4],[0,4]]
+print(f"Input: {intervals3}, Output: {merge_intervals(intervals3)}") # Output: [[0, 4]]
+
+intervals4 = [[1,4],[0,0]]
+print(f"Input: {intervals4}, Output: {merge_intervals(intervals4)}") # Output: [[0, 0], [1, 4]]
 ```
 
 **Explanation:**
 
-1.  **Initialization:**
-    *   `total_time = 0`:  This variable will store the cumulative time taken to visit all points.
+1. **Handle Empty Input:**  The function first checks if the input list of intervals is empty. If it is, it returns an empty list.
 
-2.  **Iterating through Points:**
-    *   The `for` loop iterates from `i = 0` to `len(points) - 2`, so we process pairs of consecutive points.
-    *   `x1, y1 = points[i]` and `x2, y2 = points[i + 1]`: These lines extract the coordinates of the current point and the next point.
+2. **Sort Intervals:** The most important step is to sort the intervals based on their starting times.  This allows us to iterate through the intervals in a predictable order and easily determine if they overlap. The `intervals.sort(key=lambda x: x[0])` line sorts the list in place.  The `lambda x: x[0]` is a small anonymous function that extracts the first element (the start time) of each interval for sorting.
 
-3.  **Calculating Distances:**
-    *   `dx = abs(x2 - x1)`:  Calculates the absolute horizontal distance between the two points.
-    *   `dy = abs(y2 - y1)`: Calculates the absolute vertical distance between the two points.
+3. **Iterate and Merge:**
+   - We create an empty list `merged` to store the non-overlapping intervals.
+   - We iterate through the sorted intervals.
+   - For each `interval`, we check if it overlaps with the last interval in the `merged` list.
+     - **No Overlap:** If `merged` is empty or the current interval's start time is greater than the end time of the last interval in `merged` ( `interval[0] > merged[-1][1]` ), then there's no overlap. We simply append the current `interval` to `merged`.
+     - **Overlap:** If there is overlap (the current interval's start time is less than or equal to the end time of the last interval in `merged`), we merge the intervals. We update the end time of the last interval in `merged` to be the maximum of its current end time and the current interval's end time (`merged[-1][1] = max(merged[-1][1], interval[1])`).  This effectively extends the last interval to cover the overlapping portion.
 
-4.  **Determining Time:**
-    *   `total_time += max(dx, dy)`:  This is the crucial part. The time to travel from one point to another is the *maximum* of the horizontal and vertical distances.  Think about it: you can move diagonally for the smaller of `dx` and `dy`, and then move horizontally or vertically for the remaining distance. The diagonal movement is essentially "free" in terms of time if you consider the single move taking one unit of time.
-    * For example:
-        * If `dx=3` and `dy=4`, you can move diagonally 3 times in one second per move. The remaining `dy` distance will be `4-3 = 1`. Thus the total time will be `3+1=4`, the `max(dx, dy)`.
+4. **Return Result:** Finally, we return the `merged` list, which contains the non-overlapping intervals.
 
-5.  **Return Value:**
-    *   `return total_time`:  The function returns the total accumulated time, which represents the minimum time to visit all points in the given order.
+**Time and Space Complexity:**
 
-**Why `max(dx, dy)` works:**
-
-Imagine you have to move 3 units to the right and 4 units up. You can move diagonally up and to the right 3 times. This takes 3 seconds.  Then, you only need to move 1 unit up, which takes 1 second. The total time is 3 + 1 = 4, which is `max(3, 4)`.  The diagonal movement "covers" the smaller of the horizontal and vertical distances simultaneously.
+* **Time Complexity:** O(n log n) due to the sorting step. The rest of the algorithm takes O(n) time.
+* **Space Complexity:** O(n) in the worst case, where no intervals overlap, and the `merged` list stores all the input intervals.  In other cases, it can be less than O(n).
