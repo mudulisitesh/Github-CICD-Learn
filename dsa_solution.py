@@ -1,84 +1,74 @@
-Okay, here's a DSA problem and a corresponding Python solution.
+Okay, here's a randomly generated DSA problem and a Python solution.
 
 **Problem:**
 
-**Merge Overlapping Intervals**
+**Largest Contiguous Subarray Sum (Kadane's Algorithm)**
 
-Given a list of intervals, where each interval is represented as a pair of integers `[start, end]`, merge all overlapping intervals and return a list of non-overlapping intervals that cover the same range.
+Given an array of integers (both positive and negative), find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.
 
 **Example:**
 
-Input: `intervals = [[1,3],[2,6],[8,10],[15,18]]`
-Output: `[[1,6],[8,10],[15,18]]`
-Explanation: Intervals `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
-
-Input: `intervals = [[1,4],[4,5]]`
-Output: `[[1,5]]`
-Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
+Input: `[-2, 1, -3, 4, -1, 2, 1, -5, 4]`
+Output: `6`
+Explanation: `[4, -1, 2, 1]` has the largest sum = 6.
 
 **Python Solution:**
 
 ```python
-def merge_intervals(intervals):
+def max_subarray_sum(arr):
     """
-    Merges overlapping intervals in a list.
+    Finds the largest contiguous subarray sum using Kadane's Algorithm.
 
     Args:
-        intervals: A list of intervals, where each interval is a list of two integers [start, end].
+        arr: A list of integers.
 
     Returns:
-        A list of non-overlapping intervals that cover the same range.
+        The largest contiguous subarray sum.
     """
 
-    if not intervals:
-        return []
+    max_so_far = float('-inf')  # Initialize to negative infinity
+    current_max = 0
 
-    # Sort the intervals by the start time.  Crucial step.
-    intervals.sort(key=lambda x: x[0])  # Sort by the first element of each sublist
+    for i in range(len(arr)):
+        current_max += arr[i]
 
-    merged = []
-    for interval in intervals:
-        # If the list of merged intervals is empty or if the current
-        # interval does not overlap with the last interval, simply append it.
-        if not merged or interval[0] > merged[-1][1]:
-            merged.append(interval)
-        else:
-            # Otherwise, there is overlap, so we merge the current interval
-            # with the last interval.
-            merged[-1][1] = max(merged[-1][1], interval[1])
+        if current_max > max_so_far:
+            max_so_far = current_max
 
-    return merged
+        if current_max < 0:
+            current_max = 0
 
-# Example Usage
-intervals1 = [[1,3],[2,6],[8,10],[15,18]]
-print(f"Input: {intervals1}, Output: {merge_intervals(intervals1)}")  # Output: [[1, 6], [8, 10], [15, 18]]
+    return max_so_far
 
-intervals2 = [[1,4],[4,5]]
-print(f"Input: {intervals2}, Output: {merge_intervals(intervals2)}")  # Output: [[1, 5]]
+# Example Usage:
+arr = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
+result = max_subarray_sum(arr)
+print(f"Largest contiguous subarray sum: {result}")  # Output: 6
 
-intervals3 = [[1,4],[0,4]]
-print(f"Input: {intervals3}, Output: {merge_intervals(intervals3)}") # Output: [[0, 4]]
-
-intervals4 = [[1,4],[0,0]]
-print(f"Input: {intervals4}, Output: {merge_intervals(intervals4)}") # Output: [[0, 0], [1, 4]]
+arr2 = [-1, -2, -3, -4]
+result2 = max_subarray_sum(arr2)
+print(f"Largest contiguous subarray sum: {result2}")  # Output: -1
 ```
 
 **Explanation:**
 
-1. **Handle Empty Input:**  The function first checks if the input list of intervals is empty. If it is, it returns an empty list.
+1. **Initialization:**
+   - `max_so_far`:  Keeps track of the maximum sum found so far. It's initialized to negative infinity to handle cases where all elements are negative.
+   - `current_max`:  Keeps track of the maximum sum ending at the current position.
 
-2. **Sort Intervals:** The most important step is to sort the intervals based on their starting times.  This allows us to iterate through the intervals in a predictable order and easily determine if they overlap. The `intervals.sort(key=lambda x: x[0])` line sorts the list in place.  The `lambda x: x[0]` is a small anonymous function that extracts the first element (the start time) of each interval for sorting.
+2. **Iteration:**
+   - The code iterates through the array.
+   - `current_max += arr[i]`:  Adds the current element to the `current_max`.  We are extending the current subarray.
+   - `if current_max > max_so_far:`: If the `current_max` is greater than the `max_so_far`, it means we've found a new maximum subarray sum.  So, we update `max_so_far`.
+   - `if current_max < 0:`:  The crucial part of Kadane's Algorithm. If `current_max` becomes negative, it means including the current subarray (ending at the current position) will *decrease* the sum of any subsequent subarray.  Therefore, we reset `current_max` to 0, effectively starting a new subarray from the next element.
 
-3. **Iterate and Merge:**
-   - We create an empty list `merged` to store the non-overlapping intervals.
-   - We iterate through the sorted intervals.
-   - For each `interval`, we check if it overlaps with the last interval in the `merged` list.
-     - **No Overlap:** If `merged` is empty or the current interval's start time is greater than the end time of the last interval in `merged` ( `interval[0] > merged[-1][1]` ), then there's no overlap. We simply append the current `interval` to `merged`.
-     - **Overlap:** If there is overlap (the current interval's start time is less than or equal to the end time of the last interval in `merged`), we merge the intervals. We update the end time of the last interval in `merged` to be the maximum of its current end time and the current interval's end time (`merged[-1][1] = max(merged[-1][1], interval[1])`).  This effectively extends the last interval to cover the overlapping portion.
+3. **Return:**
+   - Finally, the function returns `max_so_far`, which holds the largest contiguous subarray sum found during the iteration.
 
-4. **Return Result:** Finally, we return the `merged` list, which contains the non-overlapping intervals.
+**Why Kadane's Algorithm?**
 
-**Time and Space Complexity:**
+Kadane's Algorithm is a dynamic programming approach that solves this problem in *O(n)* time complexity, which is the most efficient solution. It's based on the principle of finding optimal substructures. The optimal solution (largest sum) ending at each position depends on the optimal solution ending at the previous position.
 
-* **Time Complexity:** O(n log n) due to the sorting step. The rest of the algorithm takes O(n) time.
-* **Space Complexity:** O(n) in the worst case, where no intervals overlap, and the `merged` list stores all the input intervals.  In other cases, it can be less than O(n).
+**Edge Cases:**
+
+*   **All Negative Numbers:** The algorithm correctly handles cases where all numbers in the array are negative.  In this scenario, it will return the largest (least negative) element in the array.  That is why we initialize `max_so_far` to negative infinity, otherwise the result could be zero.
