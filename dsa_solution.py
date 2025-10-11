@@ -1,74 +1,102 @@
-Okay, here's a randomly generated DSA problem and a Python solution.
+Okay, here's a randomly generated DSA problem, followed by a Python solution with explanations.
 
-**Problem:**
+**Problem: Find the First Non-Repeating Character**
 
-**Largest Contiguous Subarray Sum (Kadane's Algorithm)**
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
-Given an array of integers (both positive and negative), find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.
+**Example 1:**
 
-**Example:**
+```
+Input: s = "leetcode"
+Output: 0
+```
 
-Input: `[-2, 1, -3, 4, -1, 2, 1, -5, 4]`
-Output: `6`
-Explanation: `[4, -1, 2, 1]` has the largest sum = 6.
+**Example 2:**
+
+```
+Input: s = "loveleetcode"
+Output: 2
+```
+
+**Example 3:**
+
+```
+Input: s = "aabb"
+Output: -1
+```
 
 **Python Solution:**
 
 ```python
-def max_subarray_sum(arr):
+def first_unique_char(s):
     """
-    Finds the largest contiguous subarray sum using Kadane's Algorithm.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        arr: A list of integers.
+        s: The input string.
 
     Returns:
-        The largest contiguous subarray sum.
+        The index of the first non-repeating character, or -1 if none exists.
     """
 
-    max_so_far = float('-inf')  # Initialize to negative infinity
-    current_max = 0
+    char_counts = {}  # Use a dictionary (hash map) to store character counts
 
-    for i in range(len(arr)):
-        current_max += arr[i]
+    # First, count the occurrences of each character
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1  # Efficiently increment count
 
-        if current_max > max_so_far:
-            max_so_far = current_max
+    # Iterate through the string again to find the first non-repeating character
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i  # Return the index if the count is 1
 
-        if current_max < 0:
-            current_max = 0
-
-    return max_so_far
+    return -1  # No non-repeating character found
 
 # Example Usage:
-arr = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
-result = max_subarray_sum(arr)
-print(f"Largest contiguous subarray sum: {result}")  # Output: 6
-
-arr2 = [-1, -2, -3, -4]
-result2 = max_subarray_sum(arr2)
-print(f"Largest contiguous subarray sum: {result2}")  # Output: -1
+print(first_unique_char("leetcode"))  # Output: 0
+print(first_unique_char("loveleetcode")) # Output: 2
+print(first_unique_char("aabb"))  # Output: -1
 ```
 
 **Explanation:**
 
-1. **Initialization:**
-   - `max_so_far`:  Keeps track of the maximum sum found so far. It's initialized to negative infinity to handle cases where all elements are negative.
-   - `current_max`:  Keeps track of the maximum sum ending at the current position.
+1. **`char_counts = {}`:**  We initialize an empty dictionary called `char_counts`.  This dictionary will store each character in the string as a key, and its number of occurrences as the value.  Dictionaries (hash maps) provide fast lookups (O(1) on average), which is crucial for efficient character counting.
 
-2. **Iteration:**
-   - The code iterates through the array.
-   - `current_max += arr[i]`:  Adds the current element to the `current_max`.  We are extending the current subarray.
-   - `if current_max > max_so_far:`: If the `current_max` is greater than the `max_so_far`, it means we've found a new maximum subarray sum.  So, we update `max_so_far`.
-   - `if current_max < 0:`:  The crucial part of Kadane's Algorithm. If `current_max` becomes negative, it means including the current subarray (ending at the current position) will *decrease* the sum of any subsequent subarray.  Therefore, we reset `current_max` to 0, effectively starting a new subarray from the next element.
+2. **Counting Character Occurrences:**
 
-3. **Return:**
-   - Finally, the function returns `max_so_far`, which holds the largest contiguous subarray sum found during the iteration.
+   ```python
+   for char in s:
+       char_counts[char] = char_counts.get(char, 0) + 1
+   ```
 
-**Why Kadane's Algorithm?**
+   - The code iterates through each character `char` in the input string `s`.
+   - `char_counts.get(char, 0)`: This is a concise way to get the current count of the character `char` from the `char_counts` dictionary.  If the character is already a key in the dictionary, `get()` returns its value.  If the character is not yet a key (i.e., we're encountering it for the first time), `get()` returns the default value of 0 (which we provide as the second argument).
+   - `+ 1`: We increment the count by 1.
+   - `char_counts[char] = ...`: We update the `char_counts` dictionary with the new count for the character.
 
-Kadane's Algorithm is a dynamic programming approach that solves this problem in *O(n)* time complexity, which is the most efficient solution. It's based on the principle of finding optimal substructures. The optimal solution (largest sum) ending at each position depends on the optimal solution ending at the previous position.
+3. **Finding the First Non-Repeating Character:**
 
-**Edge Cases:**
+   ```python
+   for i, char in enumerate(s):
+       if char_counts[char] == 1:
+           return i
+   ```
 
-*   **All Negative Numbers:** The algorithm correctly handles cases where all numbers in the array are negative.  In this scenario, it will return the largest (least negative) element in the array.  That is why we initialize `max_so_far` to negative infinity, otherwise the result could be zero.
+   - `enumerate(s)`: This allows us to iterate through the string `s` and get both the index `i` and the character `char` at each position.
+   - `if char_counts[char] == 1:`:  We check the `char_counts` dictionary to see how many times the current character `char` appears in the string.  If the count is 1, it means the character is non-repeating.
+   - `return i`: If we find a non-repeating character, we immediately return its index `i`.
+
+4. **Handling No Non-Repeating Character:**
+
+   ```python
+   return -1
+   ```
+
+   - If the loop completes without finding any character with a count of 1, it means there are no non-repeating characters in the string.  In this case, the function returns -1.
+
+**Time and Space Complexity:**
+
+- **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string twice, both times in linear time.
+- **Space Complexity:** O(1). Although we use a dictionary, the number of distinct characters is limited by the character set (e.g., ASCII or Unicode). Therefore, the space used by the dictionary is considered constant with respect to the input string's length.  In the worst case, where all characters are unique, the dictionary will store all the characters in `s`.  However, the size is still bound by the character set, making it a constant factor.
+
+This solution is efficient and easy to understand. The use of a dictionary allows for fast character counting, leading to the optimal O(n) time complexity.
