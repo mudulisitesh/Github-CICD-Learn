@@ -1,102 +1,93 @@
-Okay, here's a randomly generated DSA problem, followed by a Python solution with explanations.
+Okay, here's a DSA problem focusing on using a hash table (dictionary in Python) for efficient counting and comparison, along with a Python solution:
 
-**Problem: Find the First Non-Repeating Character**
+**Problem: Anagram Grouping**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+Given a list of strings, group the anagrams together.  An anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
 
-**Example 1:**
-
-```
-Input: s = "leetcode"
-Output: 0
-```
-
-**Example 2:**
+**Example:**
 
 ```
-Input: s = "loveleetcode"
-Output: 2
-```
-
-**Example 3:**
-
-```
-Input: s = "aabb"
-Output: -1
-```
-
-**Python Solution:**
-
-```python
-def first_unique_char(s):
-    """
-    Finds the index of the first non-repeating character in a string.
-
-    Args:
-        s: The input string.
-
-    Returns:
-        The index of the first non-repeating character, or -1 if none exists.
-    """
-
-    char_counts = {}  # Use a dictionary (hash map) to store character counts
-
-    # First, count the occurrences of each character
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1  # Efficiently increment count
-
-    # Iterate through the string again to find the first non-repeating character
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i  # Return the index if the count is 1
-
-    return -1  # No non-repeating character found
-
-# Example Usage:
-print(first_unique_char("leetcode"))  # Output: 0
-print(first_unique_char("loveleetcode")) # Output: 2
-print(first_unique_char("aabb"))  # Output: -1
+Input: ["eat", "tea", "tan", "ate", "nat", "bat"]
+Output:
+[
+  ["ate","eat","tea"],
+  ["nat","tan"],
+  ["bat"]
+]
 ```
 
 **Explanation:**
 
-1. **`char_counts = {}`:**  We initialize an empty dictionary called `char_counts`.  This dictionary will store each character in the string as a key, and its number of occurrences as the value.  Dictionaries (hash maps) provide fast lookups (O(1) on average), which is crucial for efficient character counting.
+*   "eat", "tea", and "ate" are anagrams of each other.
+*   "tan" and "nat" are anagrams of each other.
+*   "bat" has no anagrams in the input list.
 
-2. **Counting Character Occurrences:**
+**Python Solution:**
 
-   ```python
-   for char in s:
-       char_counts[char] = char_counts.get(char, 0) + 1
-   ```
+```python
+def group_anagrams(strs):
+    """
+    Groups anagrams from a list of strings.
 
-   - The code iterates through each character `char` in the input string `s`.
-   - `char_counts.get(char, 0)`: This is a concise way to get the current count of the character `char` from the `char_counts` dictionary.  If the character is already a key in the dictionary, `get()` returns its value.  If the character is not yet a key (i.e., we're encountering it for the first time), `get()` returns the default value of 0 (which we provide as the second argument).
-   - `+ 1`: We increment the count by 1.
-   - `char_counts[char] = ...`: We update the `char_counts` dictionary with the new count for the character.
+    Args:
+        strs: A list of strings.
 
-3. **Finding the First Non-Repeating Character:**
+    Returns:
+        A list of lists, where each inner list contains anagrams.
+    """
 
-   ```python
-   for i, char in enumerate(s):
-       if char_counts[char] == 1:
-           return i
-   ```
+    anagram_map = {}  # Dictionary to store sorted strings as keys and anagram lists as values
 
-   - `enumerate(s)`: This allows us to iterate through the string `s` and get both the index `i` and the character `char` at each position.
-   - `if char_counts[char] == 1:`:  We check the `char_counts` dictionary to see how many times the current character `char` appears in the string.  If the count is 1, it means the character is non-repeating.
-   - `return i`: If we find a non-repeating character, we immediately return its index `i`.
+    for string in strs:
+        # Sort the characters of the string to create a unique key for anagrams
+        sorted_string = "".join(sorted(string))
 
-4. **Handling No Non-Repeating Character:**
+        if sorted_string in anagram_map:
+            anagram_map[sorted_string].append(string)  # Add the string to the existing anagram group
+        else:
+            anagram_map[sorted_string] = [string]  # Create a new anagram group
 
-   ```python
-   return -1
-   ```
+    return list(anagram_map.values())  # Return the list of anagram groups
 
-   - If the loop completes without finding any character with a count of 1, it means there are no non-repeating characters in the string.  In this case, the function returns -1.
+
+# Example Usage:
+input_strings = ["eat", "tea", "tan", "ate", "nat", "bat"]
+result = group_anagrams(input_strings)
+print(result) # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']]
+
+input_strings = [""]
+result = group_anagrams(input_strings)
+print(result) #Output: [['']]
+
+input_strings = ["a"]
+result = group_anagrams(input_strings)
+print(result) #Output: [['a']]
+```
+
+**Explanation of the Code:**
+
+1.  **`group_anagrams(strs)` function:**
+    *   Takes a list of strings `strs` as input.
+    *   Initializes an empty dictionary `anagram_map`. This dictionary will store sorted versions of the strings (which are unique identifiers for anagrams) as keys, and lists of the actual anagram strings as values.
+
+2.  **Iterating through the Input:**
+    *   The code iterates through each `string` in the input list `strs`.
+
+3.  **Sorting the String (Creating the Key):**
+    *   `sorted_string = "".join(sorted(string))` : This is the crucial part.
+        *   `sorted(string)`: Sorts the characters of the current `string` alphabetically, resulting in a list of characters.
+        *   `"".join(...)`: Joins the sorted list of characters back into a single string.  This sorted string serves as a unique key for all anagrams of that string. For example, "eat", "tea", and "ate" will all result in the sorted string "aet".
+
+4.  **Checking the Dictionary:**
+    *   `if sorted_string in anagram_map:`: Checks if the `sorted_string` already exists as a key in the `anagram_map` dictionary.
+        *   If it exists, it means we've already found anagrams of this type.  So, `anagram_map[sorted_string].append(string)` appends the current `string` to the list of anagrams associated with that key.
+    *   `else:`: If the `sorted_string` is not in `anagram_map`, it means this is the first time we've encountered an anagram of this type.
+        *   `anagram_map[sorted_string] = [string]` creates a new entry in the dictionary, using the `sorted_string` as the key and a new list containing only the current `string` as the value. This starts a new group of anagrams.
+
+5.  **Returning the Result:**
+    *   `return list(anagram_map.values())`:  After processing all the strings, `anagram_map` contains all the anagram groups.  `anagram_map.values()` returns a collection of the values (which are the lists of anagrams).  `list(...)` converts this collection into a list of lists, which is the desired output format.
 
 **Time and Space Complexity:**
 
-- **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string twice, both times in linear time.
-- **Space Complexity:** O(1). Although we use a dictionary, the number of distinct characters is limited by the character set (e.g., ASCII or Unicode). Therefore, the space used by the dictionary is considered constant with respect to the input string's length.  In the worst case, where all characters are unique, the dictionary will store all the characters in `s`.  However, the size is still bound by the character set, making it a constant factor.
-
-This solution is efficient and easy to understand. The use of a dictionary allows for fast character counting, leading to the optimal O(n) time complexity.
+*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input list and K is the average length of the strings.  We iterate through each string (N), and for each string, we sort it (K log K).
+*   **Space Complexity:** O(N * K), where N is the number of strings and K is the average length of the strings. In the worst case, we might store all the strings in the `anagram_map`.
