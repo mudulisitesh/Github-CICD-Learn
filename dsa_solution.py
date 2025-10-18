@@ -1,83 +1,110 @@
-Okay, here's a random DSA problem and a Python solution:
+Okay, here's a DSA problem and a Python solution, along with explanations:
 
 **Problem:**
 
-**Find the First Non-Repeating Character in a String**
+**K Closest Points to Origin**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+Given an array of points `points` where `points[i] = [xi, yi]` represents a point on the X-Y plane and an integer `k`, return the `k` closest points to the origin (0, 0).
 
-**Example 1:**
+The distance between two points on the X-Y plane is the Euclidean distance (i.e., the square root of ((x1 - x2)^2 + (y1 - y2)^2)). In this case, the distance to the origin is simply the square root of (x^2 + y^2).
 
-```
-Input: s = "leetcode"
-Output: 0
-```
+You may return the answer in any order.
 
-**Example 2:**
+**Example:**
 
 ```
-Input: s = "loveleetcode"
-Output: 2
+Input: points = [[1,3],[-2,2]], k = 1
+Output: [[-2,2]]
+
+Explanation:
+The distance between (1, 3) and the origin is sqrt(10).
+The distance between (-2, 2) and the origin is sqrt(8).
+Since sqrt(8) < sqrt(10), (-2, 2) is closer to the origin.
+We only want the 1 closest point from the origin, so the answer is [[-2,2]].
 ```
 
-**Example 3:**
-
-```
-Input: s = "aabb"
-Output: -1
-```
-
-**Solution (Python):**
+**Python Solution:**
 
 ```python
-def first_unique_char(s: str) -> int:
+import heapq
+import math
+
+def k_closest(points, k):
     """
-    Finds the index of the first non-repeating character in a string.
+    Finds the k closest points to the origin (0, 0).
 
     Args:
-        s: The input string.
+        points: A list of lists, where each inner list represents a point [x, y].
+        k: The number of closest points to return.
 
     Returns:
-        The index of the first non-repeating character, or -1 if none exists.
+        A list of lists, containing the k closest points to the origin.
     """
 
-    char_counts = {}  # Use a dictionary to store character counts
+    distances = []
+    for x, y in points:
+        distance = math.sqrt(x**2 + y**2)
+        distances.append((distance, [x, y]))  # Store distance and point
 
-    # Count the occurrences of each character
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+    # Use a min-heap (priority queue) to efficiently find the k smallest distances
+    heapq.heapify(distances)  # Convert the list to min-heap
 
-    # Iterate through the string again to find the first character with a count of 1
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+    result = []
+    for _ in range(k):
+        distance, point = heapq.heappop(distances)  # Retrieve the smallest element (distance and point)
+        result.append(point)
 
-    return -1  # No non-repeating character found
-#Test Cases:
-print(first_unique_char("leetcode"))
-print(first_unique_char("loveleetcode"))
-print(first_unique_char("aabb"))
+    return result
+
+# Example usage:
+points = [[1,3],[-2,2]]
+k = 1
+closest_points = k_closest(points, k)
+print(closest_points)  # Output: [[-2, 2]]
+
+points = [[3,3],[5,-1],[-2,4]]
+k = 2
+closest_points = k_closest(points, k)
+print(closest_points) # Output: [[3, 3], [-2, 4]] or [[-2, 4], [3, 3]] (order doesn't matter)
 ```
 
 **Explanation:**
 
-1.  **`char_counts = {}`:** We initialize an empty dictionary called `char_counts`. This dictionary will store each character in the string `s` as a key, and the number of times that character appears in the string as its value.
+1. **Calculate Distances:**
+   - The code iterates through the `points` array.
+   - For each point `[x, y]`, it calculates the Euclidean distance to the origin using the formula `sqrt(x^2 + y^2)`.
+   - It stores the calculated distance along with the point itself as a tuple `(distance, [x, y])` in the `distances` list.
 
-2.  **First Loop (Counting Occurrences):**
-    *   `for char in s:`: We iterate through each character in the input string `s`.
-    *   `char_counts[char] = char_counts.get(char, 0) + 1`:  This is the core of the counting logic:
-        *   `char_counts.get(char, 0)`: We try to retrieve the current count of the character `char` from the `char_counts` dictionary.  If the character is *not* already a key in the dictionary (i.e., it's the first time we've seen this character), `get(char, 0)` returns 0 (the default value).
-        *   `+ 1`:  We add 1 to the current count (either the existing count or the default 0).
-        *   `char_counts[char] = ...`: We update (or create) the entry in the `char_counts` dictionary with the new count.
+2. **Min-Heap (Priority Queue):**
+   - The `heapq` module in Python provides an implementation of a min-heap (also known as a priority queue). A min-heap is a binary tree-based data structure where the value of each node is less than or equal to the values of its children.  This allows us to quickly find the smallest element in the collection.
+   - `heapq.heapify(distances)` converts the `distances` list into a min-heap in-place. This takes O(n) time, where n is the number of points.
 
-3.  **Second Loop (Finding the First Unique Character):**
-    *   `for i, char in enumerate(s):`:  We iterate through the string `s` *again*, but this time we also keep track of the *index* of each character using `enumerate`.
-    *   `if char_counts[char] == 1:`: Inside the loop, we check the count of the current character `char` in our `char_counts` dictionary.  If the count is equal to 1, it means that this character appears only once in the string.
-    *   `return i`: If we find a character with a count of 1, we immediately return its index `i`.  This is because we want to find the *first* such character.
+3. **Extract k Closest Points:**
+   - The code then iterates `k` times.
+   - In each iteration, `heapq.heappop(distances)` removes and returns the smallest element from the heap (i.e., the point with the smallest distance).  `heappop` maintains the heap property.  Each `heappop` operation takes O(log n) time.
+   - The point associated with the retrieved distance is appended to the `result` list.
 
-4.  **`return -1`:**  If the loop completes without finding any character with a count of 1, it means that there are no non-repeating characters in the string. In this case, we return -1 as specified in the problem.
+4. **Return Result:**
+   - Finally, the `result` list, containing the `k` closest points to the origin, is returned.
 
-**Time and Space Complexity:**
+**Time Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the string.  We iterate through the string twice (once to count and once to find the unique character), but these are linear operations.
-*   **Space Complexity:** O(1) in the best case(all letters are the same) and O(n) in the worst case where all letters are different.  In reality, since we are working with characters, the size of `char_counts` is limited by the number of unique characters in the character set (e.g., ASCII or Unicode). So it is technically O(1), as the space used by the hashtable won't grow beyond a certain limit. However, it is important to understand the worst case scenario.
+- Calculating distances: O(n)
+- `heapify`: O(n)
+- `k` calls to `heappop`: O(k log n)
+
+Therefore, the overall time complexity is O(n + k log n). In cases where k is relatively small compared to n, this can be approximated as O(n).  If `k` is close to `n`, it becomes more like O(n log n).
+
+**Space Complexity:**
+
+- The `distances` list stores distance and point for each of the `n` points.  This takes O(n) space.
+- The `result` list stores up to `k` points, using O(k) space.
+
+Therefore, the overall space complexity is O(n).
+**Alternative Approaches:**
+
+*   **Sorting:** You could sort the `distances` list (or a list of `(distance, point)` tuples) by distance. Then, take the first `k` elements.  This would have a time complexity of O(n log n) because of the sort.  It would use O(n) space to store the distances.  This is less efficient than the heap-based approach when `k` is significantly smaller than `n`.
+
+*   **Quickselect (Partial Sorting):** Quickselect is an algorithm that can find the kth smallest element in an unsorted array in O(n) average time complexity (O(n^2) in the worst case). You could adapt Quickselect to find the kth smallest distance and then retrieve all points with distances less than or equal to that value.  This can be a good option for situations where you want to avoid a full sort or heap construction.  However, the average case O(n) relies on the assumption of a decent partitioning.
+
+The heap-based approach is often preferred because it provides a good balance of time and space complexity and is relatively easy to implement.
