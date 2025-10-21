@@ -1,112 +1,121 @@
-Okay, here's a random DSA problem and a Python solution with explanation:
+Okay, here's a random DSA problem and a Python solution:
 
-**Problem:**
+**Problem:  Merge K Sorted Linked Lists**
 
-**Majority Element (Improved Voting Algorithm)**
-
-Given an array `nums` of size `n`, find the majority element. The majority element is the element that appears more than `n / 2` times.  You may assume that the majority element always exists in the array. Implement an efficient algorithm using the Boyer-Moore Voting Algorithm (O(n) time and O(1) space).
+You are given an array of k linked-lists, each sorted in ascending order.  Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
+Input:
 ```
-Input: nums = [3, 2, 3]
-Output: 3
-
-Input: nums = [2,2,1,1,1,2,2]
-Output: 2
+lists = [
+  1->4->5,
+  1->3->4,
+  2->6
+]
 ```
 
-**Python Solution:**
+Output:
+```
+1->1->2->3->4->4->5->6
+```
+
+**Python Solution using a Heap (Priority Queue)**
 
 ```python
-def majority_element(nums):
+import heapq
+
+class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def mergeKLists(lists):
     """
-    Finds the majority element in an array using the Boyer-Moore Voting Algorithm.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-        nums: A list of integers.
+        lists: A list of ListNode heads representing the k sorted lists.
 
     Returns:
-        The majority element.
+        The head of the merged sorted linked list.
     """
 
-    candidate = None
-    count = 0
+    # Use a min-heap to efficiently track the smallest element across all lists
+    heap = []  # Store (value, list_index) tuples in the heap
 
-    # Phase 1: Finding a candidate
-    for num in nums:
-        if count == 0:
-            candidate = num
-            count = 1
-        elif num == candidate:
-            count += 1
-        else:
-            count -= 1
+    # Initialize the heap with the first element from each non-empty list
+    for i in range(len(lists)):
+        if lists[i]:
+            heapq.heappush(heap, (lists[i].val, i))  # (value, list_index)
 
-    # Phase 2: Verification (optional, but good practice if majority element isn't guaranteed)
-    # We know a majority element exists, so this step is actually unnecessary for this problem.
-    # However, I include it for completeness and for cases where the input might not
-    # necessarily contain a true majority element.  It guarantees correctness in the general case.
+    # Create a dummy node to simplify building the merged list
+    dummy = ListNode(0)
+    current = dummy  # Points to the current tail of the merged list
 
-    count = 0
-    for num in nums:
-        if num == candidate:
-            count += 1
+    while heap:
+        val, list_index = heapq.heappop(heap)  # Get smallest value and its list
+        current.next = ListNode(val)          # Add it to the merged list
+        current = current.next                # Move the tail pointer
 
-    if count > len(nums) // 2:
-        return candidate
-    else:
-        # This case should theoretically never happen given the problem constraints,
-        # but it's good defensive programming.
-        return None  # Or raise an exception, depending on desired behavior.
+        # Advance the list from which the smallest value came
+        lists[list_index] = lists[list_index].next
 
+        # If the list still has elements, add the next one to the heap
+        if lists[list_index]:
+            heapq.heappush(heap, (lists[list_index].val, list_index))
 
-# Example usage
-nums1 = [3, 2, 3]
-print(f"Majority element in {nums1}: {majority_element(nums1)}")  # Output: 3
+    return dummy.next  # Return the head of the merged list (after the dummy)
 
-nums2 = [2, 2, 1, 1, 1, 2, 2]
-print(f"Majority element in {nums2}: {majority_element(nums2)}")  # Output: 2
+# Example usage:
 
-nums3 = [1]
-print(f"Majority element in {nums3}: {majority_element(nums3)}") # Output: 1
+# Create the linked lists from the example input
+list1 = ListNode(1, ListNode(4, ListNode(5)))
+list2 = ListNode(1, ListNode(3, ListNode(4)))
+list3 = ListNode(2, ListNode(6))
 
-nums4 = [6,5,5]
-print(f"Majority element in {nums4}: {majority_element(nums4)}") # Output: 5
+lists = [list1, list2, list3]
+
+# Merge the lists
+merged_list = mergeKLists(lists)
+
+# Print the merged list (for demonstration)
+def print_list(head):
+    elements = []
+    while head:
+        elements.append(head.val)
+        head = head.next
+    print("->".join(map(str, elements)))  #Concatenating and formatting using map
+    
+print_list(merged_list) # Output: 1->1->2->3->4->4->5->6
 ```
 
-**Explanation:**
+Key improvements and explanations:
 
-1. **Boyer-Moore Voting Algorithm:**
+* **ListNode Class:** Explicitly defines the `ListNode` class for clarity. This is fundamental when working with linked lists.
+* **Heap (Priority Queue):**  Uses `heapq` to implement a min-heap.  The heap stores tuples of `(value, list_index)`.  `value` is the value of the node, and `list_index` is the index of the list from which that node came. This is crucial for knowing which list to advance from when a node is processed. The `heapq` module ensures that the smallest value is always at the top, making it efficient to find the next smallest element across all lists.  Python's `heapq` works on tuples, automatically comparing them element-wise.
+* **Dummy Node:**  A `dummy` node is created at the beginning. This simplifies the code because you don't have to handle the special case of the first node separately.  The `dummy` node is then discarded when returning the merged list.
+* **Clearer Logic:** The `while heap:` loop continues as long as there are elements in the heap (meaning there are still nodes to process in at least one of the linked lists).
+* **List Index Tracking:**  The `list_index` is stored in the heap along with the value.  After popping the smallest value, we use `list_index` to access the correct list and advance to the next node in that list.
+* **Handling Empty Lists:** The code correctly handles cases where one or more of the input lists might be empty. The initial loop skips empty lists.
+* **Comments:**  The code is well-commented, explaining each step of the algorithm.
+* **`print_list` function:**  A helper function is added to print the linked list so that you can easily see the output of the algorithm. Using `map(str, elements)` is more Pythonic for converting list elements to strings for joining.
+* **Conciseness:** The code is written concisely and efficiently.
 
-   - **Intuition:** The algorithm leverages the fact that the majority element appears more than `n / 2` times.  Therefore, if we keep a counter for a potential candidate, every time we encounter the same element, we increment the counter. If we encounter a different element, we decrement the counter. If the majority element exists, it will survive this process and have a positive count at the end.
+**How it works:**
 
-   - **Phase 1 (Finding a Candidate):**
-     - `candidate`: Stores the current potential majority element.  Initialized to `None`.
-     - `count`: Keeps track of the "votes" for the current candidate.  Initialized to `0`.
-     - The loop iterates through the `nums` array:
-       - If `count` is `0`, it means we don't have a current candidate, so we set `candidate` to the current `num` and set `count` to `1`.
-       - If the current `num` is the same as `candidate`, we increment `count`.
-       - Otherwise (the current `num` is different from `candidate`), we decrement `count`.  This represents "canceling out" a vote for the candidate.
+1. **Initialization:**
+   - A min-heap is created to store nodes from all the lists.  The heap stores `(value, list_index)` tuples.
+   - A dummy node is created to simplify building the merged list.
+2. **Populate the Heap:** The code iterates through the input `lists` and adds the first node from each non-empty list to the heap.  Critically, it stores the list's index with the node's value.
+3. **Merging:**
+   - While the heap is not empty:
+     - The smallest element (with its list index) is popped from the heap.
+     - A new node is created with the smallest value and appended to the merged list.
+     - The list from which the smallest value came is advanced to its next node.
+     - If the list still has elements, the next node (with its list index) is added to the heap.
+4. **Return:** The `next` pointer of the dummy node is returned, which is the head of the merged sorted list.
 
-   - **Phase 2 (Verification - optional but recommended):**
-     - After Phase 1, `candidate` holds a *potential* majority element.  Because the problem states a majority element *is guaranteed to exist*, this phase is technically unnecessary. The Boyer-Moore algorithm will *always* find the correct majority element in that scenario.
-     - *However*, it's good practice to include this verification step, especially if you are dealing with data that might *not* have a majority element.  This makes your function more robust.
-     - The loop counts how many times `candidate` actually appears in the array.
-     - If the count is greater than `n / 2`, we confirm that `candidate` is indeed the majority element and return it.
-     - If the count is *not* greater than `n / 2`, it means there wasn't a true majority element (and our algorithm incorrectly found a candidate due to noise in the data).  In that case, you'd typically return `None` or raise an exception, depending on the desired behavior.
+**Time Complexity:**  O(N log k), where N is the total number of nodes in all the lists, and k is the number of lists. The heap operations (push and pop) take O(log k) time, and we perform N heap operations.
 
-2. **Time and Space Complexity:**
-
-   - **Time Complexity:** O(n) - The algorithm iterates through the array at most twice (once in each phase).
-   - **Space Complexity:** O(1) - We only use a few constant-size variables (`candidate`, `count`).  This makes it very efficient in terms of memory usage.
-
-**Key Improvements & Considerations:**
-
-*   **Clarity and Readability:** The code is well-commented to explain each step.
-*   **Completeness:** The verification step in Phase 2 is included to make the function more robust in case the input is not guaranteed to have a majority element.  While not strictly required by the problem statement, it's good practice.
-*   **Defensive Programming:** The `else` block in the verification phase handles the (unlikely, but possible) situation where no majority element exists, preventing unexpected behavior.
-*   **Example Usage:** Clear examples are included to demonstrate how to use the function.
-*   **Boyer-Moore Algorithm:** The algorithm is correctly implemented to find the majority element in linear time and constant space.
-
-This is a well-structured and efficient solution to the majority element problem using the Boyer-Moore Voting Algorithm. It addresses the key requirements of the problem and provides a robust and understandable implementation.
+**Space Complexity:** O(k), where k is the number of linked lists. This is the space used by the min-heap to store at most one element from each list.  The space for the output linked list is not considered.
