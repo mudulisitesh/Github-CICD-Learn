@@ -1,121 +1,108 @@
-Okay, here's a random DSA problem and a Python solution:
+Okay, here's a DSA problem and its Python solution.
 
-**Problem:  Merge K Sorted Linked Lists**
+**Problem:**
 
-You are given an array of k linked-lists, each sorted in ascending order.  Merge all the linked-lists into one sorted linked-list and return it.
+**Minimum Cost to Connect All Points**
+
+You are given an array `points` representing integer coordinates of some points on a 2D-plane, where `points[i] = [xi, yi]`.  The cost to connect two points `[xi, yi]` and `[xj, yj]` is the Manhattan distance between them: `|xi - xj| + |yi - yj|`, where `|val|` denotes the absolute value of `val`.
+
+Return the minimum cost to make all points connected. All points are connected if there is exactly one simple path between any two points.
 
 **Example:**
 
-Input:
 ```
-lists = [
-  1->4->5,
-  1->3->4,
-  2->6
-]
+Input: points = [[0,0],[2,2],[3,10],[5,2],[7,0]]
+Output: 20
+
+Explanation:
+We can connect the points as follows:
+- Connect [0,0] with [2,2] at cost |0-2| + |0-2| = 4
+- Connect [2,2] with [5,2] at cost |2-5| + |2-2| = 3
+- Connect [5,2] with [7,0] at cost |5-7| + |2-0| = 4
+- Connect [2,2] with [3,10] at cost |2-3| + |2-10| = 9
+The total cost of this connection is 4 + 3 + 4 + 9 = 20
 ```
 
-Output:
-```
-1->1->2->3->4->4->5->6
-```
-
-**Python Solution using a Heap (Priority Queue)**
+**Solution (Python using Prim's Algorithm):**
 
 ```python
 import heapq
 
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
-
-def mergeKLists(lists):
+def min_cost_connect_points(points):
     """
-    Merges k sorted linked lists into one sorted linked list.
+    Finds the minimum cost to connect all points using Manhattan distance.
 
     Args:
-        lists: A list of ListNode heads representing the k sorted lists.
+        points: A list of tuples representing the (x, y) coordinates of the points.
 
     Returns:
-        The head of the merged sorted linked list.
+        The minimum cost to connect all points.
     """
 
-    # Use a min-heap to efficiently track the smallest element across all lists
-    heap = []  # Store (value, list_index) tuples in the heap
+    n = len(points)
+    if n <= 1:
+        return 0  # Nothing to connect if there's only one or zero points
 
-    # Initialize the heap with the first element from each non-empty list
-    for i in range(len(lists)):
-        if lists[i]:
-            heapq.heappush(heap, (lists[i].val, i))  # (value, list_index)
+    # Calculate Manhattan distance between two points
+    def manhattan_distance(p1, p2):
+        return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
-    # Create a dummy node to simplify building the merged list
-    dummy = ListNode(0)
-    current = dummy  # Points to the current tail of the merged list
+    # Prim's algorithm
+    visited = set()
+    min_cost = 0
+    heap = [(0, 0)]  # (cost, point_index)  Start at point 0 with cost 0
 
-    while heap:
-        val, list_index = heapq.heappop(heap)  # Get smallest value and its list
-        current.next = ListNode(val)          # Add it to the merged list
-        current = current.next                # Move the tail pointer
+    while len(visited) < n:
+        cost, i = heapq.heappop(heap)
 
-        # Advance the list from which the smallest value came
-        lists[list_index] = lists[list_index].next
+        if i in visited:
+            continue
 
-        # If the list still has elements, add the next one to the heap
-        if lists[list_index]:
-            heapq.heappush(heap, (lists[list_index].val, list_index))
+        visited.add(i)
+        min_cost += cost
 
-    return dummy.next  # Return the head of the merged list (after the dummy)
+        for j in range(n):
+            if j not in visited:
+                distance = manhattan_distance(points[i], points[j])
+                heapq.heappush(heap, (distance, j))
 
-# Example usage:
+    return min_cost
 
-# Create the linked lists from the example input
-list1 = ListNode(1, ListNode(4, ListNode(5)))
-list2 = ListNode(1, ListNode(3, ListNode(4)))
-list3 = ListNode(2, ListNode(6))
 
-lists = [list1, list2, list3]
+# Example usage
+points = [[0,0],[2,2],[3,10],[5,2],[7,0]]
+result = min_cost_connect_points(points)
+print(f"Minimum cost to connect all points: {result}")  # Output: 20
 
-# Merge the lists
-merged_list = mergeKLists(lists)
-
-# Print the merged list (for demonstration)
-def print_list(head):
-    elements = []
-    while head:
-        elements.append(head.val)
-        head = head.next
-    print("->".join(map(str, elements)))  #Concatenating and formatting using map
-    
-print_list(merged_list) # Output: 1->1->2->3->4->4->5->6
+points2 = [[3,12],[-2,5],[-4,1]]
+result2 = min_cost_connect_points(points2)
+print(f"Minimum cost to connect all points: {result2}") # Output: 18
 ```
 
-Key improvements and explanations:
+**Explanation:**
 
-* **ListNode Class:** Explicitly defines the `ListNode` class for clarity. This is fundamental when working with linked lists.
-* **Heap (Priority Queue):**  Uses `heapq` to implement a min-heap.  The heap stores tuples of `(value, list_index)`.  `value` is the value of the node, and `list_index` is the index of the list from which that node came. This is crucial for knowing which list to advance from when a node is processed. The `heapq` module ensures that the smallest value is always at the top, making it efficient to find the next smallest element across all lists.  Python's `heapq` works on tuples, automatically comparing them element-wise.
-* **Dummy Node:**  A `dummy` node is created at the beginning. This simplifies the code because you don't have to handle the special case of the first node separately.  The `dummy` node is then discarded when returning the merged list.
-* **Clearer Logic:** The `while heap:` loop continues as long as there are elements in the heap (meaning there are still nodes to process in at least one of the linked lists).
-* **List Index Tracking:**  The `list_index` is stored in the heap along with the value.  After popping the smallest value, we use `list_index` to access the correct list and advance to the next node in that list.
-* **Handling Empty Lists:** The code correctly handles cases where one or more of the input lists might be empty. The initial loop skips empty lists.
-* **Comments:**  The code is well-commented, explaining each step of the algorithm.
-* **`print_list` function:**  A helper function is added to print the linked list so that you can easily see the output of the algorithm. Using `map(str, elements)` is more Pythonic for converting list elements to strings for joining.
-* **Conciseness:** The code is written concisely and efficiently.
+1. **Manhattan Distance:** The `manhattan_distance` function calculates the distance between two points as specified in the problem description.
 
-**How it works:**
+2. **Prim's Algorithm:** This algorithm is used to find the Minimum Spanning Tree (MST) of the graph formed by the points. Each point is a node, and the weight of the edge between two points is the Manhattan distance.
 
-1. **Initialization:**
-   - A min-heap is created to store nodes from all the lists.  The heap stores `(value, list_index)` tuples.
-   - A dummy node is created to simplify building the merged list.
-2. **Populate the Heap:** The code iterates through the input `lists` and adds the first node from each non-empty list to the heap.  Critically, it stores the list's index with the node's value.
-3. **Merging:**
-   - While the heap is not empty:
-     - The smallest element (with its list index) is popped from the heap.
-     - A new node is created with the smallest value and appended to the merged list.
-     - The list from which the smallest value came is advanced to its next node.
-     - If the list still has elements, the next node (with its list index) is added to the heap.
-4. **Return:** The `next` pointer of the dummy node is returned, which is the head of the merged sorted list.
+   - `visited`: A set to keep track of the points that have already been included in the MST.
 
-**Time Complexity:**  O(N log k), where N is the total number of nodes in all the lists, and k is the number of lists. The heap operations (push and pop) take O(log k) time, and we perform N heap operations.
+   - `min_cost`:  The total cost of the MST (initialized to 0).
 
-**Space Complexity:** O(k), where k is the number of linked lists. This is the space used by the min-heap to store at most one element from each list.  The space for the output linked list is not considered.
+   - `heap`:  A min-heap (priority queue) used to store the edges that can be added to the MST.  It stores tuples of the form `(cost, point_index)`, where `cost` is the Manhattan distance to the `point_index` from the MST.  We start with a cost of 0 at point 0.
+
+   - **Loop:** The `while` loop continues until all points are in the MST (`len(visited) == n`).
+
+     - `heapq.heappop(heap)`:  Extracts the edge with the minimum cost from the heap.
+
+     - **Check if visited:** If the point `i` has already been visited, skip it.
+
+     - **Add to MST:**  Add the point `i` to the `visited` set and increment `min_cost` by the `cost` of the edge.
+
+     - **Update Heap:**  Iterate through all the other points `j` that have not yet been visited.  Calculate the Manhattan distance between `points[i]` and `points[j]`.  Add the edge `(distance, j)` to the heap. This ensures that the heap always contains the shortest edge to an unvisited point from the current MST.
+
+3. **Return `min_cost`:** After the loop finishes, `min_cost` contains the total cost of the MST, which is the minimum cost to connect all the points.
+
+**Time Complexity:** O(n^2 log n), where n is the number of points. The `n^2` comes from calculating the Manhattan distances, and the `log n` comes from the heap operations.
+**Space Complexity:** O(n)  due to the `visited` set and the heap. In the worst case, the heap might contain all edges, so it can take up O(n^2) space if we don't handle duplicates well, but in practice, it will be closer to O(n).
+This solution provides a clear and efficient way to solve the problem using Prim's algorithm.  It prioritizes readability and addresses the problem requirements directly.
