@@ -1,107 +1,81 @@
-Okay, here's a DSA problem that involves a common data structure and algorithm, along with a working Python solution:
+Okay, here's a DSA problem along with a Python solution:
 
-**Problem:**
+**Problem: First Unique Character in a String**
 
-**Minimum Window Substring**
-
-Given two strings `s` and `t`, find the minimum window in `s` which will contain all the characters in `t` in complexity O(n). If there is no such window in `s` that covers all characters in `t`, return the empty string "".
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
 **Example:**
 
-*   **Input:** `s = "ADOBECODEBANC", t = "ABC"`
-*   **Output:** `"BANC"`
+```
+s = "leetcode"
+Output: 0
+
+s = "loveleetcode"
+Output: 2
+
+s = "aabb"
+Output: -1
+```
 
 **Explanation:**
 
-The minimum window is "BANC" because it's the smallest substring of "ADOBECODEBANC" that contains all characters 'A', 'B', and 'C'.
+The problem requires you to traverse a string and identify the first character that appears only once.  A common and efficient approach is to use a hash map (dictionary in Python) to store the frequency of each character.  Then, iterate through the string again, checking the frequency of each character in the hash map. The first character with a frequency of 1 is the answer.
 
 **Python Solution:**
 
 ```python
-from collections import defaultdict
-
-def min_window(s: str, t: str) -> str:
+def first_unique_char(s: str) -> int:
     """
-    Finds the minimum window substring in s that contains all characters in t.
+    Finds the index of the first unique character in a string.
 
     Args:
-        s: The string to search within.
-        t: The string containing the characters to find.
+        s: The input string.
 
     Returns:
-        The minimum window substring, or an empty string if no such window exists.
+        The index of the first unique character, or -1 if none exists.
     """
 
-    if not s or not t:
-        return ""
+    # Create a dictionary to store the frequency of each character
+    char_counts = {}
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    need = defaultdict(int)  # Count of characters needed from t
-    for char in t:
-        need[char] += 1
+    # Iterate through the string and check for the first character with a frequency of 1
+    for i in range(len(s)):
+        if char_counts[s[i]] == 1:
+            return i
 
-    have = defaultdict(int)  # Count of characters currently in the window
+    # If no unique character is found, return -1
+    return -1
 
-    left = 0
-    right = 0
-    min_len = float('inf')
-    start = 0  # Start index of the minimum window
-    matched = 0 # how many characters in `t` is satisfied in `s`
 
-    while right < len(s):
-        char = s[right]
-
-        if char in need:
-            have[char] += 1
-            if have[char] == need[char]:
-                matched += 1
-
-        while matched == len(need):  # All characters from t are present
-            if (right - left + 1) < min_len:
-                min_len = (right - left + 1)
-                start = left
-
-            left_char = s[left]
-            if left_char in need:
-                if have[left_char] == need[left_char]:
-                    matched -= 1
-                have[left_char] -= 1
-
-            left += 1
-
-        right += 1
-
-    if min_len == float('inf'):
-        return ""
-    else:
-        return s[start:start + min_len]
-
-# Example usage:
-s = "ADOBECODEBANC"
-t = "ABC"
-result = min_window(s, t)
-print(f"Minimum window substring: {result}") # Output: BANC
-
-s = "a"
-t = "aa"
-result = min_window(s, t)
-print(f"Minimum window substring: {result}") # Output: ""
-
-s = "aaaaaaaaaaaabbbbbcdddddddddaaaaaaaaaaaaabbbbbbbbbbbbbbbcddddddddddddddddddddddddddd"
-t = "abcdd"
-result = min_window(s, t)
-print(f"Minimum window substring: {result}") # Output: bbbbbcddddddddd
+# Example Usage
+print(first_unique_char("leetcode"))  # Output: 0
+print(first_unique_char("loveleetcode")) # Output: 2
+print(first_unique_char("aabb")) # Output: -1
 ```
 
-Key improvements and explanations:
+**Explanation of the Code:**
 
-*   **Clarity and Readability:** The code is heavily commented to explain each step. Variable names are more descriptive (e.g., `need`, `have`, `matched`).
-*   **`defaultdict`:** Using `defaultdict(int)` from the `collections` module simplifies the counting of character frequencies.  If a key is not present, accessing it automatically creates it with a default value of 0.  This avoids `KeyError` exceptions and makes the code cleaner.
-*   **`matched` Variable:** This is a crucial optimization.  The `matched` variable keeps track of how many *different* characters in `t` have reached their required counts in the current window in `s`. This allows the `while matched == len(need)` condition to check if all *unique* characters in `t` are sufficiently present in `s`.  This is what makes the sliding window logic work efficiently.
-*   **Sliding Window:** The `left` and `right` pointers define the sliding window. The `right` pointer expands the window, and the `left` pointer contracts it while maintaining the condition that the window contains all characters from `t`.
-*   **`min_len` and `start`:** These variables keep track of the length and starting index of the minimum window found so far.  Initializing `min_len` to `float('inf')` ensures that the first valid window found will always be smaller.
-*   **Return Empty String:** If no valid window is found, the function returns an empty string as specified in the problem.
-*   **Edge Cases:**  The code handles the edge cases of empty strings `s` or `t`.
-*   **Correctness:** The logic has been carefully checked and tested to ensure it produces the correct minimum window substring.  Added more test cases to verify correctness.
-*   **O(n) Complexity:** The sliding window approach ensures that the algorithm has a time complexity of O(n), where n is the length of string `s`.  While there are nested loops, the `left` and `right` pointers each traverse the string `s` at most once.
+1. **`first_unique_char(s: str) -> int:`**:  This defines the function signature, specifying that it takes a string `s` as input and returns an integer (the index or -1).
 
-This revised solution provides a much more robust, readable, and efficient implementation of the minimum window substring problem.  The `matched` variable and `defaultdict` are key elements in achieving O(n) time complexity.
+2. **`char_counts = {}`**:  Initializes an empty dictionary `char_counts`. This dictionary will store character frequencies.
+
+3. **`for char in s:`**: This loop iterates through each character in the input string `s`.
+
+4. **`char_counts[char] = char_counts.get(char, 0) + 1`**:  This line updates the frequency count for each character in the `char_counts` dictionary.
+   - `char_counts.get(char, 0)`: This attempts to retrieve the current count for the character `char` from the dictionary. If the character is not already in the dictionary, it returns a default value of 0.
+   - `+ 1`:  Increments the count by 1.
+
+5. **`for i in range(len(s)):`**: This loop iterates through the string `s` again, but this time using the index `i`.
+
+6. **`if char_counts[s[i]] == 1:`**:  This checks if the character at index `i` has a frequency of 1 in the `char_counts` dictionary.
+
+7. **`return i`**: If the character has a frequency of 1, it means it's a unique character. The function immediately returns the index `i`.
+
+8. **`return -1`**: If the loop completes without finding any character with a frequency of 1, it means there are no unique characters in the string. In this case, the function returns -1.
+
+**Time and Space Complexity:**
+
+*   **Time Complexity:** O(n), where n is the length of the string `s`.  The code iterates through the string twice in the worst case.
+*   **Space Complexity:** O(1). The space complexity is constant because the `char_counts` dictionary can store at most 26 unique characters (assuming the input string contains only lowercase English letters).  In general, it depends on the size of the alphabet. If we're dealing with Unicode, it could be larger, but it's still bounded.  Therefore, we can consider the space complexity O(1) or O(k), where k is the size of the character set.
