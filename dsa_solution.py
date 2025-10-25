@@ -1,81 +1,106 @@
-Okay, here's a DSA problem along with a Python solution:
+Okay, here's a problem and a Python solution:
 
-**Problem: First Unique Character in a String**
+**Problem:  Meeting Rooms II**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+Given an array of meeting time intervals consisting of start and end times `[[s1,e1],[s2,e2],...]` (si < ei), find the minimum number of conference rooms required.
 
-**Example:**
+**Example 1:**
 
 ```
-s = "leetcode"
-Output: 0
-
-s = "loveleetcode"
+Input: [[0,30],[5,10],[15,20]]
 Output: 2
+```
 
-s = "aabb"
-Output: -1
+**Example 2:**
+
+```
+Input: [[7,10],[2,4]]
+Output: 1
 ```
 
 **Explanation:**
 
-The problem requires you to traverse a string and identify the first character that appears only once.  A common and efficient approach is to use a hash map (dictionary in Python) to store the frequency of each character.  Then, iterate through the string again, checking the frequency of each character in the hash map. The first character with a frequency of 1 is the answer.
+The idea is to sort the meetings by start time. Then, use a min-heap (priority queue) to keep track of the end times of the meetings that are currently in progress. For each meeting, check if its start time is greater than or equal to the earliest ending meeting (top of the heap).  If it is, then the current meeting can use the same room.  Otherwise, a new room is needed.
 
-**Python Solution:**
+**Python Code:**
 
 ```python
-def first_unique_char(s: str) -> int:
+import heapq
+
+def min_meeting_rooms(intervals):
     """
-    Finds the index of the first unique character in a string.
+    Calculates the minimum number of meeting rooms required.
 
     Args:
-        s: The input string.
+        intervals: A list of lists, where each inner list represents a meeting
+                   interval [start, end].
 
     Returns:
-        The index of the first unique character, or -1 if none exists.
+        The minimum number of meeting rooms required.
     """
 
-    # Create a dictionary to store the frequency of each character
-    char_counts = {}
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+    if not intervals:
+        return 0
 
-    # Iterate through the string and check for the first character with a frequency of 1
-    for i in range(len(s)):
-        if char_counts[s[i]] == 1:
-            return i
+    # Sort the meetings by start time
+    intervals.sort(key=lambda x: x[0])
 
-    # If no unique character is found, return -1
-    return -1
+    # Use a min-heap to keep track of the end times of meetings in progress
+    end_times = []  # Stores end times, acting as a min-heap
+
+    # Iterate through the meetings
+    for interval in intervals:
+        start_time = interval[0]
+        end_time = interval[1]
+
+        # If the earliest ending meeting has already ended,
+        # then we can reuse the room.
+        if end_times and start_time >= end_times[0]:
+            heapq.heappop(end_times)
+
+        # Otherwise, we need a new room.  Add the end time of the current
+        # meeting to the heap.
+        heapq.heappush(end_times, end_time)
+
+    # The number of rooms needed is the number of meetings currently in progress
+    return len(end_times)
 
 
-# Example Usage
-print(first_unique_char("leetcode"))  # Output: 0
-print(first_unique_char("loveleetcode")) # Output: 2
-print(first_unique_char("aabb")) # Output: -1
+# Example usage:
+intervals1 = [[0, 30], [5, 10], [15, 20]]
+print(f"Minimum meeting rooms for {intervals1}: {min_meeting_rooms(intervals1)}")  # Output: 2
+
+intervals2 = [[7, 10], [2, 4]]
+print(f"Minimum meeting rooms for {intervals2}: {min_meeting_rooms(intervals2)}")  # Output: 1
+
+intervals3 = [[1,10],[2,7],[3,19],[8,12],[10,20],[11,30]]
+print(f"Minimum meeting rooms for {intervals3}: {min_meeting_rooms(intervals3)}") # Output: 4
 ```
 
 **Explanation of the Code:**
 
-1. **`first_unique_char(s: str) -> int:`**:  This defines the function signature, specifying that it takes a string `s` as input and returns an integer (the index or -1).
+1.  **`min_meeting_rooms(intervals)`:**
+    *   Takes a list of meeting intervals `intervals` as input.
+    *   Handles the case where the input list is empty.
 
-2. **`char_counts = {}`**:  Initializes an empty dictionary `char_counts`. This dictionary will store character frequencies.
+2.  **Sorting:**
+    *   `intervals.sort(key=lambda x: x[0])`: Sorts the intervals in ascending order based on their start times.  This is crucial for the algorithm's correctness.
 
-3. **`for char in s:`**: This loop iterates through each character in the input string `s`.
+3.  **Min-Heap (Priority Queue):**
+    *   `end_times = []`:  An empty list is initialized to act as a min-heap. `heapq` library functions maintain the heap property.  `end_times` will store the *end* times of the meetings that are currently using rooms. The smallest end time will always be at the top of the heap.
+    *   `heapq.heappush(end_times, end_time)`: Adds an element (the end time) to the heap while maintaining the heap property (min-heap).
+    *   `heapq.heappop(end_times)`: Removes and returns the smallest element (earliest end time) from the heap, again preserving the heap property.
 
-4. **`char_counts[char] = char_counts.get(char, 0) + 1`**:  This line updates the frequency count for each character in the `char_counts` dictionary.
-   - `char_counts.get(char, 0)`: This attempts to retrieve the current count for the character `char` from the dictionary. If the character is not already in the dictionary, it returns a default value of 0.
-   - `+ 1`:  Increments the count by 1.
+4.  **Iteration and Room Allocation:**
+    *   The code iterates through the sorted meeting intervals.
+    *   `if end_times and start_time >= end_times[0]`: This is the key logic.  It checks if there are any meetings already in progress (`end_times` is not empty) and if the current meeting's start time is greater than or equal to the *earliest* ending time (the top of the heap, `end_times[0]`).
+        *   If this condition is true, it means that a room is available, and we can reuse it. We "remove" the earliest ending meeting from the heap using `heapq.heappop(end_times)` because the room is now available for the current meeting.
+        *   If the condition is false, it means that all currently used rooms are still occupied, so we need to allocate a new room.
 
-5. **`for i in range(len(s)):`**: This loop iterates through the string `s` again, but this time using the index `i`.
-
-6. **`if char_counts[s[i]] == 1:`**:  This checks if the character at index `i` has a frequency of 1 in the `char_counts` dictionary.
-
-7. **`return i`**: If the character has a frequency of 1, it means it's a unique character. The function immediately returns the index `i`.
-
-8. **`return -1`**: If the loop completes without finding any character with a frequency of 1, it means there are no unique characters in the string. In this case, the function returns -1.
+5.  **Result:**
+    *   `return len(end_times)`: The number of elements remaining in the `end_times` heap represents the number of rooms currently in use, which is the minimum number of rooms required.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the string `s`.  The code iterates through the string twice in the worst case.
-*   **Space Complexity:** O(1). The space complexity is constant because the `char_counts` dictionary can store at most 26 unique characters (assuming the input string contains only lowercase English letters).  In general, it depends on the size of the alphabet. If we're dealing with Unicode, it could be larger, but it's still bounded.  Therefore, we can consider the space complexity O(1) or O(k), where k is the size of the character set.
+*   **Time Complexity:** O(N log N), where N is the number of intervals.  Sorting takes O(N log N), and heap operations (push and pop) take O(log N) each, and we perform these operations at most N times.
+*   **Space Complexity:** O(N) in the worst case.  The `end_times` heap can potentially store all the end times if no meetings overlap.
