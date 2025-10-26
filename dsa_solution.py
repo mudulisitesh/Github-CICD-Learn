@@ -1,106 +1,71 @@
-Okay, here's a problem and a Python solution:
+Okay, here's a randomly generated DSA problem and a corresponding Python solution:
 
-**Problem:  Meeting Rooms II**
+**Problem: Anagram Grouping**
 
-Given an array of meeting time intervals consisting of start and end times `[[s1,e1],[s2,e2],...]` (si < ei), find the minimum number of conference rooms required.
+Given a list of strings, group the anagrams together. An anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
 
-**Example 1:**
+**Example:**
 
+Input: `["eat", "tea", "tan", "ate", "nat", "bat"]`
+Output:
 ```
-Input: [[0,30],[5,10],[15,20]]
-Output: 2
-```
-
-**Example 2:**
-
-```
-Input: [[7,10],[2,4]]
-Output: 1
+[
+  ["eat","tea","ate"],
+  ["tan","nat"],
+  ["bat"]
+]
 ```
 
 **Explanation:**
 
-The idea is to sort the meetings by start time. Then, use a min-heap (priority queue) to keep track of the end times of the meetings that are currently in progress. For each meeting, check if its start time is greater than or equal to the earliest ending meeting (top of the heap).  If it is, then the current meeting can use the same room.  Otherwise, a new room is needed.
+*   "eat", "tea", and "ate" are anagrams of each other.
+*   "tan" and "nat" are anagrams of each other.
+*   "bat" has no anagrams in the input list.
 
-**Python Code:**
+**Python Solution:**
 
 ```python
-import heapq
+from collections import defaultdict
 
-def min_meeting_rooms(intervals):
+def group_anagrams(strs):
     """
-    Calculates the minimum number of meeting rooms required.
+    Groups anagrams from a list of strings.
 
     Args:
-        intervals: A list of lists, where each inner list represents a meeting
-                   interval [start, end].
+        strs: A list of strings.
 
     Returns:
-        The minimum number of meeting rooms required.
+        A list of lists, where each inner list contains a group of anagrams.
     """
 
-    if not intervals:
-        return 0
+    anagram_groups = defaultdict(list)  # Dictionary to store anagrams based on sorted representation
+    for s in strs:
+        sorted_s = "".join(sorted(s))  # Sort the string to create a unique key for anagrams
+        anagram_groups[sorted_s].append(s)  # Append the original string to the group corresponding to the sorted key
 
-    # Sort the meetings by start time
-    intervals.sort(key=lambda x: x[0])
+    return list(anagram_groups.values())  # Return the values (lists of anagrams)
 
-    # Use a min-heap to keep track of the end times of meetings in progress
-    end_times = []  # Stores end times, acting as a min-heap
-
-    # Iterate through the meetings
-    for interval in intervals:
-        start_time = interval[0]
-        end_time = interval[1]
-
-        # If the earliest ending meeting has already ended,
-        # then we can reuse the room.
-        if end_times and start_time >= end_times[0]:
-            heapq.heappop(end_times)
-
-        # Otherwise, we need a new room.  Add the end time of the current
-        # meeting to the heap.
-        heapq.heappush(end_times, end_time)
-
-    # The number of rooms needed is the number of meetings currently in progress
-    return len(end_times)
-
-
-# Example usage:
-intervals1 = [[0, 30], [5, 10], [15, 20]]
-print(f"Minimum meeting rooms for {intervals1}: {min_meeting_rooms(intervals1)}")  # Output: 2
-
-intervals2 = [[7, 10], [2, 4]]
-print(f"Minimum meeting rooms for {intervals2}: {min_meeting_rooms(intervals2)}")  # Output: 1
-
-intervals3 = [[1,10],[2,7],[3,19],[8,12],[10,20],[11,30]]
-print(f"Minimum meeting rooms for {intervals3}: {min_meeting_rooms(intervals3)}") # Output: 4
+# Example usage
+input_strings = ["eat", "tea", "tan", "ate", "nat", "bat"]
+result = group_anagrams(input_strings)
+print(result)
 ```
 
-**Explanation of the Code:**
+**Explanation:**
 
-1.  **`min_meeting_rooms(intervals)`:**
-    *   Takes a list of meeting intervals `intervals` as input.
-    *   Handles the case where the input list is empty.
+1.  **`defaultdict(list)`:**  We use `defaultdict` from the `collections` module.  This is a dictionary that automatically creates a default value (in this case, an empty list) when a key is accessed that doesn't exist.  This simplifies the grouping process.
 
-2.  **Sorting:**
-    *   `intervals.sort(key=lambda x: x[0])`: Sorts the intervals in ascending order based on their start times.  This is crucial for the algorithm's correctness.
+2.  **Iteration:** We iterate through each string `s` in the input list `strs`.
 
-3.  **Min-Heap (Priority Queue):**
-    *   `end_times = []`:  An empty list is initialized to act as a min-heap. `heapq` library functions maintain the heap property.  `end_times` will store the *end* times of the meetings that are currently using rooms. The smallest end time will always be at the top of the heap.
-    *   `heapq.heappush(end_times, end_time)`: Adds an element (the end time) to the heap while maintaining the heap property (min-heap).
-    *   `heapq.heappop(end_times)`: Removes and returns the smallest element (earliest end time) from the heap, again preserving the heap property.
+3.  **Sorting for Anagram Identification:**  The core idea is that anagrams have the same letters, just in different orders.  We sort the characters in each string `s` to create a unique "fingerprint" for all its anagrams. `sorted(s)` returns a list of characters in sorted order.  `"".join(...)` joins the sorted characters back into a string.
 
-4.  **Iteration and Room Allocation:**
-    *   The code iterates through the sorted meeting intervals.
-    *   `if end_times and start_time >= end_times[0]`: This is the key logic.  It checks if there are any meetings already in progress (`end_times` is not empty) and if the current meeting's start time is greater than or equal to the *earliest* ending time (the top of the heap, `end_times[0]`).
-        *   If this condition is true, it means that a room is available, and we can reuse it. We "remove" the earliest ending meeting from the heap using `heapq.heappop(end_times)` because the room is now available for the current meeting.
-        *   If the condition is false, it means that all currently used rooms are still occupied, so we need to allocate a new room.
+4.  **Grouping:**
+    *   `anagram_groups[sorted_s].append(s)`: We use the sorted string `sorted_s` as the key in the `anagram_groups` dictionary.  We append the *original* string `s` to the list associated with that key.  This groups together all strings that have the same sorted representation (i.e., are anagrams).
 
-5.  **Result:**
-    *   `return len(end_times)`: The number of elements remaining in the `end_times` heap represents the number of rooms currently in use, which is the minimum number of rooms required.
+5.  **Returning the Result:**
+    *   `list(anagram_groups.values())`:  Finally, we return a list containing all the values (which are the lists of anagrams) from the `anagram_groups` dictionary.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(N log N), where N is the number of intervals.  Sorting takes O(N log N), and heap operations (push and pop) take O(log N) each, and we perform these operations at most N times.
-*   **Space Complexity:** O(N) in the worst case.  The `end_times` heap can potentially store all the end times if no meetings overlap.
+*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input list and K is the maximum length of a string.  We iterate through each string (O(N)), and for each string, we sort it (O(K log K)).
+*   **Space Complexity:** O(N * K), where N is the number of strings and K is the maximum length of a string.  In the worst case, we might store all the strings in the `anagram_groups` dictionary.
