@@ -1,114 +1,120 @@
-Okay, here's a randomly generated DSA problem and a Python solution:
+Okay, here's a DSA problem and a Python solution:
 
 **Problem:**
 
-**Longest Substring Without Repeating Characters**
+**Maximum Subarray Sum with at Most K Elements**
 
-Given a string `s`, find the length of the **longest substring** without repeating characters.
+Given an array of integers `nums` and an integer `k`, find the maximum sum of any contiguous subarray of `nums` with length at most `k`.
 
-**Example 1:**
-
-```
-Input: s = "abcabcbb"
-Output: 3
-Explanation: The answer is "abc", with the length of 3.
-```
-
-**Example 2:**
+**Example:**
 
 ```
-Input: s = "bbbbb"
-Output: 1
-Explanation: The answer is "b", with the length of 1.
-```
+nums = [1, 3, -2, 5, -1, 4]
+k = 3
 
-**Example 3:**
-
-```
-Input: s = "pwwkew"
-Output: 3
-Explanation: The answer is "wke", with the length of 3.
-Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.
-```
-
-**Constraints:**
-
-*   `0 <= s.length <= 5 * 104`
-*   `s` consists of English letters, digits, symbols and spaces.
-
-**Python Solution:**
-
-```python
-def length_of_longest_substring(s: str) -> int:
-    """
-    Finds the length of the longest substring without repeating characters.
-
-    Args:
-        s: The input string.
-
-    Returns:
-        The length of the longest substring without repeating characters.
-    """
-
-    n = len(s)
-    if n == 0:
-        return 0
-
-    char_index_map = {}  # Stores the most recent index of each character
-    start = 0          # Start index of the current substring
-    max_len = 0        # Maximum length found so far
-
-    for end in range(n):
-        char = s[end]
-
-        if char in char_index_map and char_index_map[char] >= start:
-            # If the character is already in the current substring, move the start index
-            start = char_index_map[char] + 1
-
-        char_index_map[char] = end  # Update the index of the current character
-        max_len = max(max_len, end - start + 1)  # Update the maximum length
-
-    return max_len
+Output: 9  (The subarray [1, 3, 5] or [3, 5, -1, 4] sums up to maximum of 9)
 ```
 
 **Explanation:**
 
-1.  **Initialization:**
-    *   `n = len(s)`: Get the length of the input string.
-    *   `char_index_map = {}`:  A dictionary to store the most recent index of each character encountered.  This acts as our "window" to check for repeating characters.
-    *   `start = 0`:  Index representing the beginning of the current substring being considered.
-    *   `max_len = 0`:  Variable to track the length of the longest substring found so far.
+We need to iterate through all possible subarrays of length 1 to `k` and keep track of the maximum sum found so far.
 
-2.  **Sliding Window:**
-    *   The `for end in range(n)` loop iterates through the string, with `end` representing the ending index of the current substring.
-    *   `char = s[end]`: Get the character at the current ending index.
-
-3.  **Checking for Repeating Characters:**
-    *   `if char in char_index_map and char_index_map[char] >= start:`: This is the core logic.  It checks:
-        *   `char in char_index_map`:  If the current character `char` is already present in the `char_index_map`.  If it's not, it means we haven't seen it in the current substring.
-        *   `char_index_map[char] >= start`:  More importantly, it checks if the *last seen* index of `char` is within the current substring (i.e., greater than or equal to the `start` index).  If it is, it means we have a repeating character within our current substring.
-    *   If a repeating character is found within the current substring, the `start` index is updated to `char_index_map[char] + 1`.  This effectively "slides" the window to start after the previous occurrence of the repeating character.
-
-4.  **Updating Character Index and Maximum Length:**
-    *   `char_index_map[char] = end`: Update the most recent index of the current character in the `char_index_map`.
-    *   `max_len = max(max_len, end - start + 1)`: Update `max_len` with the length of the current substring (`end - start + 1`) if it's longer than the current maximum.
-
-5.  **Return:**
-    *   `return max_len`: Finally, the function returns the `max_len`, which represents the length of the longest substring without repeating characters.
-
-**Time and Space Complexity:**
-
-*   **Time Complexity:** O(n), where n is the length of the string.  The `for` loop iterates through the string once, and the dictionary operations (lookup and insertion) take approximately O(1) time on average.
-*   **Space Complexity:** O(min(m, n)), where n is the length of the string, and m is the size of the character set.  In the worst case, the `char_index_map` can store the indices of all unique characters in the string.  However, if the character set is smaller than the string length, the space used will be limited by the size of the character set.  For example, if the string consists only of lowercase English letters, the space complexity would be O(26) = O(1).
-**How to Use:**
+**Python Solution:**
 
 ```python
-string1 = "abcabcbb"
-string2 = "bbbbb"
-string3 = "pwwkew"
+def max_subarray_sum_k(nums, k):
+    """
+    Finds the maximum sum of any contiguous subarray of nums with length at most k.
 
-print(f"Longest substring of '{string1}': {length_of_longest_substring(string1)}")  # Output: 3
-print(f"Longest substring of '{string2}': {length_of_longest_substring(string2)}")  # Output: 1
-print(f"Longest substring of '{string3}': {length_of_longest_substring(string3)}")  # Output: 3
+    Args:
+        nums: A list of integers.
+        k: The maximum length of the subarray.
+
+    Returns:
+        The maximum sum of any contiguous subarray with length at most k.
+    """
+
+    n = len(nums)
+    max_so_far = float('-inf')  # Initialize with negative infinity
+
+    for i in range(n):  # Starting index of the subarray
+        current_sum = 0
+        for j in range(i, min(i + k, n)):  # Ending index of the subarray (length at most k)
+            current_sum += nums[j]
+            max_so_far = max(max_so_far, current_sum)
+
+    return max_so_far
+
+# Example usage
+nums = [1, 3, -2, 5, -1, 4]
+k = 3
+result = max_subarray_sum_k(nums, k)
+print(f"Maximum subarray sum with at most {k} elements: {result}")  # Output: 9
+
+nums = [-1, -2, -3]
+k = 2
+result = max_subarray_sum_k(nums,k)
+print(f"Maximum subarray sum with at most {k} elements: {result}") # Output: -1
+
+nums = [1,2,3,4,5]
+k = 1
+result = max_subarray_sum_k(nums,k)
+print(f"Maximum subarray sum with at most {k} elements: {result}") # Output: 5
 ```
-This solution uses a sliding window approach with a dictionary to efficiently track the last seen index of each character. This allows us to determine the longest substring without repeating characters in linear time.  The dictionary allows for O(1) average-case lookups.
+
+**Explanation of the Code:**
+
+1. **`max_subarray_sum_k(nums, k)` function:**
+   - Takes the list of integers `nums` and the maximum subarray length `k` as input.
+   - Initializes `max_so_far` to negative infinity to ensure that any valid subarray sum will be greater.
+   - Iterates through the `nums` list using a nested loop:
+     - The outer loop iterates from `i = 0` to `n - 1` (where `n` is the length of `nums`), representing the starting index of the subarray.
+     - The inner loop iterates from `j = i` to `min(i + k, n) - 1`, representing the ending index of the subarray. The `min(i + k, n)` ensures that the subarray length is at most `k` and doesn't exceed the bounds of the array.
+     - Inside the inner loop:
+       - `current_sum` is updated by adding `nums[j]`.
+       - `max_so_far` is updated to be the maximum of its current value and `current_sum`.
+   - Returns `max_so_far`, which will hold the maximum subarray sum found.
+
+2. **Example Usage:**
+   - Demonstrates how to use the `max_subarray_sum_k` function with a sample input.
+
+**Time Complexity:**
+
+The time complexity is O(n*k), where n is the length of nums.  This is because of the nested loops.
+
+**Space Complexity:**
+
+The space complexity is O(1) because we only use a few variables to store intermediate values.  We don't use any extra data structures that scale with the input size.
+
+**How to improve the code (for potentially larger k):**
+
+If `k` is very large, and you anticipate running this algorithm repeatedly, you could optimize this solution using techniques like a sliding window. However, this particular problem constraints the subarray to at most `k` elements which somewhat nullifies the sliding window approach.
+```python
+def max_subarray_sum_k_optimized(nums, k):
+    n = len(nums)
+    max_so_far = float('-inf')
+
+    for i in range(n):
+        current_sum = 0
+        for j in range(min(k, n - i)): # Iterate at most k times or to end of array
+            current_sum += nums[i+j]
+            max_so_far = max(max_so_far, current_sum)
+    return max_so_far
+
+nums = [1, 3, -2, 5, -1, 4]
+k = 3
+result = max_subarray_sum_k_optimized(nums, k)
+print(f"Maximum subarray sum with at most {k} elements: {result}")
+
+nums = [-1, -2, -3]
+k = 2
+result = max_subarray_sum_k_optimized(nums,k)
+print(f"Maximum subarray sum with at most {k} elements: {result}")
+
+nums = [1,2,3,4,5]
+k = 1
+result = max_subarray_sum_k_optimized(nums,k)
+print(f"Maximum subarray sum with at most {k} elements: {result}")
+```
+
+The optimized version reduces the number of inner loop iterations. For smaller 'k' values and datasets, the performance difference between the original solution and optimized solution might not be significant.  However, for larger 'k', the optimized version will be quicker. But they are still O(n*k). To obtain a better solution we would need a more complex algorithm.
