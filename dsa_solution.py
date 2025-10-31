@@ -1,134 +1,115 @@
-Okay, here's a randomly generated DSA problem and its solution in Python.
+Okay, here's a DSA problem and a Python solution:
 
 **Problem:**
 
-**Merge K Sorted Lists**
+**Rotate Array**
 
-You are given an array of *k* linked-lists, each linked-list is sorted in ascending order.  Merge all the linked-lists into one sorted linked-list and return it.
+Given an array of integers `nums` and an integer `k`, rotate the array to the right by `k` steps, where `k` is non-negative.
 
-**Example:**
+**Example 1:**
 
-Input: `lists = [[1,4,5],[1,3,4],[2,6]]`
-Output: `[1,1,2,3,4,4,5,6]`
-Explanation: The linked-lists are:
 ```
-[
-  1->4->5,
-  1->3->4,
-  2->6
-]
-merging them into one sorted list:
-1->1->2->3->4->4->5->6
+Input: nums = [1,2,3,4,5,6,7], k = 3
+Output: [5,6,7,1,2,3,4]
+Explanation:
+rotate 1 steps to the right: [7,1,2,3,4,5,6]
+rotate 2 steps to the right: [6,7,1,2,3,4,5]
+rotate 3 steps to the right: [5,6,7,1,2,3,4]
 ```
 
-**Solution (Python):**
+**Example 2:**
+
+```
+Input: nums = [-1,-100,3,99], k = 2
+Output: [3,99,-1,-100]
+Explanation:
+rotate 1 steps to the right: [99,-1,-100,3]
+rotate 2 steps to the right: [3,99,-1,-100]
+```
+
+**Constraints:**
+
+*   `1 <= nums.length <= 10^5`
+*   `-2^31 <= nums[i] <= 2^31 - 1`
+*   `0 <= k <= 10^5`
+
+**Python Solution:**
 
 ```python
-import heapq  # For heap-based priority queue
+def rotate_array(nums, k):
+  """
+  Rotates an array to the right by k steps.
 
-class ListNode:
-    def __init__(self, val=0, next=None):
-        self.val = val
-        self.next = next
+  Args:
+    nums: A list of integers.
+    k: The number of steps to rotate the array to the right.
 
-def mergeKLists(lists):
-    """
-    Merges k sorted linked lists into one sorted linked list.
+  Returns:
+    None. Modifies the nums list in-place.
+  """
+  n = len(nums)
+  k = k % n  # Handle cases where k > n
 
-    Args:
-        lists: A list of linked lists, where each list is sorted in ascending order.
+  nums[:] = nums[n-k:] + nums[:n-k] # In-place Rotation
+  # can also use a helper function to reverse parts of array. see code below
 
-    Returns:
-        The head of the merged sorted linked list.  Returns None if the input list is empty.
-    """
+#alternate solution using reverse method for in place rotation in O(n)
+def rotate_array_reverse(nums, k):
+    n = len(nums)
+    k %= n
 
-    heap = []
-    # Push the head nodes of all lists into the heap
-    for i in range(len(lists)):
-      if lists[i]:  # Check if the list is not empty
-        heapq.heappush(heap, (lists[i].val, i)) # Store the node's value and list index
+    def reverse(l, r):
+        while l < r:
+            nums[l], nums[r] = nums[r], nums[l]
+            l += 1
+            r -= 1
 
-    dummy = ListNode()  # Dummy head for the merged list
-    curr = dummy
+    reverse(0, n - 1)
+    reverse(0, k - 1)
+    reverse(k, n - 1)
 
-    while heap:
-        val, list_index = heapq.heappop(heap)
-        curr.next = ListNode(val)  # Create a new node and append it to the merged list
-        curr = curr.next
 
-        # Advance the list from which the node was taken
-        lists[list_index] = lists[list_index].next
-        if lists[list_index]:
-            heapq.heappush(heap, (lists[list_index].val, list_index))
+# Example usage:
+nums1 = [1, 2, 3, 4, 5, 6, 7]
+k1 = 3
+rotate_array(nums1, k1)
+print(f"Rotated array (method 1): {nums1}")  # Output: [5, 6, 7, 1, 2, 3, 4]
 
-    return dummy.next
-# Helper function to create a linked list from a list of values
-def create_linked_list(values):
-    if not values:
-        return None
+nums2 = [-1, -100, 3, 99]
+k2 = 2
+rotate_array_reverse(nums2, k2)
+print(f"Rotated array (method 2): {nums2}")  # Output: [3, 99, -1, -100]
 
-    head = ListNode(values[0])
-    current = head
-    for i in range(1, len(values)):
-        current.next = ListNode(values[i])
-        current = current.next
-    return head
-
-# Helper function to convert a linked list to a list
-def linked_list_to_list(head):
-    result = []
-    current = head
-    while current:
-        result.append(current.val)
-        current = current.next
-    return result
-
-# Example Usage:
-list1 = create_linked_list([1, 4, 5])
-list2 = create_linked_list([1, 3, 4])
-list3 = create_linked_list([2, 6])
-
-lists = [list1, list2, list3]
-merged_list_head = mergeKLists(lists)
-merged_list = linked_list_to_list(merged_list_head)  # Convert to a normal list for easy printing
-print(merged_list)  # Output: [1, 1, 2, 3, 4, 4, 5, 6]
-
-list4 = create_linked_list([])
-list5 = create_linked_list([2])
-lists2 = [list4, list5]
-merged_list_head2 = mergeKLists(lists2)
-merged_list2 = linked_list_to_list(merged_list_head2)
-print(merged_list2) #Output: [2]
+nums3 = [1,2,3]
+k3 = 5
+rotate_array_reverse(nums3, k3)
+print(f"Rotated array (method 2): {nums3}") #Output: [2, 3, 1]
 ```
 
 **Explanation:**
 
-1. **`ListNode` Class:** Defines the node structure for a singly linked list.
+1.  **Modulo Operator:** `k = k % n` is crucial.  If `k` is larger than the array length `n`, we only need to rotate by the remainder after dividing `k` by `n`.  For example, rotating an array of length 7 by 10 steps is the same as rotating it by 3 steps.
 
-2. **`mergeKLists(lists)` Function:**
-   - **Heap Initialization:**  Uses `heapq` to create a min-heap (priority queue).  The heap stores tuples of `(node_value, list_index)`. The `list_index` is used to remember which list the node came from. This is crucial for advancing the correct list after we process a node.
-   - **Initial Heap Population:**  Iterates through the `lists` array. For each linked list that is *not* empty, the head node's value and its list's index is pushed onto the heap. We need to check for empty lists, as `lists[i].val` would cause an error.
-   - **Dummy Node:** Creates a `dummy` node to simplify the process of building the merged list. `curr` is a pointer that will move through the merged list.
-   - **Heap Processing Loop:**  While the heap is not empty:
-     - `heapq.heappop(heap)`:  Extracts the smallest node value and its list index from the heap.  This is the smallest current element across all the input lists.
-     - `curr.next = ListNode(val)`: Creates a new node in the merged list with the extracted value and appends it to the `curr` node.
-     - `curr = curr.next`:  Moves `curr` to the newly added node.
-     - **Advance the List:** `lists[list_index] = lists[list_index].next`:  Moves the pointer of the list that the node came from to the next node in that list.
-     - **Push Next Node (if any):** If the list from which the node was taken still has elements (`lists[list_index]` is not `None`), then push the next node's value from that list onto the heap.
-   - **Return:**  Returns `dummy.next`, which is the head of the merged sorted linked list.
+2.  **In-Place Rotation (Slicing):**  `nums[:] = nums[n-k:] + nums[:n-k]` This creates a new array by concatenating two slices of the original array and assigns it back to the original array using slice assignment `[:]`. This modifies the original array in-place. We're taking the last `k` elements and putting them at the beginning.
+    *   `nums[n-k:]`:  This slice gets the last `k` elements of the array.
+    *   `nums[:n-k]`: This slice gets the first `n-k` elements of the array.
+    *  The two parts are then concatenated in the correct order to get the rotated array.
 
-3. **Helper Functions:**  `create_linked_list` and `linked_list_to_list` help for testing the solution.
-   -`create_linked_list` takes a list of values and converts it into a linked list.
-   -`linked_list_to_list` takes a linked list and converts it into a list for easy printing.
+3. **In-Place Rotation (Reversal):** The reverse method works by first reversing the entire array, then reversing the first k elements, and then reversing the remaining n-k elements.
 
-**Time Complexity:** O(N log k), where N is the total number of nodes in all the linked lists, and k is the number of linked lists. The `heapq` operations (push and pop) take O(log k) time, and we perform these operations for each of the N nodes.
+**Time and Space Complexity:**
 
-**Space Complexity:** O(k).  The heap stores at most *k* elements (the head nodes of each list).  The merged list requires O(N) space, but this is the output and isn't counted as extra space complexity for the purpose of algorithm analysis.
-**Key Improvements and Considerations:**
+*   **Slicing Method:**
+    *   Time Complexity: O(n) (due to creating slices and concatenating).
+    *   Space Complexity: O(1) -  Though we create new lists, `nums[:] = ...` is done in-place by reassigning the values of the original `nums` list.  If we did `nums = nums[n-k:] + nums[:n-k]` the space complexity would be O(n).
 
-* **Heap Usage:** The heap (priority queue) is the crucial component.  It efficiently keeps track of the smallest element across all the lists.
-* **Dummy Node:**  The dummy node is a common technique to simplify linked list construction, avoiding special case handling for the head of the list.
-* **`list_index` Tracking:**  Storing the `list_index` along with the node value in the heap is essential to know which list to advance when popping an element from the heap.
-* **Empty List Handling:**  The code includes a check (`if lists[i]:`) to handle potentially empty input lists gracefully, preventing errors.  This also prevents pushing `None` nodes onto the heap.
+*   **Reversal Method:**
+    *   Time Complexity: O(n)
+    *   Space Complexity: O(1)
+This is because it modifies the array directly using reversals without creating extra copies of the array.
 
-This solution is efficient and handles edge cases correctly.  It's a good demonstration of how to use a heap to solve a merging problem.
+**Why this solution is good:**
+
+*   **Clear and Readable:** The slicing-based solution is very concise and easy to understand. The reversal is also easy to read once you understand the logic behind it.
+*   **In-Place:** Modifies the original array, which is often a requirement in interview settings.
+*   **Handles edge cases:**  Correctly handles cases where `k` is larger than the array length.
