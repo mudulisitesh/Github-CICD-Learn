@@ -1,115 +1,84 @@
-Okay, here's a DSA problem and a Python solution:
+Okay, here's a DSA problem and a corresponding Python solution.
 
 **Problem:**
 
-**Rotate Array**
+**Group Anagrams**
 
-Given an array of integers `nums` and an integer `k`, rotate the array to the right by `k` steps, where `k` is non-negative.
+Given a list of strings `strs`, group the anagrams together.  You can return the answer in any order.
 
-**Example 1:**
+An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
 
-```
-Input: nums = [1,2,3,4,5,6,7], k = 3
-Output: [5,6,7,1,2,3,4]
-Explanation:
-rotate 1 steps to the right: [7,1,2,3,4,5,6]
-rotate 2 steps to the right: [6,7,1,2,3,4,5]
-rotate 3 steps to the right: [5,6,7,1,2,3,4]
-```
-
-**Example 2:**
+**Example:**
 
 ```
-Input: nums = [-1,-100,3,99], k = 2
-Output: [3,99,-1,-100]
-Explanation:
-rotate 1 steps to the right: [99,-1,-100,3]
-rotate 2 steps to the right: [3,99,-1,-100]
+Input: strs = ["eat","tea","tan","ate","nat","bat"]
+Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
 ```
 
 **Constraints:**
 
-*   `1 <= nums.length <= 10^5`
-*   `-2^31 <= nums[i] <= 2^31 - 1`
-*   `0 <= k <= 10^5`
+*   `1 <= strs.length <= 10^4`
+*   `0 <= strs[i].length <= 100`
+*   `strs[i]` consists of lowercase English letters.
 
 **Python Solution:**
 
 ```python
-def rotate_array(nums, k):
-  """
-  Rotates an array to the right by k steps.
+from collections import defaultdict
 
-  Args:
-    nums: A list of integers.
-    k: The number of steps to rotate the array to the right.
+def group_anagrams(strs):
+    """
+    Groups anagrams in a list of strings together.
 
-  Returns:
-    None. Modifies the nums list in-place.
-  """
-  n = len(nums)
-  k = k % n  # Handle cases where k > n
+    Args:
+        strs: A list of strings.
 
-  nums[:] = nums[n-k:] + nums[:n-k] # In-place Rotation
-  # can also use a helper function to reverse parts of array. see code below
+    Returns:
+        A list of lists, where each inner list contains anagrams.
+    """
+    anagram_groups = defaultdict(list)  # Use defaultdict to avoid key errors
 
-#alternate solution using reverse method for in place rotation in O(n)
-def rotate_array_reverse(nums, k):
-    n = len(nums)
-    k %= n
+    for s in strs:
+        # Sort the characters in the string to create a unique key for anagrams
+        sorted_s = "".join(sorted(s))
+        anagram_groups[sorted_s].append(s)
 
-    def reverse(l, r):
-        while l < r:
-            nums[l], nums[r] = nums[r], nums[l]
-            l += 1
-            r -= 1
-
-    reverse(0, n - 1)
-    reverse(0, k - 1)
-    reverse(k, n - 1)
+    return list(anagram_groups.values())  # Return the values (lists of anagrams)
 
 
 # Example usage:
-nums1 = [1, 2, 3, 4, 5, 6, 7]
-k1 = 3
-rotate_array(nums1, k1)
-print(f"Rotated array (method 1): {nums1}")  # Output: [5, 6, 7, 1, 2, 3, 4]
+strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
+result = group_anagrams(strs)
+print(result)  # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']] (order may vary)
 
-nums2 = [-1, -100, 3, 99]
-k2 = 2
-rotate_array_reverse(nums2, k2)
-print(f"Rotated array (method 2): {nums2}")  # Output: [3, 99, -1, -100]
+strs2 = [""]
+result2 = group_anagrams(strs2)
+print(result2)  # Output: [['']]
 
-nums3 = [1,2,3]
-k3 = 5
-rotate_array_reverse(nums3, k3)
-print(f"Rotated array (method 2): {nums3}") #Output: [2, 3, 1]
+strs3 = ["a"]
+result3 = group_anagrams(strs3)
+print(result3)  # Output: [['a']]
 ```
 
 **Explanation:**
 
-1.  **Modulo Operator:** `k = k % n` is crucial.  If `k` is larger than the array length `n`, we only need to rotate by the remainder after dividing `k` by `n`.  For example, rotating an array of length 7 by 10 steps is the same as rotating it by 3 steps.
+1.  **`defaultdict(list)`:**
+    *   We use `defaultdict(list)` from the `collections` module.  This is a dictionary-like structure where, if you try to access a key that doesn't exist, it automatically creates that key with a default value (in this case, an empty list). This simplifies the code and avoids needing to check if a key exists before appending to its associated list.
 
-2.  **In-Place Rotation (Slicing):**  `nums[:] = nums[n-k:] + nums[:n-k]` This creates a new array by concatenating two slices of the original array and assigns it back to the original array using slice assignment `[:]`. This modifies the original array in-place. We're taking the last `k` elements and putting them at the beginning.
-    *   `nums[n-k:]`:  This slice gets the last `k` elements of the array.
-    *   `nums[:n-k]`: This slice gets the first `n-k` elements of the array.
-    *  The two parts are then concatenated in the correct order to get the rotated array.
+2.  **Iterate through Strings:**
+    *   The code iterates through each string `s` in the input list `strs`.
 
-3. **In-Place Rotation (Reversal):** The reverse method works by first reversing the entire array, then reversing the first k elements, and then reversing the remaining n-k elements.
+3.  **Sort Characters:**
+    *   `sorted(s)` returns a list of characters in the string `s` sorted alphabetically.
+    *   `"".join(sorted(s))` converts the sorted list of characters back into a string.  This sorted string serves as a unique key for all anagrams of `s`.  For example, "eat", "tea", and "ate" will all have the key "aet".
+
+4.  **Group by Sorted String:**
+    *   `anagram_groups[sorted_s].append(s)`: The code appends the original string `s` to the list associated with the `sorted_s` key in the `anagram_groups` dictionary.  This effectively groups all anagrams together under the same key.
+
+5.  **Return Values:**
+    *   `list(anagram_groups.values())`: Finally, the code returns a list of all the *values* in the `anagram_groups` dictionary.  The values are the lists of anagrams that were grouped together.  The `list()` conversion ensures that the result is a list (rather than a `dict_values` object).
 
 **Time and Space Complexity:**
 
-*   **Slicing Method:**
-    *   Time Complexity: O(n) (due to creating slices and concatenating).
-    *   Space Complexity: O(1) -  Though we create new lists, `nums[:] = ...` is done in-place by reassigning the values of the original `nums` list.  If we did `nums = nums[n-k:] + nums[:n-k]` the space complexity would be O(n).
-
-*   **Reversal Method:**
-    *   Time Complexity: O(n)
-    *   Space Complexity: O(1)
-This is because it modifies the array directly using reversals without creating extra copies of the array.
-
-**Why this solution is good:**
-
-*   **Clear and Readable:** The slicing-based solution is very concise and easy to understand. The reversal is also easy to read once you understand the logic behind it.
-*   **In-Place:** Modifies the original array, which is often a requirement in interview settings.
-*   **Handles edge cases:**  Correctly handles cases where `k` is larger than the array length.
+*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input list and K is the maximum length of a string.  The `sorted()` operation on a string of length K takes O(K log K) time.  We perform this operation for each of the N strings.
+*   **Space Complexity:** O(N * K), where N is the number of strings and K is the maximum length of the string. In the worst case, all strings are unique, and we store all of them along with their sorted representations in the `anagram_groups` dictionary.
