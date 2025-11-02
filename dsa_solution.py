@@ -1,84 +1,73 @@
-Okay, here's a DSA problem and a corresponding Python solution.
+Okay, here's a DSA problem and a Python solution:
 
-**Problem:**
+**Problem:  Maximum Sum Subarray (Kadane's Algorithm)**
 
-**Group Anagrams**
-
-Given a list of strings `strs`, group the anagrams together.  You can return the answer in any order.
-
-An Anagram is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
+Given an integer array `nums`, find the contiguous subarray (containing at least one number) which has the largest sum and return its sum.
 
 **Example:**
 
-```
-Input: strs = ["eat","tea","tan","ate","nat","bat"]
-Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
-```
+*   **Input:** `nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]`
+*   **Output:** `6`
+*   **Explanation:** `[4, -1, 2, 1]` has the largest sum = `6`.
 
-**Constraints:**
-
-*   `1 <= strs.length <= 10^4`
-*   `0 <= strs[i].length <= 100`
-*   `strs[i]` consists of lowercase English letters.
-
-**Python Solution:**
+**Python Solution (Kadane's Algorithm):**
 
 ```python
-from collections import defaultdict
+def max_subarray_sum(nums):
+  """
+  Finds the maximum sum of a contiguous subarray using Kadane's algorithm.
 
-def group_anagrams(strs):
-    """
-    Groups anagrams in a list of strings together.
+  Args:
+      nums: A list of integers.
 
-    Args:
-        strs: A list of strings.
+  Returns:
+      The maximum sum of a contiguous subarray.
+  """
 
-    Returns:
-        A list of lists, where each inner list contains anagrams.
-    """
-    anagram_groups = defaultdict(list)  # Use defaultdict to avoid key errors
+  max_so_far = float('-inf')  # Initialize with negative infinity
+  current_max = 0
 
-    for s in strs:
-        # Sort the characters in the string to create a unique key for anagrams
-        sorted_s = "".join(sorted(s))
-        anagram_groups[sorted_s].append(s)
+  for num in nums:
+    current_max = max(num, current_max + num) # either current element or current_max + current element is greater.
+    max_so_far = max(max_so_far, current_max)
 
-    return list(anagram_groups.values())  # Return the values (lists of anagrams)
-
+  return max_so_far
 
 # Example usage:
-strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
-result = group_anagrams(strs)
-print(result)  # Output: [['eat', 'tea', 'ate'], ['tan', 'nat'], ['bat']] (order may vary)
+nums = [-2, 1, -3, 4, -1, 2, 1, -5, 4]
+result = max_subarray_sum(nums)
+print(f"Maximum subarray sum: {result}") # Output: Maximum subarray sum: 6
 
-strs2 = [""]
-result2 = group_anagrams(strs2)
-print(result2)  # Output: [['']]
+nums2 = [1]
+result2 = max_subarray_sum(nums2)
+print(f"Maximum subarray sum: {result2}") # Output: Maximum subarray sum: 1
 
-strs3 = ["a"]
-result3 = group_anagrams(strs3)
-print(result3)  # Output: [['a']]
+nums3 = [-1]
+result3 = max_subarray_sum(nums3)
+print(f"Maximum subarray sum: {result3}") # Output: Maximum subarray sum: -1
+
+nums4 = [-1, -2, -3]
+result4 = max_subarray_sum(nums4)
+print(f"Maximum subarray sum: {result4}") # Output: Maximum subarray sum: -1
 ```
 
 **Explanation:**
 
-1.  **`defaultdict(list)`:**
-    *   We use `defaultdict(list)` from the `collections` module.  This is a dictionary-like structure where, if you try to access a key that doesn't exist, it automatically creates that key with a default value (in this case, an empty list). This simplifies the code and avoids needing to check if a key exists before appending to its associated list.
+1.  **Initialization:**
+    *   `max_so_far`: This variable stores the maximum sum found so far. It's initialized to negative infinity because we want to ensure that even if all numbers in the array are negative, we find the least negative number's sum (which would be the maximum).
+    *   `current_max`: This variable keeps track of the maximum sum ending at the current position in the array.  It's initialized to 0.
 
-2.  **Iterate through Strings:**
-    *   The code iterates through each string `s` in the input list `strs`.
+2.  **Iteration:**
+    *   The code iterates through the `nums` array.
+    *   `current_max = max(num, current_max + num)`: This is the core of Kadane's algorithm.  For each element `num`, we decide whether to:
+        *   Start a new subarray from the current element (`num`). This is chosen if adding the current element to the existing `current_max` would make it smaller than the current element itself.
+        *   Extend the previous subarray by adding the current element (`current_max + num`).
+    *   `max_so_far = max(max_so_far, current_max)`: We update `max_so_far` with the maximum between the `max_so_far` we had so far and the new `current_max`.
 
-3.  **Sort Characters:**
-    *   `sorted(s)` returns a list of characters in the string `s` sorted alphabetically.
-    *   `"".join(sorted(s))` converts the sorted list of characters back into a string.  This sorted string serves as a unique key for all anagrams of `s`.  For example, "eat", "tea", and "ate" will all have the key "aet".
-
-4.  **Group by Sorted String:**
-    *   `anagram_groups[sorted_s].append(s)`: The code appends the original string `s` to the list associated with the `sorted_s` key in the `anagram_groups` dictionary.  This effectively groups all anagrams together under the same key.
-
-5.  **Return Values:**
-    *   `list(anagram_groups.values())`: Finally, the code returns a list of all the *values* in the `anagram_groups` dictionary.  The values are the lists of anagrams that were grouped together.  The `list()` conversion ensures that the result is a list (rather than a `dict_values` object).
+3.  **Return:**
+    *   Finally, the function returns `max_so_far`, which holds the maximum sum of any contiguous subarray found.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input list and K is the maximum length of a string.  The `sorted()` operation on a string of length K takes O(K log K) time.  We perform this operation for each of the N strings.
-*   **Space Complexity:** O(N * K), where N is the number of strings and K is the maximum length of the string. In the worst case, all strings are unique, and we store all of them along with their sorted representations in the `anagram_groups` dictionary.
+*   **Time Complexity:** O(n), where n is the length of the input array, because we iterate through the array only once.
+*   **Space Complexity:** O(1), because we use only a constant amount of extra space (for the `max_so_far` and `current_max` variables), regardless of the size of the input array.  This makes it a very efficient algorithm for this problem.
