@@ -1,92 +1,89 @@
-Okay, here's a DSA problem and a Python solution:
+Okay, here's a randomly generated DSA problem and a Python solution.
 
 **Problem:**
 
 **Merge Intervals**
 
-Given a collection of intervals, merge all overlapping intervals.
+Given a list of intervals, where each interval is represented as a pair of integers `[start, end]`, merge all overlapping intervals and return a list of non-overlapping intervals that cover all the intervals in the input.
 
 **Example:**
 
-Input: `intervals = [[1,3],[2,6],[8,10],[15,18]]`
-Output: `[[1,6],[8,10],[15,18]]`
-Explanation: Since intervals `[1,3]` and `[2,6]` overlaps, merge them into `[1,6].`
+*   **Input:** `intervals = [[1,3],[2,6],[8,10],[15,18]]`
+*   **Output:** `[[1,6],[8,10],[15,18]]`
 
-Input: `intervals = [[1,4],[4,5]]`
-Output: `[[1,5]]`
-Explanation: Intervals `[1,4]` and `[4,5]` are considered overlapping.
+**Explanation:**
+Intervals `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
 
-**Code Solution (Python):**
+**Python Code Solution:**
 
 ```python
 def merge_intervals(intervals):
     """
-    Merges overlapping intervals in a list of intervals.
+    Merges overlapping intervals.
 
     Args:
-        intervals: A list of lists, where each inner list represents an interval [start, end].
+        intervals: A list of intervals (lists of two integers).
 
     Returns:
-        A list of lists representing the merged intervals.
+        A list of merged intervals.
     """
 
     if not intervals:
         return []
 
-    # Sort the intervals based on their start values.  This is crucial for the algorithm.
+    # Sort the intervals by start time. This is crucial for the algorithm to work.
     intervals.sort(key=lambda x: x[0])
 
     merged = []
     for interval in intervals:
         # If the list of merged intervals is empty or if the current
-        # interval does not overlap with the last interval, append it.
+        # interval does not overlap with the last interval, simply append it.
         if not merged or interval[0] > merged[-1][1]:
             merged.append(interval)
         else:
             # Otherwise, there is overlap, so we merge the current interval
-            # with the last one.
+            # with the last interval.  We update the end of the last interval
+            # to be the maximum of the two ends.
             merged[-1][1] = max(merged[-1][1], interval[1])
 
     return merged
 
 # Example usage:
-intervals1 = [[1,3],[2,6],[8,10],[15,18]]
-result1 = merge_intervals(intervals1)
-print(f"Merged intervals for {intervals1}: {result1}")  # Output: [[1, 6], [8, 10], [15, 18]]
+intervals = [[1,3],[2,6],[8,10],[15,18]]
+merged_intervals = merge_intervals(intervals)
+print(f"Merged intervals: {merged_intervals}")  # Output: Merged intervals: [[1, 6], [8, 10], [15, 18]]
 
 intervals2 = [[1,4],[4,5]]
-result2 = merge_intervals(intervals2)
-print(f"Merged intervals for {intervals2}: {result2}")  # Output: [[1, 5]]
+merged_intervals2 = merge_intervals(intervals2)
+print(f"Merged intervals: {merged_intervals2}") # Output: Merged intervals: [[1, 5]]
 
 intervals3 = [[1,4],[0,4]]
-result3 = merge_intervals(intervals3)
-print(f"Merged intervals for {intervals3}: {result3}") # Output: [[0, 4]]
+merged_intervals3 = merge_intervals(intervals3)
+print(f"Merged intervals: {merged_intervals3}") # Output: Merged intervals: [[0, 4]]
 
 intervals4 = [[1,4],[0,0]]
-result4 = merge_intervals(intervals4)
-print(f"Merged intervals for {intervals4}: {result4}") # Output: [[0, 0], [1, 4]]
+merged_intervals4 = merge_intervals(intervals4)
+print(f"Merged intervals: {merged_intervals4}") # Output: Merged intervals: [[0, 0], [1, 4]]
+
+intervals5 = [[1,4],[0,2],[3,5]]
+merged_intervals5 = merge_intervals(intervals5)
+print(f"Merged intervals: {merged_intervals5}") # Output: Merged intervals: [[0, 5]]
 ```
 
 **Explanation:**
 
-1. **Sorting:** The most important step is to sort the intervals based on their starting values.  This allows us to process the intervals in order and easily determine overlaps.  `intervals.sort(key=lambda x: x[0])` sorts the `intervals` list in place, using a lambda function to specify that the sorting should be based on the first element (start value) of each sublist.
+1.  **Sort Intervals:** The most important step is to sort the intervals based on their start times.  This allows us to process them in a logical order and easily check for overlaps.  We use `intervals.sort(key=lambda x: x[0])` to sort in place.
 
-2. **Initialization:** `merged` list will hold the merged intervals.
+2.  **Iterate and Merge:**  We iterate through the sorted intervals and maintain a `merged` list to store the non-overlapping intervals.
 
-3. **Iteration:** The code iterates through the sorted `intervals`.
+3.  **Overlap Check:** For each interval, we check if it overlaps with the last interval in the `merged` list.  There are two scenarios:
 
-4. **Overlap Check:**
-   - `if not merged or interval[0] > merged[-1][1]:`  This condition checks if the `merged` list is empty (meaning we're processing the first interval) or if the current interval's starting value (`interval[0]`) is greater than the ending value of the last interval in `merged` (`merged[-1][1]`).  If either of these is true, it means there's no overlap, so we append the current `interval` to `merged`.
-   - `else:`  If the condition above is false, it means there's an overlap between the current `interval` and the last interval in `merged`.
+    *   **No Overlap:** If the current interval's start time is greater than the end time of the last interval in `merged`, then there's no overlap.  We simply append the current interval to `merged`.
+    *   **Overlap:** If there *is* overlap, we merge the intervals.  We update the end time of the last interval in `merged` to be the maximum of its current end time and the end time of the current interval.  This effectively combines the two overlapping intervals.
 
-5. **Merging:**
-   - `merged[-1][1] = max(merged[-1][1], interval[1])` If an overlap exists, we update the ending value of the last interval in `merged` to be the maximum of its current ending value and the ending value of the current `interval`.  This effectively merges the two overlapping intervals into a single interval in `merged`.
-
-6. **Return:** Finally, the function returns the `merged` list, which contains the non-overlapping intervals.
+4.  **Return Merged:** After iterating through all the intervals, the `merged` list contains the non-overlapping intervals that cover the original intervals.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n log n) due to the sorting step.  The rest of the algorithm is O(n), but sorting dominates.
-*   **Space Complexity:** O(n) in the worst case, where no intervals overlap, and the `merged` list contains all the original intervals.  In the best case (all intervals merge into one), the space complexity would be O(1).
-
-This is a classic interval problem often asked in technical interviews.  Understanding how to sort the intervals and then efficiently check for overlaps is key to solving it.  The example usage demonstrates how to use the `merge_intervals` function and provides a few test cases.
+*   **Time Complexity:** O(n log n) due to the sorting step.  The rest of the algorithm is O(n).
+*   **Space Complexity:** O(n) in the worst case, where no intervals overlap, and we store all the original intervals in the `merged` list. In the best case (high overlap), it could be O(1) beyond the input list, if the `merged` list is significantly smaller than the input.
