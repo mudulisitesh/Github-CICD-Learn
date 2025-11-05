@@ -1,89 +1,143 @@
-Okay, here's a randomly generated DSA problem and a Python solution.
+Okay, here's a DSA problem and a Python solution:
 
 **Problem:**
 
-**Merge Intervals**
+**Course Schedule II**
 
-Given a list of intervals, where each interval is represented as a pair of integers `[start, end]`, merge all overlapping intervals and return a list of non-overlapping intervals that cover all the intervals in the input.
+There are a total of `numCourses` courses you have to take, labeled from `0` to `numCourses-1`. Some courses may have prerequisites, for example to take course 0 you have to first take course 1, which is expressed as a pair: `[0,1]`
 
-**Example:**
+Given the total number of courses and a list of prerequisite pairs, return the ordering of courses you should take to finish all courses.
 
-*   **Input:** `intervals = [[1,3],[2,6],[8,10],[15,18]]`
-*   **Output:** `[[1,6],[8,10],[15,18]]`
+There may be multiple correct orders, you only need to return one of them. If it is impossible to finish all courses, return an empty array.
 
-**Explanation:**
-Intervals `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
+**Example 1:**
 
-**Python Code Solution:**
+```
+Input: numCourses = 2, prerequisites = [[1,0]]
+Output: [0,1]
+Explanation: There are a total of 2 courses to take. To take course 1 you should have finished course 0. So the correct course order is [0,1]
+```
+
+**Example 2:**
+
+```
+Input: numCourses = 4, prerequisites = [[1,0],[2,0],[3,1],[3,2]]
+Output: [0,2,1,3]
+Explanation: There are a total of 4 courses to take. To take course 3 you should have finished both courses 1 and 2. Both courses 1 and 2 should be taken after you finished course 0.
+So one correct course order is [0,1,2,3]. Another correct ordering is [0,2,1,3].
+```
+
+**Example 3:**
+
+```
+Input: numCourses = 1, prerequisites = []
+Output: [0]
+```
+
+**Constraints:**
+
+*   `1 <= numCourses <= 2000`
+*   `0 <= prerequisites.length <= numCourses * (numCourses - 1)`
+*   `prerequisites[i].length == 2`
+*   `0 <= ai, bi < numCourses`
+*   `ai != bi`
+*   All the pairs `[ai, bi]` are distinct.
+
+**Python Solution (using Topological Sort with Kahn's Algorithm - BFS):**
 
 ```python
-def merge_intervals(intervals):
+from collections import defaultdict, deque
+
+def find_order(numCourses: int, prerequisites: list[list[int]]) -> list[int]:
     """
-    Merges overlapping intervals.
+    Finds a possible ordering of courses to take to finish all courses, given prerequisites.
 
     Args:
-        intervals: A list of intervals (lists of two integers).
+        numCourses: The total number of courses.
+        prerequisites: A list of prerequisite pairs, where prerequisites[i] = [ai, bi] means
+                       course ai has prerequisite bi.
 
     Returns:
-        A list of merged intervals.
+        A list representing a possible course order, or an empty list if it's impossible to finish all courses.
     """
 
-    if not intervals:
-        return []
+    # 1. Build the graph (adjacency list) and in-degree count for each node.
+    graph = defaultdict(list)
+    in_degree = [0] * numCourses
 
-    # Sort the intervals by start time. This is crucial for the algorithm to work.
-    intervals.sort(key=lambda x: x[0])
+    for course, pre_req in prerequisites:
+        graph[pre_req].append(course)  # pre_req -> course
+        in_degree[course] += 1
 
-    merged = []
-    for interval in intervals:
-        # If the list of merged intervals is empty or if the current
-        # interval does not overlap with the last interval, simply append it.
-        if not merged or interval[0] > merged[-1][1]:
-            merged.append(interval)
-        else:
-            # Otherwise, there is overlap, so we merge the current interval
-            # with the last interval.  We update the end of the last interval
-            # to be the maximum of the two ends.
-            merged[-1][1] = max(merged[-1][1], interval[1])
+    # 2. Find nodes with in-degree 0 (courses with no prerequisites).  These are the starting points.
+    queue = deque([i for i in range(numCourses) if in_degree[i] == 0])
 
-    return merged
+    # 3. Perform topological sort using BFS.
+    result = []
+    while queue:
+        course = queue.popleft()
+        result.append(course)
 
-# Example usage:
-intervals = [[1,3],[2,6],[8,10],[15,18]]
-merged_intervals = merge_intervals(intervals)
-print(f"Merged intervals: {merged_intervals}")  # Output: Merged intervals: [[1, 6], [8, 10], [15, 18]]
+        for neighbor in graph[course]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                queue.append(neighbor)
 
-intervals2 = [[1,4],[4,5]]
-merged_intervals2 = merge_intervals(intervals2)
-print(f"Merged intervals: {merged_intervals2}") # Output: Merged intervals: [[1, 5]]
+    # 4. Check for cycle: If we haven't visited all courses, there's a cycle.
+    if len(result) == numCourses:
+        return result
+    else:
+        return []  # Cycle detected, impossible to finish courses
 
-intervals3 = [[1,4],[0,4]]
-merged_intervals3 = merge_intervals(intervals3)
-print(f"Merged intervals: {merged_intervals3}") # Output: Merged intervals: [[0, 4]]
+# Example Usage
+numCourses = 4
+prerequisites = [[1, 0], [2, 0], [3, 1], [3, 2]]
+print(find_order(numCourses, prerequisites))  # Output: [0, 1, 2, 3] or [0, 2, 1, 3]
 
-intervals4 = [[1,4],[0,0]]
-merged_intervals4 = merge_intervals(intervals4)
-print(f"Merged intervals: {merged_intervals4}") # Output: Merged intervals: [[0, 0], [1, 4]]
+numCourses = 2
+prerequisites = [[1, 0]]
+print(find_order(numCourses, prerequisites)) # Output: [0, 1]
 
-intervals5 = [[1,4],[0,2],[3,5]]
-merged_intervals5 = merge_intervals(intervals5)
-print(f"Merged intervals: {merged_intervals5}") # Output: Merged intervals: [[0, 5]]
+numCourses = 2
+prerequisites = [[0, 1]]
+print(find_order(numCourses, prerequisites))
+
+numCourses = 2
+prerequisites = [[0,1],[1,0]]
+print(find_order(numCourses, prerequisites)) # Output []
 ```
 
 **Explanation:**
 
-1.  **Sort Intervals:** The most important step is to sort the intervals based on their start times.  This allows us to process them in a logical order and easily check for overlaps.  We use `intervals.sort(key=lambda x: x[0])` to sort in place.
+1.  **Build the Graph and In-Degree Count:**
 
-2.  **Iterate and Merge:**  We iterate through the sorted intervals and maintain a `merged` list to store the non-overlapping intervals.
+    *   The `graph` is represented as an adjacency list, where `graph[pre_req]` stores a list of courses that depend on `pre_req`.
+    *   The `in_degree` array stores the number of incoming edges for each course (i.e., the number of prerequisites for that course).
 
-3.  **Overlap Check:** For each interval, we check if it overlaps with the last interval in the `merged` list.  There are two scenarios:
+2.  **Find Starting Nodes:**
 
-    *   **No Overlap:** If the current interval's start time is greater than the end time of the last interval in `merged`, then there's no overlap.  We simply append the current interval to `merged`.
-    *   **Overlap:** If there *is* overlap, we merge the intervals.  We update the end time of the last interval in `merged` to be the maximum of its current end time and the end time of the current interval.  This effectively combines the two overlapping intervals.
+    *   We initialize a queue with all courses that have an `in_degree` of 0. These are the courses that can be taken immediately because they have no prerequisites.
 
-4.  **Return Merged:** After iterating through all the intervals, the `merged` list contains the non-overlapping intervals that cover the original intervals.
+3.  **Topological Sort (BFS):**
 
-**Time and Space Complexity:**
+    *   We repeatedly:
+        *   Dequeue a course from the queue.
+        *   Add the course to the `result` list (the topological order).
+        *   For each neighbor (course that depends on the current course):
+            *   Decrement its `in_degree`.
+            *   If the `in_degree` of a neighbor becomes 0, it means all its prerequisites have been met, so we enqueue it.
 
-*   **Time Complexity:** O(n log n) due to the sorting step.  The rest of the algorithm is O(n).
-*   **Space Complexity:** O(n) in the worst case, where no intervals overlap, and we store all the original intervals in the `merged` list. In the best case (high overlap), it could be O(1) beyond the input list, if the `merged` list is significantly smaller than the input.
+4.  **Cycle Detection:**
+
+    *   After the BFS, if the length of the `result` list is not equal to `numCourses`, it means there was a cycle in the graph (meaning it's impossible to finish all courses), and we return an empty list.  If they are equal then we can return the order array.
+
+**Key Concepts Used:**
+
+*   **Directed Acyclic Graph (DAG):** The course dependencies can be represented as a DAG.
+*   **Topological Sort:**  An ordering of nodes in a DAG such that for every directed edge from node A to node B, node A comes before node B in the ordering.  Topological sort is possible if and only if the graph is a DAG (no cycles).
+*   **Kahn's Algorithm:**  A popular algorithm for topological sort using BFS.
+*   **Adjacency List:** A graph representation where each node has a list of its adjacent nodes.
+*   **In-Degree:** The number of incoming edges to a node.
+*   **Breadth-First Search (BFS):** A graph traversal algorithm that explores the graph layer by layer.
+
+This solution has a time complexity of O(V + E), where V is the number of courses and E is the number of prerequisites, and a space complexity of O(V + E) due to the graph representation and the queue.
