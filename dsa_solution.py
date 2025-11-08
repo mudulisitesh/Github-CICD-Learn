@@ -1,122 +1,95 @@
-Okay, here's a DSA problem along with a Python solution:
+Okay, here's a problem and a Python solution:
 
-**Problem: Group Anagrams**
+**Problem:**
 
-Given an array of strings `strs`, group the anagrams together. You can return the answer in **any order**.
+**Task Scheduler with Cooling Period**
 
-An **Anagram** is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
+You are given a list of tasks represented by characters. Each task can be done in one unit of time. You are also given a non-negative integer `n`, which represents the cooling period between two same tasks. During the cooling period, the CPU can either be idle or perform a different task.
 
-**Example 1:**
+Write a function that calculates the minimum number of time units required to finish all given tasks while adhering to the cooling period constraint.
 
-```
-Input: strs = ["eat","tea","tan","ate","nat","bat"]
-Output: [["bat"],["nat","tan"],["ate","eat","tea"]]
-```
-
-**Example 2:**
+**Example:**
 
 ```
-Input: strs = [""]
-Output: [[""]]
-```
-
-**Example 3:**
-
-```
-Input: strs = ["a"]
-Output: [["a"]]
-```
-
-**Constraints:**
-
-*   `1 <= strs.length <= 104`
-*   `0 <= strs[i].length <= 100`
-*   `strs[i]` consists of lowercase English letters.
-
-**Python Solution:**
-
-```python
-def group_anagrams(strs):
-    """
-    Groups anagrams from a list of strings.
-
-    Args:
-        strs: A list of strings.
-
-    Returns:
-        A list of lists, where each inner list contains anagrams.
-    """
-
-    anagram_groups = {}  # Dictionary to store anagrams, key is sorted string
-
-    for s in strs:
-        sorted_s = "".join(sorted(s))  # Sort the string to identify anagrams
-
-        if sorted_s in anagram_groups:
-            anagram_groups[sorted_s].append(s)
-        else:
-            anagram_groups[sorted_s] = [s]
-
-    return list(anagram_groups.values())  # Return the values (lists of anagrams)
-
-# Example usage
-strs1 = ["eat", "tea", "tan", "ate", "nat", "bat"]
-print(group_anagrams(strs1))
-
-strs2 = [""]
-print(group_anagrams(strs2))
-
-strs3 = ["a"]
-print(group_anagrams(strs3))
+tasks = ["A","A","A","B","B","B"]
+n = 2
 ```
 
 **Explanation:**
 
-1.  **`group_anagrams(strs)` function:**
-    *   **`anagram_groups = {}`:** Initializes an empty dictionary.  The *keys* of this dictionary will be the *sorted versions* of the strings (e.g., "eat" becomes "aet"), and the *values* will be lists of the original strings that are anagrams of each other.
-    *   **`for s in strs:`:** Iterates through each string `s` in the input list `strs`.
-    *   **`sorted_s = "".join(sorted(s))`:** This is the core logic.
-        *   `sorted(s)`:  Sorts the characters of the string `s` in alphabetical order.  This produces a list of characters.
-        *   `"".join(...)`: Joins the sorted characters back into a single string.  This creates the "key" for our dictionary (the sorted version of the string).
-    *   **`if sorted_s in anagram_groups:`:** Checks if the sorted string (`sorted_s`) is already a key in the `anagram_groups` dictionary.
-        *   If it *is* a key, it means we've already found anagrams of this word.  So, we append the current string `s` to the existing list of anagrams for that key:  `anagram_groups[sorted_s].append(s)`
-        *   **`else:`:** If the sorted string is *not* a key, it means this is the first time we've encountered an anagram of this type.
-            *   `anagram_groups[sorted_s] = [s]`: We create a new key-value pair in the dictionary.  The key is the sorted string (`sorted_s`), and the value is a new list containing the current string `s`.
-    *   **`return list(anagram_groups.values())`:** After iterating through all the strings, the `anagram_groups` dictionary contains all the anagram groups.  We extract the *values* of the dictionary (which are the lists of anagrams) and convert them to a list using `list(...)`.  This list of lists is then returned.
+One possible schedule is: A -> B -> idle -> A -> B -> idle -> A -> B.
+Therefore, the minimum number of time units required is 8.
 
-**How it Works (Example Breakdown):**
+**Python Solution:**
 
-Let's trace the execution with the input `strs = ["eat", "tea", "tan", "ate", "nat", "bat"]`
+```python
+from collections import Counter
 
-1.  **"eat"**:
-    *   `sorted_s = "aet"`
-    *   `anagram_groups["aet"] = ["eat"]`
+def leastInterval(tasks, n):
+    """
+    Calculates the least number of intervals to complete all tasks with cooling period.
 
-2.  **"tea"**:
-    *   `sorted_s = "aet"`
-    *   `anagram_groups["aet"].append("tea")`  (Now `anagram_groups["aet"] = ["eat", "tea"]`)
+    Args:
+        tasks: A list of characters representing tasks.
+        n: The cooling period between the same tasks.
 
-3.  **"tan"**:
-    *   `sorted_s = "ant"`
-    *   `anagram_groups["ant"] = ["tan"]`
+    Returns:
+        The minimum number of time units required.
+    """
+    if not tasks:
+        return 0
 
-4.  **"ate"**:
-    *   `sorted_s = "aet"`
-    *   `anagram_groups["aet"].append("ate")` (Now `anagram_groups["aet"] = ["eat", "tea", "ate"]`)
+    task_counts = Counter(tasks)
+    max_count = max(task_counts.values())
+    max_tasks = sum(1 for count in task_counts.values() if count == max_count)
 
-5.  **"nat"**:
-    *   `sorted_s = "ant"`
-    *   `anagram_groups["ant"].append("nat")` (Now `anagram_groups["ant"] = ["tan", "nat"]`)
+    # The core idea: We fill the schedule with the most frequent task,
+    # leaving "idle slots" between occurrences.  The math handles edge cases.
+    result = max((max_count - 1) * (n + 1) + max_tasks, len(tasks))
+    return result
 
-6.  **"bat"**:
-    *   `sorted_s = "abt"`
-    *   `anagram_groups["abt"] = ["bat"]`
+# Example usage:
+tasks = ["A","A","A","B","B","B"]
+n = 2
+result = leastInterval(tasks, n)
+print(f"Minimum time units: {result}")  # Output: 8
 
-Finally, `anagram_groups.values()` will be `[["eat", "tea", "ate"], ["tan", "nat"], ["bat"]]`, and the function returns this list of lists.
+tasks = ["A","A","A","B","B","B", "C","C","C", "D", "D", "E"]
+n = 2
+result = leastInterval(tasks, n)
+print(f"Minimum time units: {result}")  # Output: 12
 
-**Time and Space Complexity:**
+tasks = ["A","A","A","A","A","A","B","C","D","E","F","G"]
+n = 2
+result = leastInterval(tasks, n)
+print(f"Minimum time units: {result}")  # Output: 16
 
-*   **Time Complexity:** O(N * K log K), where N is the number of strings in the input and K is the maximum length of a string in the input.  We iterate through each string (O(N)), and for each string, we sort it (O(K log K)).
-*   **Space Complexity:** O(N * K) in the worst case, where N is the number of strings and K is the maximum length of a string.  This is because, in the worst case (e.g., all strings are different and of the same length), we might store all the strings in the `anagram_groups` dictionary.
+tasks = ["A","A","B","B"]
+n = 0
+result = leastInterval(tasks, n)
+print(f"Minimum time units: {result}") # Output 4
+```
 
-This solution is efficient and commonly used for solving the Group Anagrams problem.  It leverages the idea that anagrams have the same sorted representation.
+**Explanation:**
+
+1. **Count Task Frequencies:** We use `Counter` from the `collections` module to count the frequency of each task.
+
+2. **Find the Most Frequent Task:** We determine the maximum frequency (`max_count`) and the number of tasks that have this maximum frequency (`max_tasks`).
+
+3. **Calculate the Minimum Time Units:**
+   - The core logic is based on filling the schedule with the most frequent tasks and using idle slots to satisfy the cooling period.  The formula `(max_count - 1) * (n + 1) + max_tasks` calculates the ideal schedule length based on the most frequent task and the cooling period.  `(max_count - 1)` is the number of gaps between the occurrences of the most frequent task.  Each gap needs to be at least of length `n+1` (including the task itself).  `max_tasks` is added to handle the last occurrences of tasks with the maximum count.
+   - `max(..., len(tasks))` handles the cases where the idle slots aren't actually needed because there are enough different tasks to fill them. In such cases, the minimum time is simply the number of tasks.
+
+**Key Concepts:**
+
+*   **Greedy Approach:** The solution implicitly uses a greedy approach by prioritizing the most frequent task.  It aims to schedule these tasks as early as possible, forcing the CPU to idle or switch to other tasks.
+*   **Counting:** The `Counter` class is very useful for counting occurrences of items in a list.
+*   **Mathematical Formula:**  The critical part of the solution is the formula to calculate the minimum number of time units, which is based on the task frequencies and the cooling period.  Understanding the derivation of this formula is essential to grasp the algorithm.
+
+**Time Complexity:**
+
+*   O(T), where T is the number of tasks. This is dominated by the `Counter` operation.
+
+**Space Complexity:**
+
+*   O(k), where k is the number of unique tasks. This is due to the `Counter` object.  In the worst case, `k` can be equal to `T`, but it's usually much smaller.
