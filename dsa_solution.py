@@ -1,87 +1,121 @@
-Okay, here's a randomly generated DSA problem and a Python solution:
+Okay, here's a random DSA problem and a Python solution, complete with explanations:
 
-**Problem: First Unique Character in a String**
+**Problem:  Find the Longest Palindromic Substring**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return `-1`.
+**Description:**
 
-**Example 1:**
+Given a string `s`, find the longest palindromic substring in `s`. A palindromic substring is a substring that reads the same forwards and backward.
 
-```
-Input: s = "leetcode"
-Output: 0
-```
-
-**Example 2:**
+**Example:**
 
 ```
-Input: s = "loveleetcode"
-Output: 2
+Input: "babad"
+Output: "bab"  (or "aba")
+
+Input: "cbbd"
+Output: "bb"
+
+Input: "a"
+Output: "a"
+
+Input: "ac"
+Output: "a"
 ```
 
-**Example 3:**
-
-```
-Input: s = "aabb"
-Output: -1
-```
-
-**Constraints:**
-
-*   `1 <= s.length <= 10^5`
-*   `s` consists of only lowercase English letters.
-
-**Python Solution**
+**Python Solution (Dynamic Programming):**
 
 ```python
-def first_uniq_char(s):
+def longest_palindrome(s):
     """
-    Finds the index of the first non-repeating character in a string.
+    Finds the longest palindromic substring in a given string.
 
     Args:
         s: The input string.
 
     Returns:
-        The index of the first non-repeating character, or -1 if none exists.
+        The longest palindromic substring.
     """
+    n = len(s)
 
-    # Create a dictionary to store the frequency of each character.
-    char_counts = {}
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+    # If the string is empty or has only one character, it's already a palindrome
+    if n < 2:
+        return s
 
-    # Iterate through the string and check for the first character with a count of 1.
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+    # dp[i][j] is True if the substring s[i:j+1] is a palindrome, False otherwise.
+    dp = [[False] * n for _ in range(n)]
 
-    # If no unique character is found, return -1.
-    return -1
+    # All substrings of length 1 are palindromes
+    for i in range(n):
+        dp[i][i] = True
 
-# Example usage
-string1 = "leetcode"
-string2 = "loveleetcode"
-string3 = "aabb"
+    # longest substring
+    start = 0
+    max_length = 1
 
-print(f"First unique character in '{string1}' is at index: {first_uniq_char(string1)}")  # Output: 0
-print(f"First unique character in '{string2}' is at index: {first_uniq_char(string2)}")  # Output: 2
-print(f"First unique character in '{string3}' is at index: {first_uniq_char(string3)}")  # Output: -1
+    # Check for palindromes of length 2
+    for i in range(n - 1):
+        if s[i] == s[i + 1]:
+            dp[i][i + 1] = True
+            start = i
+            max_length = 2
+
+    # Check for palindromes of length 3 or more
+    for k in range(3, n + 1): # k is the length of the substring
+        for i in range(n - k + 1):  # i is the starting index
+            j = i + k - 1 # j is the ending index
+
+            if s[i] == s[j] and dp[i + 1][j - 1]: # Check the end characters and the sub-string between is also palindrome
+                dp[i][j] = True
+
+                if k > max_length:
+                    start = i
+                    max_length = k
+
+    return s[start:start + max_length]
+
+
+# Example Usage
+string1 = "babad"
+string2 = "cbbd"
+string3 = "a"
+string4 = "ac"
+
+print(f"Longest palindrome in '{string1}': {longest_palindrome(string1)}")
+print(f"Longest palindrome in '{string2}': {longest_palindrome(string2)}")
+print(f"Longest palindrome in '{string3}': {longest_palindrome(string3)}")
+print(f"Longest palindrome in '{string4}': {longest_palindrome(string4)}")
+
 ```
 
 **Explanation:**
 
-1.  **Character Frequency Counting:**
-    *   A dictionary `char_counts` is used to store the frequency (number of occurrences) of each character in the string `s`.
-    *   The code iterates through the string `s`.  For each character `char`, it updates the count in the `char_counts` dictionary.  `char_counts.get(char, 0)` retrieves the current count of `char` (or 0 if it's not yet in the dictionary), and then 1 is added to it.
+1. **Initialization:**
+   - `dp = [[False] * n for _ in range(n)]`: We create a 2D boolean table `dp` of size `n x n`, where `n` is the length of the input string `s`. `dp[i][j]` will be `True` if the substring `s[i:j+1]` is a palindrome, and `False` otherwise.
+   - The single letter substrings are always palindromes, so initialize them to `True`:  `dp[i][i] = True` for all `i`.
+   - Initialize `start` to 0 and `max_length` to 1 because at minimum a string of length 1 is a palindrome.
 
-2.  **Finding the First Unique Character:**
-    *   The code iterates through the string `s` again, this time using `enumerate` to get both the index `i` and the character `char` at each position.
-    *   Inside the loop, it checks if the count of the character `char` in the `char_counts` dictionary is equal to 1.  If it is, that means the character is unique (appears only once).
-    *   If a unique character is found, its index `i` is immediately returned.
+2. **Palindromes of Length 2:**
+   - We iterate through the string to check for adjacent characters that are equal. If `s[i] == s[i + 1]`, then `s[i:i+2]` is a palindrome of length 2. We update `dp[i][i+1]` to `True`, and we update `start` and `max_length` accordingly if necessary.
 
-3.  **Handling No Unique Characters:**
-    *   If the loop completes without finding any character with a count of 1, it means there are no unique characters in the string. In this case, the function returns `-1`.
+3. **Palindromes of Length 3 or More:**
+   - We iterate using `k` as the length of the palindrome, starting from length 3 up to the length of the string.
+   - For each length `k`, we iterate through all possible starting positions `i` for a substring of length `k`. The ending position `j` of the substring is `i + k - 1`.
+   - The key logic is: `dp[i][j] = (s[i] == s[j] and dp[i + 1][j - 1])`.  This means that the substring `s[i:j+1]` is a palindrome *if and only if*:
+     - The first and last characters of the substring (`s[i]` and `s[j]`) are equal.
+     - The substring between them (`s[i+1:j]`) is also a palindrome (i.e., `dp[i+1][j-1]` is `True`).
+   - If we find a palindrome `s[i:j+1]` and its length `k` is greater than the current `max_length`, we update `start` and `max_length`.
+
+4. **Return the Longest Palindrome:**
+   - After iterating through all possible substring lengths, `start` holds the starting index of the longest palindromic substring, and `max_length` holds its length. We return the substring `s[start:start + max_length]`.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the string `s`.  The code iterates through the string twice (once to count character frequencies and once to find the first unique character), but these are linear operations.
-*   **Space Complexity:** O(1), specifically O(26), which simplifies to O(1), since we are only dealing with lowercase English alphabets. The `char_counts` dictionary will, at most, store counts for all 26 lowercase letters.  If the string could contain a larger character set (e.g., Unicode characters), the space complexity would be O(k), where k is the number of unique characters in the string.
+- **Time Complexity:** O(n^2), where n is the length of the string.  We iterate through all possible substrings.
+- **Space Complexity:** O(n^2) due to the `dp` table.
+
+**Why Dynamic Programming?**
+
+Dynamic programming is well-suited for this problem because:
+
+- **Overlapping Subproblems:**  The problem can be broken down into smaller, overlapping subproblems (checking if a shorter substring is a palindrome). The `dp` table stores the results of these subproblems to avoid redundant computations.
+- **Optimal Substructure:**  The optimal solution (the longest palindromic substring) can be constructed from the optimal solutions to its subproblems (the shorter palindromic substrings).
