@@ -1,121 +1,149 @@
-Okay, here's a random DSA problem and a Python solution, complete with explanations:
+Okay, here's a DSA problem and a Python solution:
 
-**Problem:  Find the Longest Palindromic Substring**
+**Problem: Implement LRU (Least Recently Used) Cache**
 
-**Description:**
+Design and implement a data structure for a Least Recently Used (LRU) cache. It should support the following operations:
 
-Given a string `s`, find the longest palindromic substring in `s`. A palindromic substring is a substring that reads the same forwards and backward.
+*   **`get(key)`**: Get the value (will always be positive) of the key if the key exists in the cache, otherwise return -1.
+*   **`put(key, value)`**: Set or insert the value if the key is not already present. When the cache reaches its capacity, it should invalidate the least recently used item before inserting a new item.
+
+The cache is initialized with a **positive** capacity.
+
+**Constraints:**
+
+*   `1 <= capacity <= 3000`
+*   `0 <= key <= 10000`
+*   `0 <= value <= 10^5`
+*   At most `2 * 10^5` calls will be made to `get` and `put`.
 
 **Example:**
 
+```python
+cache = LRUCache(2) # capacity is 2
+
+cache.put(1, 1)
+cache.put(2, 2)
+cache.get(1)       # returns 1
+cache.put(3, 3)    # evicts key 2
+cache.get(2)       # returns -1 (not found)
+cache.put(4, 4)    # evicts key 1
+cache.get(1)       # returns -1 (not found)
+cache.get(3)       # returns 3
+cache.get(4)       # returns 4
 ```
-Input: "babad"
-Output: "bab"  (or "aba")
 
-Input: "cbbd"
-Output: "bb"
-
-Input: "a"
-Output: "a"
-
-Input: "ac"
-Output: "a"
-```
-
-**Python Solution (Dynamic Programming):**
+**Python Solution:**
 
 ```python
-def longest_palindrome(s):
-    """
-    Finds the longest palindromic substring in a given string.
+class Node:
+    def __init__(self, key, val):
+        self.key = key
+        self.val = val
+        self.next = None
+        self.prev = None
 
-    Args:
-        s: The input string.
+class LRUCache:
 
-    Returns:
-        The longest palindromic substring.
-    """
-    n = len(s)
+    def __init__(self, capacity: int):
+        self.capacity = capacity
+        self.cache = {}  # key: Node
+        self.left = Node(0, 0) # Dummy head node
+        self.right = Node(0, 0) # Dummy tail node
+        self.left.next = self.right
+        self.right.prev = self.left
 
-    # If the string is empty or has only one character, it's already a palindrome
-    if n < 2:
-        return s
+    def _remove(self, node: Node):
+        """Removes a node from the doubly linked list."""
+        prev_node = node.prev
+        next_node = node.next
+        prev_node.next = next_node
+        next_node.prev = prev_node
 
-    # dp[i][j] is True if the substring s[i:j+1] is a palindrome, False otherwise.
-    dp = [[False] * n for _ in range(n)]
+    def _insert(self, node: Node):
+        """Inserts a node right before the tail."""
+        prev_node = self.right.prev
+        next_node = self.right
+        prev_node.next = node
+        next_node.prev = node
+        node.next = next_node
+        node.prev = prev_node
 
-    # All substrings of length 1 are palindromes
-    for i in range(n):
-        dp[i][i] = True
+    def get(self, key: int) -> int:
+        if key in self.cache:
+            node = self.cache[key]
+            self._remove(node) # Remove from its current position
+            self._insert(node) # Move to the most recently used
+            return node.val
+        return -1
 
-    # longest substring
-    start = 0
-    max_length = 1
+    def put(self, key: int, value: int) -> None:
+        if key in self.cache:
+            self._remove(self.cache[key])
+            del self.cache[key] # Remove from cache.  Important for updating
+        node = Node(key, value)
+        self.cache[key] = node
+        self._insert(node)
 
-    # Check for palindromes of length 2
-    for i in range(n - 1):
-        if s[i] == s[i + 1]:
-            dp[i][i + 1] = True
-            start = i
-            max_length = 2
+        if len(self.cache) > self.capacity:
+            # Evict the least recently used (left.next)
+            lru = self.left.next
+            self._remove(lru)
+            del self.cache[lru.key]
 
-    # Check for palindromes of length 3 or more
-    for k in range(3, n + 1): # k is the length of the substring
-        for i in range(n - k + 1):  # i is the starting index
-            j = i + k - 1 # j is the ending index
+# Example Usage:
+cache = LRUCache(2)
 
-            if s[i] == s[j] and dp[i + 1][j - 1]: # Check the end characters and the sub-string between is also palindrome
-                dp[i][j] = True
-
-                if k > max_length:
-                    start = i
-                    max_length = k
-
-    return s[start:start + max_length]
-
-
-# Example Usage
-string1 = "babad"
-string2 = "cbbd"
-string3 = "a"
-string4 = "ac"
-
-print(f"Longest palindrome in '{string1}': {longest_palindrome(string1)}")
-print(f"Longest palindrome in '{string2}': {longest_palindrome(string2)}")
-print(f"Longest palindrome in '{string3}': {longest_palindrome(string3)}")
-print(f"Longest palindrome in '{string4}': {longest_palindrome(string4)}")
-
+cache.put(1, 1)
+cache.put(2, 2)
+print(cache.get(1))       # returns 1
+cache.put(3, 3)    # evicts key 2
+print(cache.get(2))       # returns -1 (not found)
+cache.put(4, 4)    # evicts key 1
+print(cache.get(1))       # returns -1 (not found)
+print(cache.get(3))       # returns 3
+print(cache.get(4))       # returns 4
 ```
 
 **Explanation:**
 
-1. **Initialization:**
-   - `dp = [[False] * n for _ in range(n)]`: We create a 2D boolean table `dp` of size `n x n`, where `n` is the length of the input string `s`. `dp[i][j]` will be `True` if the substring `s[i:j+1]` is a palindrome, and `False` otherwise.
-   - The single letter substrings are always palindromes, so initialize them to `True`:  `dp[i][i] = True` for all `i`.
-   - Initialize `start` to 0 and `max_length` to 1 because at minimum a string of length 1 is a palindrome.
+1.  **`Node` Class:** Represents a node in the doubly linked list, storing the key, value, `next` pointer, and `prev` pointer.
 
-2. **Palindromes of Length 2:**
-   - We iterate through the string to check for adjacent characters that are equal. If `s[i] == s[i + 1]`, then `s[i:i+2]` is a palindrome of length 2. We update `dp[i][i+1]` to `True`, and we update `start` and `max_length` accordingly if necessary.
+2.  **`LRUCache` Class:**
+    *   **`__init__(self, capacity: int)`:** Initializes the cache with the given capacity.
+        *   `self.capacity`: Stores the maximum capacity of the cache.
+        *   `self.cache`: A dictionary (hash map) that stores key-value pairs, where the value is a `Node` object.  This allows O(1) access for get and put operations.
+        *   `self.left` and `self.right`: Dummy nodes that mark the beginning and end of the doubly linked list. These make insertion and removal operations cleaner and avoid edge case checks.
 
-3. **Palindromes of Length 3 or More:**
-   - We iterate using `k` as the length of the palindrome, starting from length 3 up to the length of the string.
-   - For each length `k`, we iterate through all possible starting positions `i` for a substring of length `k`. The ending position `j` of the substring is `i + k - 1`.
-   - The key logic is: `dp[i][j] = (s[i] == s[j] and dp[i + 1][j - 1])`.  This means that the substring `s[i:j+1]` is a palindrome *if and only if*:
-     - The first and last characters of the substring (`s[i]` and `s[j]`) are equal.
-     - The substring between them (`s[i+1:j]`) is also a palindrome (i.e., `dp[i+1][j-1]` is `True`).
-   - If we find a palindrome `s[i:j+1]` and its length `k` is greater than the current `max_length`, we update `start` and `max_length`.
+    *   **`_remove(self, node: Node)`:**  Removes a given `node` from the doubly linked list.  It updates the `next` and `prev` pointers of the surrounding nodes.
 
-4. **Return the Longest Palindrome:**
-   - After iterating through all possible substring lengths, `start` holds the starting index of the longest palindromic substring, and `max_length` holds its length. We return the substring `s[start:start + max_length]`.
+    *   **`_insert(self, node: Node)`:** Inserts a given `node` into the doubly linked list *right before* the `self.right` (tail) node.  This makes the newly inserted node the most recently used.
 
-**Time and Space Complexity:**
+    *   **`get(self, key: int) -> int`:**
+        *   Checks if the `key` exists in `self.cache`.
+        *   If the `key` exists:
+            *   Retrieves the corresponding `Node` from the `self.cache`.
+            *   Removes the `node` from its current position in the linked list using `self._remove(node)`.
+            *   Inserts the `node` at the tail (most recently used position) using `self._insert(node)`.
+            *   Returns the `node.val` (the value associated with the key).
+        *   If the `key` doesn't exist, returns `-1`.
 
-- **Time Complexity:** O(n^2), where n is the length of the string.  We iterate through all possible substrings.
-- **Space Complexity:** O(n^2) due to the `dp` table.
+    *   **`put(self, key: int, value: int) -> None`:**
+        *   If the `key` already exists in `self.cache`:
+            *   Remove the existing node using `self._remove()`.
+            *   Remove the item from the `self.cache`.  This is critical to ensure we update the node. If we don't, we will insert a *duplicate* entry in the DLL, and the cache length will grow larger than its capacity.
+        *   Creates a new `Node` with the given `key` and `value`.
+        *   Adds the `key`-`node` pair to the `self.cache`.
+        *   Inserts the `node` at the tail (most recently used position) using `self._insert(node)`.
+        *   Checks if the current size of `self.cache` exceeds `self.capacity`.
+        *   If the cache is full:
+            *   Removes the least recently used node (the one immediately after `self.left`, which is the dummy head) using `self._remove(self.left.next)`.
+            *   Removes the corresponding entry from `self.cache` using `del self.cache[lru.key]` (where `lru` is the least recently used node).  Again, deletion from the cache is critical.
 
-**Why Dynamic Programming?**
+**Time Complexity:**
 
-Dynamic programming is well-suited for this problem because:
+*   `get()`: O(1) (due to the hash map `self.cache` and doubly linked list operations)
+*   `put()`: O(1) (due to the hash map `self.cache` and doubly linked list operations)
 
-- **Overlapping Subproblems:**  The problem can be broken down into smaller, overlapping subproblems (checking if a shorter substring is a palindrome). The `dp` table stores the results of these subproblems to avoid redundant computations.
-- **Optimal Substructure:**  The optimal solution (the longest palindromic substring) can be constructed from the optimal solutions to its subproblems (the shorter palindromic substrings).
+**Space Complexity:**
+
+*   O(capacity) - The cache stores up to `capacity` key-value pairs, and each key-value pair takes up constant space.  The linked list itself contributes a space complexity proportional to the capacity.
