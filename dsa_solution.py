@@ -1,78 +1,117 @@
 Okay, here's a DSA problem and a Python solution:
 
-**Problem:  First Unique Character in a String**
+**Problem:**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+**Valid Parentheses with Wildcards**
+
+Given a string `s` containing only three types of characters: '(', ')', and '*', write a function to check whether this string is valid.
+
+A string is valid if:
+
+1.  Every left parenthesis '(' must have a corresponding right parenthesis ')'.
+2.  Every right parenthesis ')' must have a corresponding left parenthesis '('.
+3.  Left parenthesis '(' must go before the corresponding right parenthesis ')'.
+4.  '*' could be treated as a single right parenthesis ')', a single left parenthesis '(', or an empty string "".
 
 **Example 1:**
 
 ```
-Input: s = "leetcode"
-Output: 0
+Input: s = "()"
+Output: true
 ```
 
 **Example 2:**
 
 ```
-Input: s = "loveleetcode"
-Output: 2
+Input: s = "(*)"
+Output: true
 ```
 
 **Example 3:**
 
 ```
-Input: s = "aabb"
-Output: -1
+Input: s = "(*))"
+Output: true
+```
+
+**Example 4:**
+
+```
+Input: s = "))*("
+Output: false
 ```
 
 **Python Solution:**
 
 ```python
-def firstUniqChar(s: str) -> int:
+def checkValidString(s):
     """
-    Finds the index of the first non-repeating character in a string.
+    Checks if a string containing '(', ')', and '*' is valid based on the given rules.
 
     Args:
         s: The input string.
 
     Returns:
-        The index of the first non-repeating character, or -1 if none exists.
+        True if the string is valid, False otherwise.
     """
 
-    # Create a dictionary to store the frequency of each character
-    char_counts = {}
+    low, high = 0, 0
+
     for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
+        if char == '(':
+            low += 1
+            high += 1
+        elif char == ')':
+            low -= 1
+            high -= 1
+        else:  # char == '*'
+            low -= 1
+            high += 1
 
-    # Iterate through the string and check if the character's count is 1
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+        if high < 0:
+            return False  # Too many closing parentheses, even with wildcards
 
-    # If no unique character is found, return -1
-    return -1
+        low = max(low, 0)  # We can treat '*' as empty string, so low cannot be negative
 
-# Example usage:
-print(firstUniqChar("leetcode"))  # Output: 0
-print(firstUniqChar("loveleetcode")) # Output: 2
-print(firstUniqChar("aabb"))       # Output: -1
+    return low == 0  # If low is 0, all '(' are matched.
+
+
+# Example usage
+print(checkValidString("()"))  # True
+print(checkValidString("(*)")) # True
+print(checkValidString("(*))")) # True
+print(checkValidString("))**((")) # False
+print(checkValidString("))(")) # False
+print(checkValidString("()"))
+print(checkValidString("(*)"))
+print(checkValidString("(*))"))
+print(checkValidString("))**(("))
+print(checkValidString("))("))
+print(checkValidString("(((((((((((((((((((((((((((((((((((((((((((((((((()"))
 ```
 
 **Explanation:**
 
-1. **Frequency Counting:**
-   - We use a dictionary `char_counts` to store the frequency of each character in the string.
-   - We iterate through the string `s` and update the count for each character.  `char_counts.get(char, 0) + 1` safely increments the count, initializing it to 0 if the character is not yet in the dictionary.
+1.  **`low` and `high` Variables:**
+    *   `low`:  Keeps track of the minimum possible number of unmatched left parentheses. We assume '*' is a ')'.
+    *   `high`: Keeps track of the maximum possible number of unmatched left parentheses.  We assume '*' is a '('.
 
-2. **Finding the First Unique:**
-   - We iterate through the string `s` again, this time keeping track of the index `i`.
-   - For each character, we check its count in the `char_counts` dictionary.
-   - If the count is 1, it means the character is unique. We return its index `i`.
+2.  **Iteration:**
+    *   If `char == '('`:  Increment both `low` and `high`. We have one more unmatched left parenthesis.
+    *   If `char == ')`: Decrement both `low` and `high`. We need a left parenthesis to match.
+    *   If `char == '*':
+        *   Decrement `low` (treat '*' as a ')').
+        *   Increment `high` (treat '*' as a '(').
 
-3. **No Unique Character:**
-   - If we reach the end of the string without finding a unique character, it means there are no non-repeating characters. In this case, we return -1.
+3.  **Early Exit (`high < 0`):**
+    *   If `high` becomes negative at any point, it means we have more closing parentheses than possible, even if all '*' are treated as '('.  The string is invalid.
 
-**Time and Space Complexity:**
+4.  **Minimum Unmatched (`low = max(low, 0)`):**
+    *   `low` can become negative if we've matched more left parentheses than exist. Since '*' can also be an empty string, we can effectively "remove" extra ')' from our count and reset `low` to 0.
 
-*   **Time Complexity:** O(n), where n is the length of the string `s`.  We iterate through the string twice.
-*   **Space Complexity:** O(1).  In the worst case, the `char_counts` dictionary will store counts for all unique characters in the string. However, since the string consists of characters, and the number of possible ASCII characters is limited (e.g., 128 or 256), the space used by the dictionary is bounded by a constant.  Therefore, we consider it O(1).
+5.  **Final Check (`low == 0`):**
+    *   After processing the entire string, if `low` is 0, it means all left parentheses have been matched by either a right parenthesis or a wildcard treated as a right parenthesis.
+
+**Why this works:**
+
+The `low` and `high` variables cleverly define a range of possible unmatched left parentheses.  If the range is always valid (i.e., `high >= 0`), and in the end the minimum number of unmatched left parentheses is zero (`low == 0`), the string is considered valid.
