@@ -2,91 +2,132 @@ Okay, here's a randomly generated DSA problem and a Python solution:
 
 **Problem:**
 
-**Minimum Time to Visit All Points**
+**Find the Intersection of Multiple Sorted Arrays**
 
-You are given a list of points on a 2D plane, where `points[i] = [xi, yi]` represents the coordinates of the i-th point.  You need to visit all the points in the order they appear in the `points` list.
-
-On each move, you can move one unit either vertically, horizontally, or diagonally.
-
-The Euclidean distance doesn't matter here.  It costs 1 unit of time to move one unit in any direction (horizontally, vertically, or diagonally).
-
-Return the minimum time needed to visit all the points.
+Given a list of sorted arrays, find the intersection of all the arrays. The intersection consists of the elements that are present in every single array.  Return a sorted list of the common elements.
 
 **Example:**
 
 ```
-Input: points = [[1,1],[3,4],[-1,0]]
-Output: 7
+Input:
+arrays = [
+  [1, 2, 2, 3, 4, 5],
+  [2, 2, 3, 5],
+  [2, 2, 4, 5, 6, 7]
+]
+
+Output:
+[2, 5]
 
 Explanation:
-One optimal path is [1,1] -> [2,2] -> [3,3] -> [3,4] -> [2,3] -> [1,2] -> [0,1] -> [-1,0]
-The time needed is 3 + 4 = 7
+The numbers 2 and 5 are the only numbers that appear in all three arrays.  The number 2 appears multiple times, but it should only be returned once in the output.
 ```
-
-**Constraints:**
-
-*   `1 <= points.length <= 100`
-*   `points[i].length == 2`
-*   `-1000 <= xi, yi <= 1000`
 
 **Python Solution:**
 
 ```python
-def minTimeToVisitAllPoints(points):
+def intersection_of_sorted_arrays(arrays):
     """
-    Calculates the minimum time to visit all points in the given order.
+    Finds the intersection of multiple sorted arrays.
 
     Args:
-        points: A list of lists, where each inner list represents the coordinates of a point [x, y].
+        arrays: A list of sorted arrays.
 
     Returns:
-        The minimum time needed to visit all the points.
+        A sorted list containing the common elements.  Returns an empty list if there is no intersection.
     """
 
-    total_time = 0
-    for i in range(len(points) - 1):
-        x1, y1 = points[i]
-        x2, y2 = points[i + 1]
+    if not arrays:
+        return []
 
-        # Calculate the horizontal and vertical distances.
-        dx = abs(x2 - x1)
-        dy = abs(y2 - y1)
+    if len(arrays) == 1:
+        return sorted(list(set(arrays[0])))  # Handle single array case
 
-        # The optimal path involves moving diagonally as much as possible, then horizontally or vertically.
-        # The time taken is the maximum of the horizontal and vertical distances.
-        total_time += max(dx, dy)
+    # Start with the first array as the potential intersection
+    intersection = arrays[0]
 
-    return total_time
+    # Iterate through the remaining arrays and update the intersection
+    for i in range(1, len(arrays)):
+        intersection = find_intersection_of_two_sorted_arrays(intersection, arrays[i])
+
+    return sorted(list(set(intersection)))  # Convert to set to remove duplicates then sort
+
+
+def find_intersection_of_two_sorted_arrays(arr1, arr2):
+    """
+    Finds the intersection of two sorted arrays.
+
+    Args:
+        arr1: The first sorted array.
+        arr2: The second sorted array.
+
+    Returns:
+        A list containing the common elements in the two arrays.
+    """
+
+    result = []
+    i = 0
+    j = 0
+
+    while i < len(arr1) and j < len(arr2):
+        if arr1[i] == arr2[j]:
+            result.append(arr1[i])
+            i += 1
+            j += 1
+        elif arr1[i] < arr2[j]:
+            i += 1
+        else:
+            j += 1
+
+    return result
+
 
 # Example Usage:
-points1 = [[1,1],[3,4],[-1,0]]
-print(f"Minimum time for {points1}: {minTimeToVisitAllPoints(points1)}") # Output: 7
+arrays = [
+    [1, 2, 2, 3, 4, 5],
+    [2, 2, 3, 5],
+    [2, 2, 4, 5, 6, 7]
+]
 
-points2 = [[3,2],[-2,2]]
-print(f"Minimum time for {points2}: {minTimeToVisitAllPoints(points2)}") #Output 5
+result = intersection_of_sorted_arrays(arrays)
+print(result)  # Output: [2, 5]
 
-points3 = [[-4,3],[-2,5]]
-print(f"Minimum time for {points3}: {minTimeToVisitAllPoints(points3)}") #Output 4
+arrays2 = [
+    [1, 2, 3],
+    [4, 5, 6]
+]
+result2 = intersection_of_sorted_arrays(arrays2)
+print(result2) # Output: []
+
+arrays3 = [
+    [1, 2, 3, 4, 5],
+    [1, 2, 5, 7, 9],
+    [1, 3, 4, 5, 8]
+]
+
+result3 = intersection_of_sorted_arrays(arrays3)
+print(result3) #Output: [1, 5]
 ```
 
 **Explanation:**
 
-1.  **Iterate Through Points:** The code iterates through the `points` list, considering pairs of consecutive points.
+1.  **`intersection_of_sorted_arrays(arrays)`:**
+    *   Handles the main logic for finding the intersection of multiple arrays.
+    *   If the input list of arrays is empty, it returns an empty list.
+    *   If there is only one array in the list, it removes duplicate elements and sorts the array.
+    *   It initializes the `intersection` list with the elements of the first array.
+    *   It iterates through the remaining arrays in the list, updating the `intersection` by finding the common elements between the current `intersection` and the next array using the `find_intersection_of_two_sorted_arrays` helper function.
+    *   Finally, it converts the `intersection` list to a set to remove duplicate elements, sorts the set, and returns the result as a list.
 
-2.  **Calculate Distances:** For each pair of points `(x1, y1)` and `(x2, y2)`, it calculates the absolute horizontal distance `dx = abs(x2 - x1)` and the absolute vertical distance `dy = abs(y2 - y1)`.
+2.  **`find_intersection_of_two_sorted_arrays(arr1, arr2)`:**
+    *   This is a helper function that finds the intersection of two sorted arrays `arr1` and `arr2`.
+    *   It uses two pointers `i` and `j` to iterate through the arrays simultaneously.
+    *   If `arr1[i]` and `arr2[j]` are equal, it means that the element is present in both arrays, so it is added to the `result` list, and both pointers are incremented.
+    *   If `arr1[i]` is less than `arr2[j]`, it means that `arr1[i]` is not present in `arr2`, so the `i` pointer is incremented.
+    *   If `arr1[i]` is greater than `arr2[j]`, it means that `arr2[j]` is not present in `arr1`, so the `j` pointer is incremented.
+    *   The loop continues until either `i` or `j` reaches the end of their respective arrays.
 
-3.  **Optimal Movement:** The key idea is that the most efficient way to move between two points is to move diagonally as much as possible. If `dx` and `dy` are different, you move diagonally until one of them becomes zero, and then move horizontally or vertically to cover the remaining distance.  The time taken to do this is simply the maximum of `dx` and `dy`.
-
-    *   If `dx > dy`, you move diagonally `dy` times, then horizontally `dx - dy` times.  Total time = `dy + (dx - dy) = dx`
-    *   If `dy > dx`, you move diagonally `dx` times, then vertically `dy - dx` times.  Total time = `dx + (dy - dx) = dy`
-    *   If `dx == dy`, you move diagonally `dx` or `dy` times. Total time `dx` or `dy`
-
-    In all cases, `max(dx, dy)` will give the minimum time.
-
-4.  **Accumulate Time:**  The `total_time` is updated by adding `max(dx, dy)` for each pair of points.
-
-5.  **Return Result:** Finally, the function returns the `total_time`, which represents the minimum time needed to visit all the points.
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the number of points in the input list.  This is because the code iterates through the list once.
-*   **Space Complexity:** O(1). The code uses a constant amount of extra space, regardless of the input size.
+*   **Time Complexity:** O(N * M), where N is the total number of arrays, and M is the average length of the arrays.  The `find_intersection_of_two_sorted_arrays` function has a time complexity of O(min(len(arr1), len(arr2))), and it is called N-1 times.  Conversion to set and sorting contributes O(K log K) where K is the final number of elements in the intersection. This could be less significant than N*M if the intersection is relatively small.
+*   **Space Complexity:** O(K), where K is the number of elements in the intersection. This is because we store the intersection in a new list.  In the worst case, if all arrays have the same elements, the space complexity could be O(min(length of input arrays)).
