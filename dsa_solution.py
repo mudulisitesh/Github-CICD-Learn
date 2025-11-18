@@ -1,133 +1,84 @@
-Okay, here's a randomly generated DSA problem and a Python solution:
+Okay, here's a random DSA problem with a Python solution:
 
-**Problem:**
+**Problem:  First Unique Character in a String**
 
-**Find the Intersection of Multiple Sorted Arrays**
+Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
 
-Given a list of sorted arrays, find the intersection of all the arrays. The intersection consists of the elements that are present in every single array.  Return a sorted list of the common elements.
-
-**Example:**
+**Example 1:**
 
 ```
-Input:
-arrays = [
-  [1, 2, 2, 3, 4, 5],
-  [2, 2, 3, 5],
-  [2, 2, 4, 5, 6, 7]
-]
-
-Output:
-[2, 5]
-
-Explanation:
-The numbers 2 and 5 are the only numbers that appear in all three arrays.  The number 2 appears multiple times, but it should only be returned once in the output.
+Input: s = "leetcode"
+Output: 0
 ```
 
-**Python Solution:**
+**Example 2:**
+
+```
+Input: s = "loveleetcode"
+Output: 2
+```
+
+**Example 3:**
+
+```
+Input: s = "aabb"
+Output: -1
+```
+
+**Solution (Python):**
 
 ```python
-def intersection_of_sorted_arrays(arrays):
+def firstUniqChar(s: str) -> int:
     """
-    Finds the intersection of multiple sorted arrays.
+    Finds the index of the first non-repeating character in a string.
 
     Args:
-        arrays: A list of sorted arrays.
+        s: The input string.
 
     Returns:
-        A sorted list containing the common elements.  Returns an empty list if there is no intersection.
+        The index of the first non-repeating character, or -1 if none exists.
     """
 
-    if not arrays:
-        return []
+    char_counts = {}  # Dictionary to store character counts
 
-    if len(arrays) == 1:
-        return sorted(list(set(arrays[0])))  # Handle single array case
+    # Count the occurrences of each character
+    for char in s:
+        char_counts[char] = char_counts.get(char, 0) + 1
 
-    # Start with the first array as the potential intersection
-    intersection = arrays[0]
+    # Find the first character with a count of 1
+    for i, char in enumerate(s):
+        if char_counts[char] == 1:
+            return i
 
-    # Iterate through the remaining arrays and update the intersection
-    for i in range(1, len(arrays)):
-        intersection = find_intersection_of_two_sorted_arrays(intersection, arrays[i])
+    return -1  # No unique character found
 
-    return sorted(list(set(intersection)))  # Convert to set to remove duplicates then sort
+# Example usage:
+string1 = "leetcode"
+string2 = "loveleetcode"
+string3 = "aabb"
 
-
-def find_intersection_of_two_sorted_arrays(arr1, arr2):
-    """
-    Finds the intersection of two sorted arrays.
-
-    Args:
-        arr1: The first sorted array.
-        arr2: The second sorted array.
-
-    Returns:
-        A list containing the common elements in the two arrays.
-    """
-
-    result = []
-    i = 0
-    j = 0
-
-    while i < len(arr1) and j < len(arr2):
-        if arr1[i] == arr2[j]:
-            result.append(arr1[i])
-            i += 1
-            j += 1
-        elif arr1[i] < arr2[j]:
-            i += 1
-        else:
-            j += 1
-
-    return result
-
-
-# Example Usage:
-arrays = [
-    [1, 2, 2, 3, 4, 5],
-    [2, 2, 3, 5],
-    [2, 2, 4, 5, 6, 7]
-]
-
-result = intersection_of_sorted_arrays(arrays)
-print(result)  # Output: [2, 5]
-
-arrays2 = [
-    [1, 2, 3],
-    [4, 5, 6]
-]
-result2 = intersection_of_sorted_arrays(arrays2)
-print(result2) # Output: []
-
-arrays3 = [
-    [1, 2, 3, 4, 5],
-    [1, 2, 5, 7, 9],
-    [1, 3, 4, 5, 8]
-]
-
-result3 = intersection_of_sorted_arrays(arrays3)
-print(result3) #Output: [1, 5]
+print(f"'{string1}': {firstUniqChar(string1)}")  # Output: 0
+print(f"'{string2}': {firstUniqChar(string2)}")  # Output: 2
+print(f"'{string3}': {firstUniqChar(string3)}")  # Output: -1
 ```
 
 **Explanation:**
 
-1.  **`intersection_of_sorted_arrays(arrays)`:**
-    *   Handles the main logic for finding the intersection of multiple arrays.
-    *   If the input list of arrays is empty, it returns an empty list.
-    *   If there is only one array in the list, it removes duplicate elements and sorts the array.
-    *   It initializes the `intersection` list with the elements of the first array.
-    *   It iterates through the remaining arrays in the list, updating the `intersection` by finding the common elements between the current `intersection` and the next array using the `find_intersection_of_two_sorted_arrays` helper function.
-    *   Finally, it converts the `intersection` list to a set to remove duplicate elements, sorts the set, and returns the result as a list.
+1. **`char_counts = {}`**:  We initialize an empty dictionary called `char_counts`. This dictionary will store each character in the string as a key and the number of times it appears in the string as the value.
 
-2.  **`find_intersection_of_two_sorted_arrays(arr1, arr2)`:**
-    *   This is a helper function that finds the intersection of two sorted arrays `arr1` and `arr2`.
-    *   It uses two pointers `i` and `j` to iterate through the arrays simultaneously.
-    *   If `arr1[i]` and `arr2[j]` are equal, it means that the element is present in both arrays, so it is added to the `result` list, and both pointers are incremented.
-    *   If `arr1[i]` is less than `arr2[j]`, it means that `arr1[i]` is not present in `arr2`, so the `i` pointer is incremented.
-    *   If `arr1[i]` is greater than `arr2[j]`, it means that `arr2[j]` is not present in `arr1`, so the `j` pointer is incremented.
-    *   The loop continues until either `i` or `j` reaches the end of their respective arrays.
+2. **`for char in s:`**:  We iterate through the input string `s` character by character.
+
+3. **`char_counts[char] = char_counts.get(char, 0) + 1`**:  For each character `char`, we update its count in the `char_counts` dictionary.  `char_counts.get(char, 0)` retrieves the current count of `char` from the dictionary.  If `char` is not already in the dictionary, `get(char, 0)` returns 0 (the default value), meaning it's the first time we've seen this character.  Then, we add 1 to the current count and store it back in the dictionary.
+
+4. **`for i, char in enumerate(s):`**:  We iterate through the string `s` again, this time using `enumerate` to get both the index `i` and the character `char` at that index.
+
+5. **`if char_counts[char] == 1:`**:  Inside the loop, we check if the count of the current character `char` in the `char_counts` dictionary is equal to 1. If it is, this means the character appears only once in the string.
+
+6. **`return i`**:  If we find a character with a count of 1, we immediately return its index `i`.
+
+7. **`return -1`**:  If the loop completes without finding any characters with a count of 1, it means there are no unique characters in the string. In this case, we return -1.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(N * M), where N is the total number of arrays, and M is the average length of the arrays.  The `find_intersection_of_two_sorted_arrays` function has a time complexity of O(min(len(arr1), len(arr2))), and it is called N-1 times.  Conversion to set and sorting contributes O(K log K) where K is the final number of elements in the intersection. This could be less significant than N*M if the intersection is relatively small.
-*   **Space Complexity:** O(K), where K is the number of elements in the intersection. This is because we store the intersection in a new list.  In the worst case, if all arrays have the same elements, the space complexity could be O(min(length of input arrays)).
+*   **Time Complexity:** O(n), where n is the length of the string `s`. We iterate through the string twice in the worst case.
+*   **Space Complexity:** O(1). In the worst case, the `char_counts` dictionary can store up to 26 key-value pairs (for lowercase English letters). The space complexity is therefore constant, independent of the string's length.  While it technically could be O(k) where k is the size of the character set (e.g., ASCII, Unicode), it's usually considered O(1) because `k` is a fixed constant.
