@@ -1,84 +1,114 @@
-Okay, here's a random DSA problem and a Python solution.
+Okay, here's a DSA problem focusing on a combination of sorting and searching, along with a Python solution:
 
 **Problem:**
 
-**First Unique Character in a String**
+**Missing Ranges**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+Given a sorted integer array `nums`, where the range of elements are in the inclusive range `[lower, upper]`, return *the smallest sorted list of ranges that exactly covers all the missing numbers*. That is, no element of `nums` is in any of the ranges, and each missing number is covered by one of the ranges.
 
-**Example:**
+**Example 1:**
 
-*   **Input:** `s = "leetcode"`
-*   **Output:** `0`
+```
+Input: nums = [0,1,3,50,75], lower = 0, upper = 99
+Output: ["2","4->49","51->74","76->99"]
+```
 
-*   **Input:** `s = "loveleetcode"`
-*   **Output:** `2`
+**Example 2:**
 
-*   **Input:** `s = "aabb"`
-*   **Output:** `-1`
+```
+Input: nums = [-1], lower = -1, upper = -1
+Output: []
+```
+
+**Constraints:**
+
+*   `-109 <= lower <= upper <= 109`
+*   `0 <= nums.length <= 100`
+*   `lower <= nums[i] <= upper`
+*   All the values of `nums` are **unique**.
+*   `nums` is sorted.
+
+**Python Solution:**
+
+```python
+def find_missing_ranges(nums, lower, upper):
+    """
+    Finds the missing ranges in a sorted array of integers.
+
+    Args:
+        nums: A sorted list of integers.
+        lower: The lower bound of the inclusive range.
+        upper: The upper bound of the inclusive range.
+
+    Returns:
+        A list of strings representing the missing ranges.
+    """
+
+    result = []
+
+    def format_range(start, end):
+        if start == end:
+            return str(start)
+        else:
+            return str(start) + "->" + str(end)
+
+    prev = lower - 1  # Initialize prev to one less than the lower bound.
+
+    for i in range(len(nums) + 1):
+        if i == len(nums):
+            curr = upper + 1  # If at the end, set curr to one more than the upper bound.
+        else:
+            curr = nums[i]
+
+        if curr - prev > 1:
+            result.append(format_range(prev + 1, curr - 1))
+
+        prev = curr
+
+    return result
+
+# Example Usage:
+nums1 = [0,1,3,50,75]
+lower1 = 0
+upper1 = 99
+print(find_missing_ranges(nums1, lower1, upper1)) # Output: ['2', '4->49', '51->74', '76->99']
+
+nums2 = [-1]
+lower2 = -1
+upper2 = -1
+print(find_missing_ranges(nums2, lower2, upper2)) # Output: []
+
+nums3 = [2,3,5,50,75]
+lower3 = 0
+upper3 = 99
+print(find_missing_ranges(nums3, lower3, upper3)) # Output: ['0->1', '4', '6->49', '51->74', '76->99']
+
+nums4 = []
+lower4 = 0
+upper4 = 9
+print(find_missing_ranges(nums4, lower4, upper4)) # Output: ['0->9']
+```
 
 **Explanation:**
 
-The problem requires analyzing a string to find the first character that appears only once.  A frequency counter approach is efficient for this.
+1.  **Initialization:**
+    *   `result`: An empty list to store the string representations of the missing ranges.
+    *   `prev`: Initialized to `lower - 1`. This allows us to handle the case where the first element of `nums` is not equal to `lower`.
 
-**Python Code Solution:**
+2.  **Iteration:**
+    *   The code iterates through the `nums` array.  We also iterate one element *beyond* the last element to account for a missing range that extends to the `upper` bound.
+    *   Inside the loop, `curr` represents the current number we're comparing against the previous one.  If `i` reaches the end of `nums`, `curr` becomes `upper + 1`, so we can handle missing ranges at the end.
 
-```python
-def firstUniqChar(s):
-    """
-    Finds the index of the first non-repeating character in a string.
+3.  **Missing Range Check:**
+    *   `if curr - prev > 1:`:  This condition checks if there's a gap between the current number (`curr`) and the previous number (`prev`).  If the difference is greater than 1, it means there are missing numbers between `prev + 1` and `curr - 1`.
 
-    Args:
-        s: The input string.
+4.  **Range Formatting:**
+    *   `format_range(prev + 1, curr - 1)`: A helper function that constructs the string representation of the missing range.  If the start and end of the range are the same, it returns a single number (e.g., "2").  Otherwise, it returns a string in the format "start->end" (e.g., "4->49").
 
-    Returns:
-        The index of the first non-repeating character, or -1 if none exists.
-    """
-
-    # 1. Frequency Counter (using dictionary)
-    char_counts = {}
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1
-
-    # 2. Iterate through the string to find the first character with count 1
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
-
-    # 3. If no unique character is found, return -1
-    return -1
-
-# Example Usage:
-print(firstUniqChar("leetcode"))  # Output: 0
-print(firstUniqChar("loveleetcode")) # Output: 2
-print(firstUniqChar("aabb")) # Output: -1
-```
-
-**Explanation of the Code:**
-
-1.  **Frequency Counter:**
-    *   A dictionary `char_counts` is used to store the frequency of each character in the string `s`.
-    *   The code iterates through the string, and for each character:
-        *   It checks if the character is already in the `char_counts` dictionary.
-        *   If the character is present, its count is incremented.
-        *   If the character is not present, it is added to the dictionary with a count of 1.  `char_counts.get(char, 0)` is a convenient way to handle both cases.
-
-2.  **Find First Unique Character:**
-    *   The code then iterates through the string `s` again, this time using `enumerate` to get both the index `i` and the character `char` at each position.
-    *   For each character, it checks its count in the `char_counts` dictionary.
-    *   If the count of the character is 1 (meaning it is a non-repeating character), the function immediately returns the index `i`.
-
-3.  **No Unique Character:**
-    *   If the loop completes without finding any character with a count of 1, it means there are no unique characters in the string. In this case, the function returns -1.
+5.  **Updating `prev`:**
+    *   `prev = curr`: After processing the current number, `prev` is updated to `curr` for the next iteration.
 
 **Time and Space Complexity:**
 
-*   **Time Complexity:** O(n), where n is the length of the string.  We iterate through the string twice, but the overall complexity is still linear.
-*   **Space Complexity:** O(1), or more precisely O(k), where k is the number of unique characters in the string (at most 26 for lowercase English alphabet). In practice, this is often treated as constant space because the alphabet size is relatively small and fixed.
-
-**Why this is a good solution:**
-
-*   **Clear and Readable:**  The code is well-structured and easy to understand.  The comments explain each step.
-*   **Efficient:** It uses a hash table (dictionary) to count character frequencies, which provides fast lookups (O(1) on average).
-*   **Concise:**  The solution is relatively short and avoids unnecessary complexity.
-*   **Handles edge cases:**  It correctly handles cases where there are no unique characters.
+*   **Time Complexity:** O(n), where n is the length of the `nums` array.  The code iterates through the array once.
+*   **Space Complexity:** O(1) or O(k), where k is the number of missing ranges.  In the worst case (where almost every number is missing), the space complexity could be O(n). The result list holds the string representations of ranges, but its size depends on the number of missing ranges, not the absolute size of the input. In the best cases (few to zero missing ranges) the space complexity can be considered constant.
