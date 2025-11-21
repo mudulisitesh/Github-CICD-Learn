@@ -1,114 +1,113 @@
-Okay, here's a DSA problem focusing on a combination of sorting and searching, along with a Python solution:
+Okay, here's a randomly generated DSA problem and a Python solution:
 
-**Problem:**
+**Problem: Word Ladder Length**
 
-**Missing Ranges**
+Given two words, `beginWord` and `endWord`, and a dictionary `wordList`, find the length of the shortest transformation sequence from `beginWord` to `endWord`, such that:
 
-Given a sorted integer array `nums`, where the range of elements are in the inclusive range `[lower, upper]`, return *the smallest sorted list of ranges that exactly covers all the missing numbers*. That is, no element of `nums` is in any of the ranges, and each missing number is covered by one of the ranges.
+1.  Only one letter can be changed at a time.
+2.  Each transformed word must exist in the `wordList`.
 
-**Example 1:**
+Return 0 if no such transformation sequence exists.
 
-```
-Input: nums = [0,1,3,50,75], lower = 0, upper = 99
-Output: ["2","4->49","51->74","76->99"]
-```
-
-**Example 2:**
+**Example:**
 
 ```
-Input: nums = [-1], lower = -1, upper = -1
-Output: []
+beginWord = "hit"
+endWord = "cog"
+wordList = ["hot","dot","dog","lot","log","cog"]
+
+Output: 5
+
+Explanation: One shortest transformation sequence is "hit" -> "hot" -> "dot" -> "dog" -> "cog", which is 5 words long.
 ```
 
-**Constraints:**
-
-*   `-109 <= lower <= upper <= 109`
-*   `0 <= nums.length <= 100`
-*   `lower <= nums[i] <= upper`
-*   All the values of `nums` are **unique**.
-*   `nums` is sorted.
-
-**Python Solution:**
+**Python Solution (using Breadth-First Search - BFS):**
 
 ```python
-def find_missing_ranges(nums, lower, upper):
+from collections import deque
+
+def wordLadderLength(beginWord, endWord, wordList):
     """
-    Finds the missing ranges in a sorted array of integers.
+    Finds the length of the shortest word ladder from beginWord to endWord.
 
     Args:
-        nums: A sorted list of integers.
-        lower: The lower bound of the inclusive range.
-        upper: The upper bound of the inclusive range.
+        beginWord: The starting word.
+        endWord: The target word.
+        wordList: The list of valid words.
 
     Returns:
-        A list of strings representing the missing ranges.
+        The length of the shortest word ladder, or 0 if none exists.
     """
 
-    result = []
+    if endWord not in wordList:
+        return 0
 
-    def format_range(start, end):
-        if start == end:
-            return str(start)
-        else:
-            return str(start) + "->" + str(end)
+    wordSet = set(wordList)  # Convert to set for faster lookup
+    queue = deque([(beginWord, 1)])  # (word, level)
+    visited = {beginWord}
 
-    prev = lower - 1  # Initialize prev to one less than the lower bound.
+    while queue:
+        word, level = queue.popleft()
 
-    for i in range(len(nums) + 1):
-        if i == len(nums):
-            curr = upper + 1  # If at the end, set curr to one more than the upper bound.
-        else:
-            curr = nums[i]
+        if word == endWord:
+            return level
 
-        if curr - prev > 1:
-            result.append(format_range(prev + 1, curr - 1))
+        for i in range(len(word)):
+            for char_code in range(ord('a'), ord('z') + 1):
+                new_char = chr(char_code)
+                new_word = word[:i] + new_char + word[i+1:]
 
-        prev = curr
+                if new_word in wordSet and new_word not in visited:
+                    queue.append((new_word, level + 1))
+                    visited.add(new_word)
 
-    return result
+    return 0  # No path found
+
 
 # Example Usage:
-nums1 = [0,1,3,50,75]
-lower1 = 0
-upper1 = 99
-print(find_missing_ranges(nums1, lower1, upper1)) # Output: ['2', '4->49', '51->74', '76->99']
+beginWord = "hit"
+endWord = "cog"
+wordList = ["hot","dot","dog","lot","log","cog"]
 
-nums2 = [-1]
-lower2 = -1
-upper2 = -1
-print(find_missing_ranges(nums2, lower2, upper2)) # Output: []
+result = wordLadderLength(beginWord, endWord, wordList)
+print(f"Shortest word ladder length: {result}")  # Output: 5
 
-nums3 = [2,3,5,50,75]
-lower3 = 0
-upper3 = 99
-print(find_missing_ranges(nums3, lower3, upper3)) # Output: ['0->1', '4', '6->49', '51->74', '76->99']
 
-nums4 = []
-lower4 = 0
-upper4 = 9
-print(find_missing_ranges(nums4, lower4, upper4)) # Output: ['0->9']
+beginWord = "hit"
+endWord = "cog"
+wordList = ["hot","dot","dog","lot","log"]
+
+result = wordLadderLength(beginWord, endWord, wordList)
+print(f"Shortest word ladder length: {result}") #Output: 0
 ```
 
 **Explanation:**
 
 1.  **Initialization:**
-    *   `result`: An empty list to store the string representations of the missing ranges.
-    *   `prev`: Initialized to `lower - 1`. This allows us to handle the case where the first element of `nums` is not equal to `lower`.
+    *   We first check if the `endWord` is present in the `wordList`. If not, there's no possible ladder, so we return 0.
+    *   We convert the `wordList` into a `wordSet` (using `set()`) for faster lookup (checking if a word exists).
+    *   We use a `deque` (from the `collections` module) to implement a queue for BFS.  Each element in the queue is a tuple: `(word, level)`, where `word` is the current word, and `level` is the length of the path to reach that word from the `beginWord`. The initial queue contains `(beginWord, 1)`.
+    *   We also keep a `visited` set to avoid cycles and redundant explorations. We add the `beginWord` to the `visited` set initially.
 
-2.  **Iteration:**
-    *   The code iterates through the `nums` array.  We also iterate one element *beyond* the last element to account for a missing range that extends to the `upper` bound.
-    *   Inside the loop, `curr` represents the current number we're comparing against the previous one.  If `i` reaches the end of `nums`, `curr` becomes `upper + 1`, so we can handle missing ranges at the end.
+2.  **Breadth-First Search (BFS):**
+    *   The `while queue:` loop continues as long as there are words to explore in the queue.
+    *   Inside the loop:
+        *   We `popleft()` to get the next word and its level from the queue.
+        *   If the `word` is equal to the `endWord`, we've found the shortest path, and we return the `level`.
+        *   **Generating Neighboring Words:**  For each letter in the current word (using `for i in range(len(word)):`), we iterate through all possible characters 'a' to 'z' (using `for char_code in range(ord('a'), ord('z') + 1):`).  We construct a `new_word` by replacing the character at position `i` with the current character.  This effectively generates all possible one-letter-different words.
+        *   **Checking Validity and Visiting:** We check two things:
+            *   `new_word in wordSet`:  Is the `new_word` present in the valid `wordList`?
+            *   `new_word not in visited`: Have we already visited this word?  We want to explore it only once.
+            *   If both conditions are true, we add the `new_word` to the queue with an incremented `level` (`level + 1`), and we mark it as `visited`.
 
-3.  **Missing Range Check:**
-    *   `if curr - prev > 1:`:  This condition checks if there's a gap between the current number (`curr`) and the previous number (`prev`).  If the difference is greater than 1, it means there are missing numbers between `prev + 1` and `curr - 1`.
+3.  **No Path Found:**
+    *   If the loop completes without finding the `endWord`, it means there's no valid word ladder. In this case, we return 0.
 
-4.  **Range Formatting:**
-    *   `format_range(prev + 1, curr - 1)`: A helper function that constructs the string representation of the missing range.  If the start and end of the range are the same, it returns a single number (e.g., "2").  Otherwise, it returns a string in the format "start->end" (e.g., "4->49").
+**Key improvements in this solution:**
 
-5.  **Updating `prev`:**
-    *   `prev = curr`: After processing the current number, `prev` is updated to `curr` for the next iteration.
+*   **Using a Set:** Converting `wordList` to a `set` significantly speeds up the `in` operation when checking if a neighboring word is valid.
+*   **BFS:** Breadth-First Search guarantees finding the *shortest* path (in terms of the number of transformations) if a path exists.
+*   **Visited Set:** Prevents cycles and redundant processing, making the algorithm more efficient.
+*   **Clear Code:**  The code is structured with comments to explain each step.
 
-**Time and Space Complexity:**
-
-*   **Time Complexity:** O(n), where n is the length of the `nums` array.  The code iterates through the array once.
-*   **Space Complexity:** O(1) or O(k), where k is the number of missing ranges.  In the worst case (where almost every number is missing), the space complexity could be O(n). The result list holds the string representations of ranges, but its size depends on the number of missing ranges, not the absolute size of the input. In the best cases (few to zero missing ranges) the space complexity can be considered constant.
+This problem and solution demonstrate a common DSA pattern: using BFS to find the shortest path in a graph-like structure where the nodes are words, and edges connect words that differ by one letter.
