@@ -1,113 +1,105 @@
-Okay, here's a randomly generated DSA problem and a Python solution:
+Okay, here's a problem involving trees and a solution in Python.
 
-**Problem: Word Ladder Length**
+**Problem:**
 
-Given two words, `beginWord` and `endWord`, and a dictionary `wordList`, find the length of the shortest transformation sequence from `beginWord` to `endWord`, such that:
+**Binary Tree Level Order Traversal with Level Tracking**
 
-1.  Only one letter can be changed at a time.
-2.  Each transformed word must exist in the `wordList`.
+Given a binary tree, perform a level order traversal (breadth-first search).  However, unlike a standard level order traversal, you also need to store and return the level of each node as part of the output.
 
-Return 0 if no such transformation sequence exists.
+The output should be a list of tuples, where each tuple contains the node's value and its level in the tree. The root is considered to be at level 0.
 
 **Example:**
 
 ```
-beginWord = "hit"
-endWord = "cog"
-wordList = ["hot","dot","dog","lot","log","cog"]
+     1
+    / \
+   2   3
+  / \   \
+ 4   5   6
 
-Output: 5
-
-Explanation: One shortest transformation sequence is "hit" -> "hot" -> "dot" -> "dog" -> "cog", which is 5 words long.
+Output:  [(1, 0), (2, 1), (3, 1), (4, 2), (5, 2), (6, 2)]
 ```
 
-**Python Solution (using Breadth-First Search - BFS):**
+**Code Solution (Python):**
 
 ```python
 from collections import deque
 
-def wordLadderLength(beginWord, endWord, wordList):
+class Node:
+    def __init__(self, val):
+        self.val = val
+        self.left = None
+        self.right = None
+
+def level_order_with_level(root):
     """
-    Finds the length of the shortest word ladder from beginWord to endWord.
+    Performs level order traversal of a binary tree, tracking the level of each node.
 
     Args:
-        beginWord: The starting word.
-        endWord: The target word.
-        wordList: The list of valid words.
+      root: The root node of the binary tree.
 
     Returns:
-        The length of the shortest word ladder, or 0 if none exists.
+      A list of tuples, where each tuple contains (node value, level).
     """
 
-    if endWord not in wordList:
-        return 0
+    if not root:
+        return []
 
-    wordSet = set(wordList)  # Convert to set for faster lookup
-    queue = deque([(beginWord, 1)])  # (word, level)
-    visited = {beginWord}
+    result = []
+    queue = deque([(root, 0)])  # Queue stores (node, level) tuples
 
     while queue:
-        word, level = queue.popleft()
+        node, level = queue.popleft()
+        result.append((node.val, level))
 
-        if word == endWord:
-            return level
+        if node.left:
+            queue.append((node.left, level + 1))
+        if node.right:
+            queue.append((node.right, level + 1))
 
-        for i in range(len(word)):
-            for char_code in range(ord('a'), ord('z') + 1):
-                new_char = chr(char_code)
-                new_word = word[:i] + new_char + word[i+1:]
+    return result
 
-                if new_word in wordSet and new_word not in visited:
-                    queue.append((new_word, level + 1))
-                    visited.add(new_word)
+# Example usage:
+# Create a sample binary tree
+root = Node(1)
+root.left = Node(2)
+root.right = Node(3)
+root.left.left = Node(4)
+root.left.right = Node(5)
+root.right.right = Node(6)
 
-    return 0  # No path found
+traversal_result = level_order_with_level(root)
+print(traversal_result)  # Output: [(1, 0), (2, 1), (3, 1), (4, 2), (5, 2), (6, 2)]
 
-
-# Example Usage:
-beginWord = "hit"
-endWord = "cog"
-wordList = ["hot","dot","dog","lot","log","cog"]
-
-result = wordLadderLength(beginWord, endWord, wordList)
-print(f"Shortest word ladder length: {result}")  # Output: 5
-
-
-beginWord = "hit"
-endWord = "cog"
-wordList = ["hot","dot","dog","lot","log"]
-
-result = wordLadderLength(beginWord, endWord, wordList)
-print(f"Shortest word ladder length: {result}") #Output: 0
+# Example with an empty tree
+empty_tree_result = level_order_with_level(None)
+print(empty_tree_result) # Output: []
 ```
 
 **Explanation:**
 
-1.  **Initialization:**
-    *   We first check if the `endWord` is present in the `wordList`. If not, there's no possible ladder, so we return 0.
-    *   We convert the `wordList` into a `wordSet` (using `set()`) for faster lookup (checking if a word exists).
-    *   We use a `deque` (from the `collections` module) to implement a queue for BFS.  Each element in the queue is a tuple: `(word, level)`, where `word` is the current word, and `level` is the length of the path to reach that word from the `beginWord`. The initial queue contains `(beginWord, 1)`.
-    *   We also keep a `visited` set to avoid cycles and redundant explorations. We add the `beginWord` to the `visited` set initially.
+1. **`Node` Class:** Defines the structure of a binary tree node with a value (`val`) and pointers to the left and right children.
 
-2.  **Breadth-First Search (BFS):**
-    *   The `while queue:` loop continues as long as there are words to explore in the queue.
-    *   Inside the loop:
-        *   We `popleft()` to get the next word and its level from the queue.
-        *   If the `word` is equal to the `endWord`, we've found the shortest path, and we return the `level`.
-        *   **Generating Neighboring Words:**  For each letter in the current word (using `for i in range(len(word)):`), we iterate through all possible characters 'a' to 'z' (using `for char_code in range(ord('a'), ord('z') + 1):`).  We construct a `new_word` by replacing the character at position `i` with the current character.  This effectively generates all possible one-letter-different words.
-        *   **Checking Validity and Visiting:** We check two things:
-            *   `new_word in wordSet`:  Is the `new_word` present in the valid `wordList`?
-            *   `new_word not in visited`: Have we already visited this word?  We want to explore it only once.
-            *   If both conditions are true, we add the `new_word` to the queue with an incremented `level` (`level + 1`), and we mark it as `visited`.
+2. **`level_order_with_level(root)` Function:**
+   - Takes the `root` node of the binary tree as input.
+   - Initializes an empty `result` list to store the (value, level) tuples.
+   - Creates a `deque` (double-ended queue) called `queue`.  A `deque` is suitable for breadth-first search because it allows efficient appending and popping from both ends.  Initially, it contains the root node and its level (0) as a tuple: `[(root, 0)]`.
+   - Enters a `while` loop that continues as long as the `queue` is not empty.
+   - Inside the loop:
+     - `node, level = queue.popleft()`:  Removes the first element from the `queue` (which is a tuple containing a node and its level) and assigns the values to `node` and `level` respectively.
+     - `result.append((node.val, level))`:  Appends a tuple `(node.val, level)` to the `result` list, recording the node's value and its level.
+     - `if node.left:`:  If the current node has a left child, it adds the left child and its level (level + 1) to the `queue`.
+     - `if node.right:`:  Similarly, if the current node has a right child, it adds the right child and its level (level + 1) to the `queue`.
+   - After the `while` loop finishes (when all nodes have been processed), the function returns the `result` list.
 
-3.  **No Path Found:**
-    *   If the loop completes without finding the `endWord`, it means there's no valid word ladder. In this case, we return 0.
+**Time and Space Complexity:**
 
-**Key improvements in this solution:**
+- **Time Complexity:** O(N), where N is the number of nodes in the binary tree.  We visit each node exactly once.
+- **Space Complexity:** O(W), where W is the maximum width of the binary tree (i.e., the maximum number of nodes at any level). In the worst-case scenario (a complete binary tree), W is approximately N/2, so the space complexity is effectively O(N). This is due to the `queue` potentially holding all nodes at the widest level of the tree.
 
-*   **Using a Set:** Converting `wordList` to a `set` significantly speeds up the `in` operation when checking if a neighboring word is valid.
-*   **BFS:** Breadth-First Search guarantees finding the *shortest* path (in terms of the number of transformations) if a path exists.
-*   **Visited Set:** Prevents cycles and redundant processing, making the algorithm more efficient.
-*   **Clear Code:**  The code is structured with comments to explain each step.
+**How to Run:**
 
-This problem and solution demonstrate a common DSA pattern: using BFS to find the shortest path in a graph-like structure where the nodes are words, and edges connect words that differ by one letter.
+1.  Save the code as a Python file (e.g., `tree_traversal.py`).
+2.  Run it from your terminal: `python tree_traversal.py`
+
+The output will be printed to the console.
