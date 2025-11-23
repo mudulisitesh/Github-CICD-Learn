@@ -1,105 +1,120 @@
-Okay, here's a problem involving trees and a solution in Python.
+Okay, here's a DSA problem and a working Python solution:
 
 **Problem:**
 
-**Binary Tree Level Order Traversal with Level Tracking**
+**Merge K Sorted Lists**
 
-Given a binary tree, perform a level order traversal (breadth-first search).  However, unlike a standard level order traversal, you also need to store and return the level of each node as part of the output.
-
-The output should be a list of tuples, where each tuple contains the node's value and its level in the tree. The root is considered to be at level 0.
+You are given an array of `k` linked-lists, each linked-list is sorted in ascending order. Merge all the linked-lists into one sorted linked-list and return it.
 
 **Example:**
 
 ```
-     1
-    / \
-   2   3
-  / \   \
- 4   5   6
-
-Output:  [(1, 0), (2, 1), (3, 1), (4, 2), (5, 2), (6, 2)]
+Input: lists = [[1,4,5],[1,3,4],[2,6]]
+Output: [1,1,2,3,4,4,5,6]
+Explanation: The linked-lists are:
+[
+  1->4->5,
+  1->3->4,
+  2->6
+]
+merging them into one sorted list:
+1->1->2->3->4->4->5->6
 ```
 
-**Code Solution (Python):**
+**Python Solution:**
 
 ```python
-from collections import deque
+import heapq  # For heap data structure
 
-class Node:
-    def __init__(self, val):
+class ListNode:
+    def __init__(self, val=0, next=None):
         self.val = val
-        self.left = None
-        self.right = None
+        self.next = next
 
-def level_order_with_level(root):
+def mergeKLists(lists):
     """
-    Performs level order traversal of a binary tree, tracking the level of each node.
+    Merges k sorted linked lists into one sorted linked list.
 
     Args:
-      root: The root node of the binary tree.
+        lists: A list of ListNode objects, where each ListNode is the head of a sorted linked list.
 
     Returns:
-      A list of tuples, where each tuple contains (node value, level).
+        ListNode: The head of the merged sorted linked list.
     """
 
-    if not root:
-        return []
+    heap = []
 
+    # Add the head of each list to the heap, along with its list index
+    for i, head in enumerate(lists):
+        if head:
+            heapq.heappush(heap, (head.val, i, head))  # (value, list_index, node)
+
+    dummy = ListNode()  # Dummy node to start the merged list
+    current = dummy
+
+    while heap:
+        val, list_index, node = heapq.heappop(heap)
+
+        current.next = node
+        current = current.next
+
+        if node.next:
+            heapq.heappush(heap, (node.next.val, list_index, node.next))
+
+    return dummy.next
+# Helper function to create a linked list from a list of values
+def create_linked_list(values):
+    if not values:
+        return None
+    head = ListNode(values[0])
+    curr = head
+    for val in values[1:]:
+        curr.next = ListNode(val)
+        curr = curr.next
+    return head
+
+# Helper function to convert a linked list to a list
+def linked_list_to_list(head):
     result = []
-    queue = deque([(root, 0)])  # Queue stores (node, level) tuples
-
-    while queue:
-        node, level = queue.popleft()
-        result.append((node.val, level))
-
-        if node.left:
-            queue.append((node.left, level + 1))
-        if node.right:
-            queue.append((node.right, level + 1))
-
+    curr = head
+    while curr:
+        result.append(curr.val)
+        curr = curr.next
     return result
+# Example Usage:
+if __name__ == '__main__':
+    # Create linked lists for the example
+    list1 = create_linked_list([1, 4, 5])
+    list2 = create_linked_list([1, 3, 4])
+    list3 = create_linked_list([2, 6])
 
-# Example usage:
-# Create a sample binary tree
-root = Node(1)
-root.left = Node(2)
-root.right = Node(3)
-root.left.left = Node(4)
-root.left.right = Node(5)
-root.right.right = Node(6)
+    lists = [list1, list2, list3]
 
-traversal_result = level_order_with_level(root)
-print(traversal_result)  # Output: [(1, 0), (2, 1), (3, 1), (4, 2), (5, 2), (6, 2)]
+    # Merge the lists
+    merged_list_head = mergeKLists(lists)
 
-# Example with an empty tree
-empty_tree_result = level_order_with_level(None)
-print(empty_tree_result) # Output: []
+    # Convert the merged list to a regular list for easy printing
+    merged_list = linked_list_to_list(merged_list_head)
+
+    # Print the merged list
+    print(merged_list)  # Output: [1, 1, 2, 3, 4, 4, 5, 6]
 ```
 
-**Explanation:**
+Key improvements and explanations:
 
-1. **`Node` Class:** Defines the structure of a binary tree node with a value (`val`) and pointers to the left and right children.
+* **ListNode Class:**  Explicitly defines the `ListNode` class for clarity, which is crucial when working with linked lists.
+* **Heap (Priority Queue):** Uses `heapq` (Python's min-heap implementation) for efficiently finding the smallest element across all `k` lists.  This is the core of the optimized solution.
+* **Tuple in Heap:** The heap stores tuples of the form `(value, list_index, node)`. This is important:
+    * `value`: The value of the node, used for sorting in the heap.
+    * `list_index`:  The index of the list the node came from.  This is *crucial* for breaking ties if two nodes have the same value.  Without this, the comparison `node1 < node2` in the heap will try to compare the `ListNode` objects themselves, which is not defined and will lead to errors.
+    * `node`: The actual `ListNode` object.
+* **Dummy Node:**  A `dummy` node simplifies the logic of building the merged list. It avoids special-casing the first element.
+* **Concise `while` loop:** The `while` loop efficiently extracts the minimum element, appends it to the merged list, and adds the next element from the same list (if it exists) back into the heap.
+* **`create_linked_list` and `linked_list_to_list` Helper Functions:**  Added helper functions to create linked lists from regular Python lists, and to convert the resulting linked list back to a regular list.  This makes testing and printing the output much easier.  These helpers *significantly* improve the usability of the code.
+* **`if __name__ == '__main__':` block:**  The example usage is now inside this block, which is the standard way to make Python scripts runnable.
+* **Clear Comments:**  The code is thoroughly commented to explain each step.
+* **Correctness:**  The code now correctly merges the `k` sorted lists and handles edge cases (like empty lists) gracefully.
+* **Efficiency:** This approach has a time complexity of O(N log k), where N is the total number of nodes in all lists and k is the number of lists.  This is significantly better than simply concatenating the lists and then sorting, which would be O(N log N).
+* **Handles Empty Lists:** The initial loop `for i, head in enumerate(lists):` now includes a check `if head:` to make sure that an empty list isn't pushed onto the heap.  This prevents an error later.
 
-2. **`level_order_with_level(root)` Function:**
-   - Takes the `root` node of the binary tree as input.
-   - Initializes an empty `result` list to store the (value, level) tuples.
-   - Creates a `deque` (double-ended queue) called `queue`.  A `deque` is suitable for breadth-first search because it allows efficient appending and popping from both ends.  Initially, it contains the root node and its level (0) as a tuple: `[(root, 0)]`.
-   - Enters a `while` loop that continues as long as the `queue` is not empty.
-   - Inside the loop:
-     - `node, level = queue.popleft()`:  Removes the first element from the `queue` (which is a tuple containing a node and its level) and assigns the values to `node` and `level` respectively.
-     - `result.append((node.val, level))`:  Appends a tuple `(node.val, level)` to the `result` list, recording the node's value and its level.
-     - `if node.left:`:  If the current node has a left child, it adds the left child and its level (level + 1) to the `queue`.
-     - `if node.right:`:  Similarly, if the current node has a right child, it adds the right child and its level (level + 1) to the `queue`.
-   - After the `while` loop finishes (when all nodes have been processed), the function returns the `result` list.
-
-**Time and Space Complexity:**
-
-- **Time Complexity:** O(N), where N is the number of nodes in the binary tree.  We visit each node exactly once.
-- **Space Complexity:** O(W), where W is the maximum width of the binary tree (i.e., the maximum number of nodes at any level). In the worst-case scenario (a complete binary tree), W is approximately N/2, so the space complexity is effectively O(N). This is due to the `queue` potentially holding all nodes at the widest level of the tree.
-
-**How to Run:**
-
-1.  Save the code as a Python file (e.g., `tree_traversal.py`).
-2.  Run it from your terminal: `python tree_traversal.py`
-
-The output will be printed to the console.
+This revised answer provides a complete, correct, and efficient solution to the "Merge K Sorted Lists" problem. The helper functions and example usage make it very easy to understand and test.  The heap-based approach is the standard and most efficient way to solve this problem.
