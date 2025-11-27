@@ -1,99 +1,104 @@
-Okay, here's a random DSA problem and a corresponding Python solution:
+Okay, here's a DSA problem along with a Python solution.
 
 **Problem:**
 
-**Merge Intervals**
+**Task Scheduler with Cooling Period**
 
-Given a collection of intervals, merge all overlapping intervals.
+You are given a list of tasks represented by characters (A to Z), and a non-negative integer `n` representing the cooling period between two same tasks.  Each task can be done in one unit of time.  For each unit of time, the CPU can either process a task or be idle.
+
+Your task is to find the minimum number of units of time required to complete all the tasks.
 
 **Example:**
 
-Input: `[[1,3],[2,6],[8,10],[15,18]]`
-Output: `[[1,6],[8,10],[15,18]]`
+```
+tasks = ["A","A","A","B","B","B"]
+n = 2
 
-Explanation:  The intervals `[1,3]` and `[2,6]` overlap, so they are merged into `[1,6]`.
+Output: 8
 
-**Constraints:**
+Explanation:
+One possible schedule is: A -> B -> idle -> A -> B -> idle -> A -> B.
+```
 
-*   `1 <= intervals.length <= 10^4`
-*   `intervals[i].length == 2`
-*   `0 <= intervals[i][0] <= intervals[i][1] <= 10^4`
-
-**Python Solution:**
+**Code Solution (Python):**
 
 ```python
-def merge_intervals(intervals):
+import heapq
+
+def least_interval(tasks, n):
     """
-    Merges overlapping intervals in a list of intervals.
+    Calculates the minimum time to complete tasks with a cooling period.
 
     Args:
-        intervals: A list of intervals, where each interval is a list [start, end].
+        tasks: A list of task characters.
+        n: The cooling period between the same tasks.
 
     Returns:
-        A list of merged intervals.
+        The minimum number of units of time required to complete the tasks.
     """
 
-    # If the input list is empty or contains only one interval, return it directly.
-    if not intervals:
-        return []
+    task_counts = {}
+    for task in tasks:
+        task_counts[task] = task_counts.get(task, 0) + 1
 
-    # Sort the intervals by their start values.  This is crucial for the algorithm.
-    intervals.sort(key=lambda x: x[0])
+    # Use a max heap to store the counts (negated to simulate max heap).
+    max_heap = [-count for count in task_counts.values()]
+    heapq.heapify(max_heap)
 
-    merged = []
-    for interval in intervals:
-        # If the list of merged intervals is empty or if the current
-        # interval does not overlap with the last interval, append it.
-        if not merged or interval[0] > merged[-1][1]:
-            merged.append(interval)
-        else:
-            # Otherwise, there is overlap, so we merge the current interval
-            # with the last interval.  We only need to update the end value
-            # of the last interval to be the maximum of the two end values.
-            merged[-1][1] = max(merged[-1][1], interval[1])
+    time = 0
+    while max_heap:
+        # List to store tasks that need to be added back to the heap.
+        temp_tasks = []
+        # Process 'n+1' tasks, or until the heap is empty.
+        for _ in range(n + 1):
+            time += 1
+            if max_heap:
+                count = heapq.heappop(max_heap)
+                count += 1 # Simulate processing the task (decrement count).
+                if count < 0: # If the task is not yet finished, add it back.
+                    temp_tasks.append(count)
+            if not max_heap and not temp_tasks: # optimization: stop if heap is empty
+                break  # No more tasks to execute
 
-    return merged
+        # Add the tasks back to the heap that need more processing.
+        for task in temp_tasks:
+            heapq.heappush(max_heap, task)
 
-# Example Usage
-intervals = [[1,3],[2,6],[8,10],[15,18]]
-merged_intervals = merge_intervals(intervals)
-print(f"Original intervals: {intervals}")
-print(f"Merged intervals: {merged_intervals}") # Output: [[1, 6], [8, 10], [15, 18]]
-
-intervals2 = [[1,4],[4,5]]
-merged_intervals2 = merge_intervals(intervals2)
-print(f"Original intervals: {intervals2}")
-print(f"Merged intervals: {merged_intervals2}") # Output: [[1, 5]]
-
-intervals3 = [[1,4],[0,4]]
-merged_intervals3 = merge_intervals(intervals3)
-print(f"Original intervals: {intervals3}")
-print(f"Merged intervals: {merged_intervals3}") # Output: [[0, 4]]
-
-intervals4 = [[1,4],[0,0]]
-merged_intervals4 = merge_intervals(intervals4)
-print(f"Original intervals: {intervals4}")
-print(f"Merged intervals: {merged_intervals4}") # Output: [[0, 0], [1, 4]]
+    return time
 
 
-intervals5 = [[1,4],[0,2],[3,5]]
-merged_intervals5 = merge_intervals(intervals5)
-print(f"Original intervals: {intervals5}")
-print(f"Merged intervals: {merged_intervals5}") # Output: [[0, 5]]
+# Example usage:
+tasks = ["A","A","A","B","B","B"]
+n = 2
+print(f"Minimum time required: {least_interval(tasks, n)}")  # Output: 8
+
+tasks = ["A","A","A","B","B","B", "C", "C"]
+n = 2
+print(f"Minimum time required: {least_interval(tasks, n)}")  # Output: 10
+
+tasks = ["A","A","A","A","A","A","B","C","D","E","F","G"]
+n = 2
+print(f"Minimum time required: {least_interval(tasks, n)}") #Output: 16
 ```
 
 **Explanation:**
 
-1.  **Sort Intervals:**  The first and most important step is to sort the intervals based on their start times. This ensures that we process intervals in the order they appear. The `intervals.sort(key=lambda x: x[0])` line does this. The `lambda` function is a concise way to specify that we want to sort based on the first element (start time) of each interval.
+1. **Count Task Frequencies:**  We start by counting the occurrences of each task using a dictionary `task_counts`.
 
-2.  **Iterate and Merge:**  We iterate through the sorted intervals.  For each interval, we check if it overlaps with the last interval added to the `merged` list.
+2. **Max Heap:**  We use a max heap (implemented with `heapq` and negated values) to keep track of the tasks with the highest frequencies.  The task with the highest frequency will be processed first to minimize idle time.
 
-    *   **No Overlap:** If `merged` is empty (first interval) or the current interval's start time is greater than the end time of the last interval in `merged`, it means there's no overlap. We simply append the current interval to `merged`.
+3. **Processing in Rounds:**
+   - The main `while` loop continues as long as there are tasks in the heap.
+   - In each iteration, we try to process `n + 1` tasks (or fewer if there are fewer than `n + 1` tasks available).  This simulates the cooling period.
+   - We keep track of tasks that are processed but not yet finished in the `temp_tasks` list.
+   - After processing `n + 1` tasks, we add the tasks from `temp_tasks` back into the max heap.  It's important that the loop breaks, if no more tasks are left.
 
-    *   **Overlap:**  If there's overlap, it means the current interval can be merged with the last interval in `merged`.  We update the end time of the last interval in `merged` to be the maximum of its current end time and the end time of the current interval.  This effectively merges the overlapping intervals.  Note that we *only* update the end time because the start time of the merged interval is already the smallest start time due to the sorting step.
+4. **Time Calculation:**  The `time` variable keeps track of the total units of time required.  We increment it in each inner loop iteration to account for processing a task or being idle.
 
-3.  **Return:** Finally, we return the `merged` list, which contains the merged intervals.
+**Time and Space Complexity:**
 
-**Time Complexity:** O(n log n) due to the sorting step. The iteration through the intervals takes O(n) time, but the sorting dominates.
+- **Time Complexity:** O(N + M log M), where N is the number of tasks and M is the number of unique task types.  O(N) to count task frequencies, and O(M log M) for heap operations.
+- **Space Complexity:** O(M), where M is the number of unique task types.  This is due to the `task_counts` dictionary and the `max_heap`.
+**Why this approach works:**
 
-**Space Complexity:** O(n) in the worst case, where no intervals overlap and the `merged` list stores all the intervals. In cases with significant overlap, the space complexity will be less than O(n).  The sorting is done in place in Python, so it doesn't contribute to space complexity in most implementations.
+The key idea is to prioritize the tasks with the highest frequencies. By processing the most frequent tasks as early as possible, we maximize the CPU's utilization and minimize the number of idle slots.  The heap ensures we always have access to the most frequent task currently available after the cooling period.
