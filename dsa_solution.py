@@ -1,84 +1,150 @@
-Okay, here's a random DSA problem and a Python solution:
+Okay, here's a random DSA problem, along with a Python solution:
 
-**Problem:  First Unique Character in a String**
+**Problem:**
 
-Given a string `s`, find the first non-repeating character in it and return its index. If it does not exist, return -1.
+**Cycle Detection in a Directed Graph**
 
-**Example 1:**
+Given a directed graph represented as an adjacency list, determine if the graph contains a cycle.
 
-```
-Input: s = "leetcode"
-Output: 0
-```
+**Input:**
 
-**Example 2:**
+*   `graph`: A dictionary (adjacency list) where keys represent nodes and values are lists of their neighbors. For example:
+    ```python
+    graph = {
+        0: [1, 2],
+        1: [2],
+        2: [0, 3],
+        3: [3]  # Self-loop, which is also a cycle
+    }
+    ```
 
-```
-Input: s = "loveleetcode"
-Output: 2
-```
+**Output:**
 
-**Example 3:**
+*   `True` if the graph contains a cycle, `False` otherwise.
 
-```
-Input: s = "aabb"
-Output: -1
-```
+**Explanation:**
+
+A cycle exists in a directed graph if you can start at a node and follow a path of edges that eventually leads you back to the starting node.  You can solve this using Depth-First Search (DFS).  The main idea is to keep track of nodes that are currently in the recursion stack (being visited). If you encounter a node that is already in the recursion stack, you've found a cycle.
 
 **Python Solution:**
 
 ```python
-def first_unique_char(s):
+def has_cycle(graph):
     """
-    Finds the index of the first non-repeating character in a string.
+    Detects cycles in a directed graph using DFS.
 
     Args:
-        s: The input string.
+        graph: A dictionary representing the graph as an adjacency list.
 
     Returns:
-        The index of the first non-repeating character, or -1 if none exists.
+        True if the graph contains a cycle, False otherwise.
     """
 
-    # Use a dictionary to store character counts.
-    char_counts = {}
+    def dfs(node, visited, recursion_stack):
+        """
+        Performs Depth-First Search starting from a node.
 
-    # Count the occurrences of each character.
-    for char in s:
-        char_counts[char] = char_counts.get(char, 0) + 1  #Use get to handle missing keys
+        Args:
+            node: The current node being visited.
+            visited: A set of visited nodes.
+            recursion_stack: A set of nodes currently in the recursion stack.
 
-    # Iterate through the string again to find the first character with count 1.
-    for i, char in enumerate(s):
-        if char_counts[char] == 1:
-            return i
+        Returns:
+            True if a cycle is detected, False otherwise.
+        """
 
-    # If no unique character is found, return -1.
-    return -1
+        visited.add(node)
+        recursion_stack.add(node)
 
-# Example usage
-string1 = "leetcode"
-string2 = "loveleetcode"
-string3 = "aabb"
+        for neighbor in graph.get(node, []):  # Iterate through neighbors
+            if neighbor in recursion_stack:
+                return True  # Cycle detected
 
-print(f"'{string1}': {first_unique_char(string1)}")
-print(f"'{string2}': {first_unique_char(string2)}")
-print(f"'{string3}': {first_unique_char(string3)}")
+            if neighbor not in visited:
+                if dfs(neighbor, visited, recursion_stack):
+                    return True  # Cycle detected in subtree
+
+        recursion_stack.remove(node)  # Remove node from recursion stack when done
+        return False  # No cycle found in this branch
+
+    num_nodes = len(graph)
+    visited = set()
+    recursion_stack = set()
+
+    for node in graph: # Iterate through all nodes to handle disconnected components
+        if node not in visited:  # Ensure all components are explored
+            if dfs(node, visited, recursion_stack):
+                return True  # Cycle detected
+
+    return False  # No cycle found in the entire graph
+
+
+# Example Usage:
+graph1 = {
+    0: [1, 2],
+    1: [2],
+    2: [0, 3],
+    3: [3]
+}
+print(f"Graph 1 has cycle: {has_cycle(graph1)}")  # Output: True
+
+graph2 = {
+    0: [1, 2],
+    1: [2],
+    2: [3],
+    3: []
+}
+print(f"Graph 2 has cycle: {has_cycle(graph2)}")  # Output: False
+
+graph3 = {
+    0: [1],
+    1: [2],
+    2: [0]
+}
+print(f"Graph 3 has cycle: {has_cycle(graph3)}") # Output: True
+
+graph4 = {
+    0: [1],
+    1: [2],
+    2: [3],
+    3: [4],
+    4: []
+}
+print(f"Graph 4 has cycle: {has_cycle(graph4)}") # Output: False
+
+graph5 = {
+    0: [],
+    1: []
+}
+print(f"Graph 5 has cycle: {has_cycle(graph5)}") # Output: False
+
+graph6 = {
+    0: [1],
+    1: [0]
+}
+
+print(f"Graph 6 has cycle: {has_cycle(graph6)}") # Output: True
 ```
 
-**Explanation:**
+**Explanation of the Code:**
 
-1.  **Character Counting:**
-    *   We use a dictionary `char_counts` to store the frequency of each character in the input string `s`.
-    *   We iterate through the string, and for each character, we increment its count in the `char_counts` dictionary. The `char_counts.get(char, 0) + 1` pattern is used to handle cases where a character is encountered for the first time. `get(char, 0)` returns 0 if `char` is not a key in the dictionary, avoiding a `KeyError`.
+1.  **`has_cycle(graph)` Function:**
+    *   Initializes `visited` (a set to keep track of visited nodes during the DFS traversal) and `recursion_stack` (a set to keep track of nodes currently in the recursion stack).
+    *   Iterates through each node in the graph to handle cases where the graph might have disconnected components.  If a node hasn't been visited yet, it calls the `dfs()` function starting from that node.
 
-2.  **Finding the First Unique Character:**
-    *   We iterate through the string `s` again, this time along with its index `i` using `enumerate`.
-    *   For each character `char` at index `i`, we check if its count in `char_counts` is equal to 1.
-    *   If the count is 1, it means the character is unique, and we immediately return its index `i`.
+2.  **`dfs(node, visited, recursion_stack)` Function:**
+    *   Marks the current `node` as visited and adds it to the `recursion_stack`.
+    *   Iterates through the neighbors of the current `node`.
+    *   **Cycle Detection:** If a neighbor is already in the `recursion_stack`, it means we've encountered a back edge, indicating a cycle.  In this case, the function immediately returns `True`.
+    *   **Recursive Call:** If a neighbor hasn't been visited yet, the `dfs()` function is called recursively on that neighbor. If the recursive call returns `True` (meaning a cycle was found in the subtree), the function also returns `True`.
+    *   **Backtracking:** After visiting all neighbors of a node, the node is removed from the `recursion_stack`.  This is crucial for backtracking; we're indicating that we're no longer "exploring" that branch of the graph.
+    *   **No Cycle Found:** If the function reaches the end without finding a cycle, it returns `False`.
 
-3.  **No Unique Character:**
-    *   If the loop completes without finding any unique character (i.e., all characters have counts greater than 1), we return -1 to indicate that no unique character exists in the string.
+**Key Concepts Used:**
 
-**Time Complexity:** O(n), where n is the length of the string. We iterate through the string twice.
-**Space Complexity:** O(1). In the worst-case scenario, the `char_counts` dictionary will store all unique characters in the string.  Since the number of unique characters is limited by the size of the alphabet (e.g., 26 for lowercase English letters), the space complexity is considered constant.
-
-This solution is relatively straightforward and efficient for finding the first unique character in a string.
+*   **Depth-First Search (DFS):** A graph traversal algorithm that explores as far as possible along each branch before backtracking.
+*   **Adjacency List:** A way to represent a graph where each node is associated with a list of its neighbors.
+*   **Recursion Stack:** The data structure used to keep track of the function calls during recursive execution.  In this case, it's used to detect back edges, which indicate cycles.
+*   **`visited` Set:**  This set prevents infinite loops by ensuring that each node is visited only once during the DFS traversal (except when a cycle is being detected).
+*   **`recursion_stack` Set:** This set is critical for cycle detection.  It stores the nodes that are currently being explored in the current path of the DFS. If we encounter a node that is already in the recursion stack, it means we've found a back edge and thus a cycle.
+This solution is efficient and handles disconnected graphs correctly.  It provides a clear and understandable implementation of cycle detection in a directed graph using DFS.  The example usage demonstrates the function's effectiveness with various graph structures.
